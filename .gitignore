@@ -1,0 +1,13 @@
+###################
+#.gitignore       #
+###################
+
+*o
+*.elf
+*.nacp
+*.nro
+*.nso
+*.pfs0
+MakefileNik
+nbproject/
+build/

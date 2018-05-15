@@ -2,7 +2,10 @@
 #.gitignore       #
 ###################
 
-*o
+build/
+out/
+
+*.o
 *.elf
 *.nacp
 *.nro

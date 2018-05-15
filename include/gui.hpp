@@ -5,6 +5,7 @@
 
 extern "C" {
   #include "theme.h"
+  #include "types.h"
 }
 
 extern const ffnt_header_t tahoma24_nxfnt;
@@ -21,7 +22,7 @@ public:
   void draw();
 
 private:
-  uint32_t *m_framebuffer;
+  uint8_t *m_framebuffer;
   uint32_t m_framebuffer_width;
   uint32_t m_framebuffer_height;
 

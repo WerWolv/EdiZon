@@ -1,5 +1,9 @@
 #pragma once
 
+#include <switch.h>
+
+typedef u128 uint128_t;
+
 typedef union {
   uint32_t color_abgr;
 

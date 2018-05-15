@@ -5,7 +5,20 @@ Gui::Gui() {
 }
 
 Gui::~Gui() {
+<<<<<<< HEAD
   
+=======
+
+}
+
+void Gui::draw() {
+  rectangle(0, 0, this->m_framebuffer_width, this->m_framebuffer_height, currTheme.backgroundColor);
+  drawText(font14, 100, 100, currTheme.textColor, "HELLO WORLD");
+
+  gfxFlushBuffers();
+  gfxSwapBuffers();
+  gfxWaitForVsync();
+>>>>>>> d5fc54c62dd5f020307d2f41ff2b1e3245113d52
 }
 
 inline uint8_t Gui::blendColor(uint32_t src, uint32_t dst, uint8_t alpha) {

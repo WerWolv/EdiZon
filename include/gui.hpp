@@ -21,7 +21,11 @@ public:
   virtual ~Gui();
   virtual void draw() = 0;
 
+<<<<<<< HEAD
 protected:
+=======
+private:
+>>>>>>> d5fc54c62dd5f020307d2f41ff2b1e3245113d52
   uint8_t *m_framebuffer;
   uint32_t m_framebuffer_width;
   uint32_t m_framebuffer_height;

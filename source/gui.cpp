@@ -1,7 +1,7 @@
 #include "gui.hpp"
 
 Gui::Gui() {
-  this->m_framebuffer = (uint32_t*) gfxGetFramebuffer(&this->m_framebuffer_width, &this->m_framebuffer_height);
+  this->m_framebuffer = gfxGetFramebuffer(&this->m_framebuffer_width, &this->m_framebuffer_height);
 }
 
 Gui::~Gui() {
@@ -9,15 +9,8 @@ Gui::~Gui() {
 }
 
 void Gui::draw() {
-  for(uint32_t i = 0; i < this->m_framebuffer_width; i++) {
-    for(uint32_t j = 0; j < this->m_framebuffer_height; j++) {
-      this->m_framebuffer[i + j * this->m_framebuffer_width] = currTheme.backgroundColor.color_abgr;
-    }
-  }
-
+  rectangle(0, 0, this->m_framebuffer_width, this->m_framebuffer_height, currTheme.backgroundColor);
   drawText(font14, 100, 100, currTheme.textColor, "HELLO WORLD");
-
-
 
   gfxFlushBuffers();
   gfxSwapBuffers();
@@ -41,7 +34,7 @@ inline color_t Gui::makeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 inline void Gui::drawPixel(uint32_t x, uint32_t y, color_t clr) {
     if (x >= 1280 || y >= 720)
         return;
-    uint32_t off = (y * this->m_framebuffer_width + x);
+    uint32_t off = (y * this->m_framebuffer_width + x)*4;
     this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.r, clr.a); off++;
     this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.g, clr.a); off++;
     this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.b, clr.a); off++;
@@ -53,9 +46,9 @@ inline void Gui::draw4PixelsRaw(uint32_t x, uint32_t y, color_t clr) {
         return;
 
     uint32_t color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
-    u128 val = color | ((u128)color<<32) | ((u128)color<<64) | ((u128)color<<96);
+    u128 val = color | ((uint128_t)color<<32) | ((uint128_t)color<<64) | ((uint128_t)color<<96);
     uint32_t off = (y * this->m_framebuffer_width + x)*4;
-    *((u128*)&this->m_framebuffer[off]) = val;
+    *((uint128_t*)&this->m_framebuffer[off]) = val;
 }
 
 inline const ffnt_page_t* Gui::fontGetPage(const ffnt_header_t* font, uint32_t page_id) {

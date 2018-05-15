@@ -1,4 +1,5 @@
 #include "save.hpp"
+#include "nanojpeg.h"
 
 const char* ROOT_DIR = "/EdiZon/";
 const char* SAVE_DEV = "save";
@@ -162,6 +163,64 @@ int dumpToTitleUserDir(FsSaveDataInfo info, bool isInject) {
     char exInjDir[0x100];
     makeExInjDir(exInjDir, info.titleID, isInject);
     return copyAllSave(".", isInject, exInjDir);
+}
+
+bool getTitleIcon(u64 titleID, u8* decodedptr)
+{
+  Result rc=0;
+
+  NsApplicationControlData *buf = NULL;
+  size_t outsize = 0;
+
+  buf = (NsApplicationControlData*)malloc(sizeof(NsApplicationControlData));
+  if (buf==NULL) {
+      rc = MAKERESULT(Module_Libnx, LibnxError_OutOfMemory);
+      printf("Failed to alloc mem.\n");
+  }
+  else {
+      memset(buf, 0, sizeof(NsApplicationControlData));
+  }
+
+  if (R_SUCCEEDED(rc)) {
+      rc = nsInitialize();
+      if (R_FAILED(rc)) {
+          printf("nsInitialize() failed: 0x%x\n", rc);
+          return false;
+      }
+      rc = nsGetApplicationControlData(1, titleID, buf, sizeof(NsApplicationControlData), &outsize);
+      if (R_FAILED(rc)) {
+          printf("nsGetApplicationControlData() failed: 0x%x\n", rc);
+          return false;
+      }
+
+      if (outsize < sizeof(buf->nacp)) {
+          printf("Outsize is too small: 0x%lx.\n", outsize);
+          return false;
+      }
+  }
+
+  njInit();
+  if (njDecode(buf->icon, outsize-sizeof(buf->nacp)) != NJ_OK)
+  {
+      njDone();
+      return false;
+  }
+
+  if (njGetWidth() != 256 || njGetHeight() != 256 || (bool)njGetImageSize() != 256*256*3)
+  {
+      njDone();
+      return false;
+  }
+
+  decodedptr = njGetImage();
+  if (decodedptr == NULL)
+  {
+      njDone();
+      return false;
+  }
+
+  njDone();
+  return true;
 }
 
 Result getTitleName(u64 titleID, char * name) {

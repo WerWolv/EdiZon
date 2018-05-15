@@ -18,10 +18,10 @@ extern const ffnt_header_t interuiregular14_nxfnt;
 class Gui {
 public:
   Gui();
-  ~Gui();
-  void draw();
+  virtual ~Gui();
+  virtual void draw() = 0;
 
-private:
+protected:
   uint8_t *m_framebuffer;
   uint32_t m_framebuffer_width;
   uint32_t m_framebuffer_height;
@@ -37,8 +37,8 @@ private:
   inline uint8_t blendColor(uint32_t src, uint32_t dst, uint8_t alpha);
   inline color_t makeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
   inline void draw4PixelsRaw(uint32_t x, uint32_t y, color_t clr);
-  void rectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color);
-  void rectangled(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color);
+  void drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color);
+  void drawRectangled(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color);
   inline void drawPixel(uint32_t x, uint32_t y, color_t clr);
   void drawText(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text);
   void drawTextTruncate(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text, uint32_t max_width);

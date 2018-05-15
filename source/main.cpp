@@ -2,21 +2,23 @@
 #include <stdio.h>
 
 #include "gui.hpp"
+#include "gui_main.hpp"
+#include "gui_test.hpp"
 
 extern "C" {
   #include "theme.h"
 }
 
+Gui *currGui = nullptr;
+
 int main(int argc, char** argv) {
     gfxInitDefault();
     setsysInitialize();
     ColorSetId colorSetId;
-    HidSharedMemory *hidSharedMemory = (HidSharedMemory*) hidGetSharedmemAddr();
     setsysGetColorSetId(&colorSetId);
-    setTheme(colorSetId, hidSharedMemory->controllers[0].header.singleColorBody, hidSharedMemory->controllers[1].header.singleColorBody);
+    setTheme(colorSetId, 0x00000000, 0x00000000);
 
-    Gui gui;
-
+    currGui = new GuiMain();
 
     while(appletMainLoop()) {
         hidScanInput();
@@ -25,8 +27,10 @@ int main(int argc, char** argv) {
         if(kdown & KEY_PLUS)
           break;
 
-        gui.draw();
+        currGui->draw();
     }
+
+    delete currGui;
 
     gfxExit();
 

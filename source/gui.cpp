@@ -5,16 +5,7 @@ Gui::Gui() {
 }
 
 Gui::~Gui() {
-
-}
-
-void Gui::draw() {
-  rectangle(0, 0, this->m_framebuffer_width, this->m_framebuffer_height, currTheme.backgroundColor);
-  drawText(font20, 100, 100, currTheme.textColor, "HELLO WORLD");
-
-  gfxFlushBuffers();
-  gfxSwapBuffers();
-  gfxWaitForVsync();
+  
 }
 
 inline uint8_t Gui::blendColor(uint32_t src, uint32_t dst, uint8_t alpha) {
@@ -244,7 +235,7 @@ void Gui::drawImage(int x, int y, int width, int height, const uint8_t *image, I
     }
 }
 
-void Gui::rectangled(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color) {
+void Gui::drawRectangled(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color) {
     for (uint32_t j = y; j < y + h; j++) {
         for (uint32_t i = x; i < x + w; i++) {
             drawPixel(i, j, color);
@@ -252,7 +243,7 @@ void Gui::rectangled(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t col
     }
 }
 
-void Gui::rectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color) {
+void Gui::drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color) {
     for (uint32_t j = y; j < y + h; j++) {
         for (uint32_t i = x; i < x + w; i+=4) {
             draw4PixelsRaw(i, j, color);

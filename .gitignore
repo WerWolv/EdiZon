@@ -4,10 +4,3 @@
 
 build/
 out/
-
-*.o
-*.elf
-*.nacp
-*.nro
-*.nso
-*.pfs0

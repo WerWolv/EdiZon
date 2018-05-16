@@ -24,7 +24,7 @@ void makeExInjDir(char ptr[0x100], u64 titleID, bool isInject)
     mkdir(ptr, 0700);
 }
 
-Result getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
+Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
     Result rc=0;
     FsSaveDataIterator iterator;
     size_t total_entries=0;
@@ -161,13 +161,13 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
     }
 }
 
-int dumpToTitleUserDir(FsSaveDataInfo info, bool isInject) {
+int _dumpToTitleUserDir(FsSaveDataInfo info, bool isInject) {
     char exInjDir[0x100];
     makeExInjDir(exInjDir, info.titleID, isInject);
     return copyAllSave(".", isInject, exInjDir);
 }
 
-bool getTitleIcon(u64 titleID, uint8_t** decodedptr)
+bool _getTitleIcon(u64 titleID, uint8_t** decodedptr)
 {
   Result rc=0;
   size_t outsize = 0;
@@ -218,7 +218,7 @@ bool getTitleIcon(u64 titleID, uint8_t** decodedptr)
   return true;
 }
 
-Result getTitleName(u64 titleID, char * name) {
+Result _getTitleName(u64 titleID, char * name) {
     Result rc=0;
 
     NsApplicationControlData *buf=NULL;
@@ -270,7 +270,7 @@ Result getTitleName(u64 titleID, char * name) {
     return rc;
 }
 
-Result getUserNameById(u128 userID, char * username) {
+Result _getUserNameById(u128 userID, char * username) {
     Result rc=0;
 
     AccountProfile profile;

@@ -2,7 +2,7 @@
 
 #include <switch.h>
 
-typedef u128 uint128_t;
+typedef __uint128_t uint128_t;
 
 typedef union {
   uint32_t color_abgr;

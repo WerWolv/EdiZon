@@ -44,6 +44,7 @@ protected:
   void drawTextTruncate(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text, uint32_t max_width);
   void getTextDimensions(const ffnt_header_t* font, const char* text, uint32_t* width_out, uint32_t* height_out);
   void drawImage(int x, int y, int width, int height, const uint8_t *image, ImageMode mode);
+  void drawShadow(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 };
 
 #define COLOR_WHITE makeColor(255, 255, 255, 255)

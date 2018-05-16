@@ -5,7 +5,7 @@ Gui::Gui() {
 }
 
 Gui::~Gui() {
-  
+
 }
 
 inline uint8_t Gui::blendColor(uint32_t src, uint32_t dst, uint8_t alpha) {
@@ -249,4 +249,22 @@ void Gui::drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t 
             draw4PixelsRaw(i, j, color);
         }
     }
+}
+
+void Gui::drawShadow(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  color_t shadowColor;
+  uint8_t shadowAlphaBase = 80;
+  uint8_t shadowSize = 4;
+  uint8_t shadowInset;
+  for(int16_t tmpx = x; tmpx < (x + width); tmpx+=4) {
+    for(int16_t tmpy = y; tmpy < (y + height); tmpy++) {
+      shadowColor = makeColor(0, 0, 0, shadowAlphaBase * (1.0F - (float)(tmpy - y) / ((float)shadowSize)));
+      shadowInset = (tmpy - y);
+
+      if(tmpx >= (x + shadowInset) && tmpx < (x + width - shadowInset))
+        for(int16_t i = 0; i < 4; i++) {
+          drawPixel(tmpx + i,tmpy, shadowColor);
+        }
+    }
+  }
 }

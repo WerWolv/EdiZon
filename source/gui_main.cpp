@@ -1,7 +1,13 @@
 #include "gui_main.hpp"
 #include "save.hpp"
+#include "title.hpp"
+
+#include <unordered_map>
+
+extern std::unordered_map<uint64_t, void*> titles;
 
 GuiMain::GuiMain() : Gui() {
+  this->m_selectedItem = 3;
 }
 
 GuiMain::~GuiMain() {
@@ -11,16 +17,9 @@ GuiMain::~GuiMain() {
 void GuiMain::draw() {
   Gui::drawRectangle(0, 0, Gui::m_framebuffer_width, Gui::m_framebuffer_height, currTheme.backgroundColor);
 
-  uint8_t* ptr;
-  bool ret = getTitleIcon(0x0100000000010000, &ptr); // SMO
+  Gui::drawImage(100, 100, 256, 256, ((Title*)titles[0x01007EF00011E000UL])->getTitleIcon(), IMAGE_MODE_RGB24);
 
-  if (ret)
-  {
-    Gui::drawImage(0, 0, 256, 256, ptr, IMAGE_MODE_RGB24);
-  }
-  else
-    Gui::drawText(font20, 0, 0, currTheme.textColor, "Failed to get the title icon.");
-
+  Gui::drawShadow(100, 50, 256, 256);
   gfxFlushBuffers();
   gfxSwapBuffers();
   gfxWaitForVsync();

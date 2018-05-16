@@ -10,7 +10,8 @@
 #include <sstream>
 #include <switch.h>
 
-int dumpToTitleUserDir(FsSaveDataInfo info, bool isInject);
-Result getSaveList(std::vector<FsSaveDataInfo> & saveInfoList);
-Result getUserNameById(u128 userID, char * username);
-bool getTitleIcon(u64 titleID, uint8_t** decodedptr);
+int _dumpToTitleUserDir(FsSaveDataInfo info, bool isInject);
+Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList);
+Result _getUserNameById(u128 userID, char * username);
+bool _getTitleIcon(u64 titleID, uint8_t** decodedptr);
+Result _getTitleName(u64 titleID, char * name);

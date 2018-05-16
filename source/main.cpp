@@ -3,7 +3,6 @@
 
 #include "gui.hpp"
 #include "gui_main.hpp"
-#include "gui_test.hpp"
 
 extern "C" {
   #include "theme.h"

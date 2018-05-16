@@ -45,3 +45,6 @@ protected:
   void getTextDimensions(const ffnt_header_t* font, const char* text, uint32_t* width_out, uint32_t* height_out);
   void drawImage(int x, int y, int width, int height, const uint8_t *image, ImageMode mode);
 };
+
+#define COLOR_WHITE makeColor(255, 255, 255, 255)
+#define COLOR_BLACK makeColor(0, 0, 0, 255)

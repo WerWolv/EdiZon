@@ -13,4 +13,4 @@
 int dumpToTitleUserDir(FsSaveDataInfo info, bool isInject);
 Result getSaveList(std::vector<FsSaveDataInfo> & saveInfoList);
 Result getUserNameById(u128 userID, char * username);
-bool getTitleIcon(u64 titleID, u8* decodedptr);
+bool getTitleIcon(u64 titleID, uint8_t** decodedptr);

@@ -3,13 +3,12 @@
 Title::Title(FsSaveDataInfo saveDataInfo) {
   //_getTitleName(saveDataInfo.titleID, this->m_titleName);
     this->m_titleID = saveDataInfo.titleID;
-    //TODO: FIX SIZE
-    this->m_titleIcon = (uint8_t*)malloc(256*256*4);
   _getTitleIcon(this->m_titleID, &this->m_titleIcon);
 }
 
 Title::~Title() {
-
+  free(*this->m_titleIcon);
+  free(this->m_titleIcon);
 }
 
 std::string Title::getTitleName() {

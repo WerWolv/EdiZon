@@ -207,6 +207,8 @@ bool _getTitleIcon(u64 titleID, uint8_t** decodedptr)
       return false;
   }
 
+ decodedptr = malloc(outsize - sizeof(buf->nacp));
+
   *decodedptr = njGetImage();
   if (*decodedptr == NULL)
   {

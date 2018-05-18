@@ -1,7 +1,7 @@
 #pragma once
 
 #include <switch.h>
-#include <string.h>
+#include <cstring>
 
 extern "C" {
   #include "theme.h"
@@ -20,6 +20,7 @@ public:
   Gui();
   virtual ~Gui();
   virtual void draw() = 0;
+  void drawText(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text);
 
 protected:
   uint8_t *m_framebuffer;
@@ -40,7 +41,7 @@ protected:
   void drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color);
   void drawRectangled(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color);
   inline void drawPixel(uint32_t x, uint32_t y, color_t clr);
-  void drawText(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text);
+  //void drawText(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text);
   void drawTextTruncate(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text, uint32_t max_width);
   void getTextDimensions(const ffnt_header_t* font, const char* text, uint32_t* width_out, uint32_t* height_out);
   void drawImage(int x, int y, int width, int height, const uint8_t *image, ImageMode mode);

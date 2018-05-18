@@ -13,7 +13,7 @@ extern "C" {
 }
 
 Gui *currGui = nullptr;
-std::unordered_map<uint64_t, void*> titles;
+std::unordered_map<u64, Title*> titles;
 
 void initTitles() {
   std::vector<FsSaveDataInfo> saveInfoList;
@@ -21,36 +21,40 @@ void initTitles() {
 
   for(auto saveInfo : saveInfoList) {
     if(titles.find(saveInfo.titleID) == titles.end())
-      titles.insert(std::pair<uint64_t, void*>((uint64_t)saveInfo.titleID, new Title(saveInfo)));
+    {
+      titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
+    }
 
-     ((Title*)titles[saveInfo.titleID])->addUserID(saveInfo.userID);
+    else
+     titles[saveInfo.titleID]->userID(saveInfo.userID);
   }
 }
 
 int main(int argc, char** argv) {
-    gfxInitDefault();
-    setsysInitialize();
-    ColorSetId colorSetId;
-    setsysGetColorSetId(&colorSetId);
-    setTheme(colorSetId, 0x00000000, 0x00000000);
+  gfxInitDefault();
+  setsysInitialize();
+  ColorSetId colorSetId;
+  setsysGetColorSetId(&colorSetId);
+  setTheme(colorSetId, 0x00000000, 0x00000000);
 
-    initTitles();
+  initTitles();
 
-    currGui = new GuiMain();
+  currGui = new GuiMain();
 
-    while(appletMainLoop()) {
-        hidScanInput();
-        u32 kdown = hidKeysDown(CONTROLLER_P1_AUTO);
+  while(appletMainLoop()) {
+    hidScanInput();
+    u32 kdown = hidKeysDown(CONTROLLER_P1_AUTO);
 
-        if(kdown & KEY_PLUS)
-          break;
+    if(kdown & KEY_PLUS)
+      break;
 
-        currGui->draw();
-    }
+    currGui->draw();
+  }
 
-    delete currGui;
+  delete currGui;
+  titles.clear();
 
-    gfxExit();
+  gfxExit();
 
-    return 0;
+  return 0;
 }

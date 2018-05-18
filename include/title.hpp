@@ -7,18 +7,18 @@
 
 class Title {
 public:
-  Title(FsSaveDataInfo saveDataInfo);
+  Title(FsSaveDataInfo& saveInfo);
   ~Title();
 
-  std::string getTitleName();
-  uint8_t* getTitleIcon();
-  std::vector<uint128_t> getUserIDs();
-  void addUserID(uint128_t userID);
-  uint64_t getTitleID();
+  std::string name();
+  u8* icon();
+  std::vector<u128> userIDs();
+  void userID(u128 userID);
+  int errorCode();
 
 private:
-  uint8_t *m_titleIcon;
-  char *m_titleName;
-  uint64_t m_titleID;
-  std::vector<uint128_t> m_userIDs;
+  u8 *m_titleIcon;
+  std::string m_titleName;
+  size_t m_errorCode;
+  std::vector<u128> m_userIDs;
 };

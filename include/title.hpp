@@ -10,15 +10,18 @@ public:
   Title(FsSaveDataInfo& saveInfo);
   ~Title();
 
-  std::string name();
-  u8* icon();
-  std::vector<u128> userIDs();
-  void userID(u128 userID);
-  int errorCode();
+  std::string getTitleName();
+  std::string getTitleAuthor();
+  u8* getTitleIcon();
+  std::vector<u128> getUserIDs();
+  void addUserID(u128 userID);
+  u64 getTitleID();
 
 private:
   u8 *m_titleIcon;
+  u64 m_titleID;
   std::string m_titleName;
-  size_t m_errorCode;
+  std::string m_titleAuthor;
   std::vector<u128> m_userIDs;
+  u8 m_errorCode;
 };

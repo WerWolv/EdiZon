@@ -42,6 +42,9 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   }
 
   m_titleName = std::string(langentry->name);
+  m_titleAuthor = std::string(langentry->author);
+
+  m_titleID = buf->nacp.titleID0;
 
   njInit();
 
@@ -82,22 +85,26 @@ Title::~Title() {
   free(m_titleIcon);
 }
 
-std::string Title::name() {
+std::string Title::getTitleName() {
   return m_titleName;
 }
 
-u8* Title::icon() {
+std::string Title::getTitleAuthor() {
+  return m_titleAuthor;
+}
+
+u8* Title::getTitleIcon() {
   return m_titleIcon;
 }
 
-std::vector<u128> Title::userIDs() {
+u64 Title::getTitleID() {
+  return m_titleID;
+}
+
+std::vector<u128> Title::getUserIDs() {
   return m_userIDs;
 }
 
-void Title::userID(u128 userID) {
+void Title::addUserID(u128 userID) {
   m_userIDs.push_back(userID);
-}
-
-int Title::errorCode() {
-  return m_errorCode;
 }

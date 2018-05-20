@@ -16,4 +16,4 @@ typedef struct {
 
 extern theme_t currTheme;
 
-void setTheme(ColorSetId colorSetId, uint32_t accentColorA, uint32_t accentColorB);
+void setTheme(ColorSetId colorSetId, u32 accentColorA, u32 accentColorB);

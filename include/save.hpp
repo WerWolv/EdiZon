@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cstring>
 #include <cstdio>
 #include <stdlib.h>
@@ -13,5 +14,5 @@
 int _dumpToTitleUserDir(FsSaveDataInfo info, bool isInject);
 Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList);
 Result _getUserNameById(u128 userID, char * username);
-bool _getTitleIcon(u64 titleID, uint8_t** decodedptr);
+bool _getTitleIcon(u64 titleID, u8** decodedptr);
 Result _getTitleName(u64 titleID, char * name);

@@ -1,5 +1,7 @@
 #include "gui.hpp"
 
+Gui *Gui::g_nextGui = nullptr;
+
 Gui::Gui() {
   this->m_framebuffer = gfxGetFramebuffer(&this->m_framebuffer_width, &this->m_framebuffer_height);
 }
@@ -8,12 +10,12 @@ Gui::~Gui() {
 
 }
 
-inline uint8_t Gui::blendColor(uint32_t src, uint32_t dst, uint8_t alpha) {
-    uint8_t one_minus_alpha = (uint8_t)255 - alpha;
-    return (dst*alpha + src*one_minus_alpha)/(uint8_t)255;
+inline u8 Gui::blendColor(u32 src, u32 dst, u8 alpha) {
+    u8 one_minus_alpha = (u8)255 - alpha;
+    return (dst*alpha + src*one_minus_alpha)/(u8)255;
 }
 
-inline color_t Gui::makeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+color_t Gui::makeColor(u8 r, u8 g, u8 b, u8 a) {
     color_t clr;
     clr.r = r;
     clr.g = g;
@@ -22,43 +24,43 @@ inline color_t Gui::makeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     return clr;
 }
 
-inline void Gui::drawPixel(uint32_t x, uint32_t y, color_t clr) {
+inline void Gui::drawPixel(u32 x, u32 y, color_t clr) {
     if (x >= 1280 || y >= 720)
         return;
-    uint32_t off = (y * this->m_framebuffer_width + x)*4;
+    u32 off = (y * this->m_framebuffer_width + x)*4;
     this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.r, clr.a); off++;
     this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.g, clr.a); off++;
     this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.b, clr.a); off++;
     this->m_framebuffer[off] = 0xff;
 }
 
-inline void Gui::draw4PixelsRaw(uint32_t x, uint32_t y, color_t clr) {
+inline void Gui::draw4PixelsRaw(u32 x, u32 y, color_t clr) {
     if (x >= 1280 || y >= 720 || x > 1280-4)
         return;
 
-    uint32_t color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
-    u128 val = color | ((uint128_t)color<<32) | ((uint128_t)color<<64) | ((uint128_t)color<<96);
-    uint32_t off = (y * this->m_framebuffer_width + x)*4;
-    *((uint128_t*)&this->m_framebuffer[off]) = val;
+    u32 color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
+    u128 val = color | ((u128)color<<32) | ((u128)color<<64) | ((u128)color<<96);
+    u32 off = (y * this->m_framebuffer_width + x)*4;
+    *((u128*)&this->m_framebuffer[off]) = val;
 }
 
-inline const ffnt_page_t* Gui::fontGetPage(const ffnt_header_t* font, uint32_t page_id) {
+inline const ffnt_page_t* Gui::fontGetPage(const ffnt_header_t* font, u32 page_id) {
     if (page_id >= font->npages)
         return NULL;
     ffnt_pageentry_t* ent = &((ffnt_pageentry_t*)(font+1))[page_id];
     if (ent->size == 0)
         return NULL;
-    return (const ffnt_page_t*)((const uint8_t*)font + ent->offset);
+    return (const ffnt_page_t*)((const u8*)font + ent->offset);
 }
 
-inline bool Gui::fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, uint32_t codepoint) {
+inline bool Gui::fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, u32 codepoint) {
     const ffnt_page_t* page = fontGetPage(font, codepoint >> 8);
     if (!page)
         return false;
 
     codepoint &= 0xFF;
-    uint32_t off = page->hdr.pos[codepoint];
-    if (off == ~(uint32_t)0)
+    u32 off = page->hdr.pos[codepoint];
+    if (off == ~(u32)0)
         return false;
 
     glyph->width   = page->hdr.widths[codepoint];
@@ -70,10 +72,10 @@ inline bool Gui::fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, uint32
     return true;
 }
 
-void Gui::drawGlyph(uint32_t x, uint32_t y, color_t clr, const glyph_t* glyph)
+void Gui::drawGlyph(u32 x, u32 y, color_t clr, const glyph_t* glyph)
 {
-    uint32_t i, j;
-    const uint8_t* data = glyph->data;
+    u32 i, j;
+    const u8* data = glyph->data;
     x += glyph->posX;
     y += glyph->posY;
     for (j = 0; j < glyph->height; j ++)
@@ -87,9 +89,9 @@ void Gui::drawGlyph(uint32_t x, uint32_t y, color_t clr, const glyph_t* glyph)
     }
 }
 
-inline uint8_t Gui::decodeByte(const char** ptr)
+inline u8 Gui::decodeByte(const char** ptr)
 {
-    uint8_t c = (uint8_t)**ptr;
+    u8 c = (u8)**ptr;
     *ptr += 1;
     return c;
 }
@@ -101,9 +103,9 @@ inline int8_t Gui::decodeUTF8Cont(const char** ptr) {
     return ((c & 0xC0) == 0x80) ? (c & 0x3F) : -1;
 }
 
-inline uint32_t Gui::decodeUTF8(const char** ptr) {
-    uint32_t r;
-    uint8_t c;
+inline u32 Gui::decodeUTF8(const char** ptr) {
+    u32 r;
+    u8 c;
     int8_t c1, c2, c3;
 
     c = decodeByte(ptr);
@@ -143,9 +145,9 @@ inline uint32_t Gui::decodeUTF8(const char** ptr) {
     return 0xFFFD;
 }
 
-void Gui::drawText_(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text, uint32_t max_width) {
+void Gui::drawText_(const ffnt_header_t* font, u32 x, u32 y, color_t clr, const char* text, u32 max_width) {
     y += font->baseline;
-    uint32_t origX = x;
+    u32 origX = x;
 
     while (*text) {
         if (max_width && x-origX >= max_width) {
@@ -153,7 +155,7 @@ void Gui::drawText_(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t c
         }
 
         glyph_t glyph;
-        uint32_t codepoint = decodeUTF8(&text);
+        u32 codepoint = decodeUTF8(&text);
 
         if (codepoint == '\n') {
             if (max_width) {
@@ -175,20 +177,20 @@ void Gui::drawText_(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t c
     }
 }
 
-void Gui::drawText(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text) {
+void Gui::drawText(const ffnt_header_t* font, u32 x, u32 y, color_t clr, const char* text) {
     drawText_(font, x, y, clr, text, 0);
 }
 
-void Gui::drawTextTruncate(const ffnt_header_t* font, uint32_t x, uint32_t y, color_t clr, const char* text, uint32_t max_width) {
+void Gui::drawTextTruncate(const ffnt_header_t* font, u32 x, u32 y, color_t clr, const char* text, u32 max_width) {
     drawText_(font, x, y, clr, text, max_width);
 }
 
-void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, uint32_t* width_out, uint32_t* height_out) {
-    uint32_t x = 0;
-    uint32_t width = 0, height = 0;
+void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out) {
+    u32 x = 0;
+    u32 width = 0, height = 0;
     while (*text) {
         glyph_t glyph;
-        uint32_t codepoint = decodeUTF8(&text);
+        u32 codepoint = decodeUTF8(&text);
 
         if (codepoint == '\n') {
             x = 0;
@@ -213,7 +215,7 @@ void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, uint32_
         *height_out = height;
 }
 
-void Gui::drawImage(int x, int y, int width, int height, const uint8_t *image, ImageMode mode) {
+void Gui::drawImage(int x, int y, int width, int height, const u8 *image, ImageMode mode) {
     int tmpx, tmpy;
     int pos;
     color_t current_color;
@@ -235,27 +237,30 @@ void Gui::drawImage(int x, int y, int width, int height, const uint8_t *image, I
     }
 }
 
-void Gui::drawRectangled(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color) {
-    for (uint32_t j = y; j < y + h; j++) {
-        for (uint32_t i = x; i < x + w; i++) {
+void Gui::drawRectangled(u32 x, u32 y, u32 w, u32 h, color_t color) {
+    for (u32 j = y; j < y + h; j++) {
+        for (u32 i = x; i < x + w; i++) {
             drawPixel(i, j, color);
         }
     }
 }
 
-void Gui::drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, color_t color) {
-    for (uint32_t j = y; j < y + h; j++) {
-        for (uint32_t i = x; i < x + w; i+=4) {
+void Gui::drawRectangle(u32 x, u32 y, u32 w, u32 h, color_t color) {
+    for (u32 j = y; j < y + h; j++) {
+        for (u32 i = x; i < x + w; i+=4) {
             draw4PixelsRaw(i, j, color);
         }
     }
 }
 
-void Gui::drawShadow(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+void Gui::drawShadow(u16 x, u16 y, u16 width, u16 height) {
   color_t shadowColor;
-  uint8_t shadowAlphaBase = 80;
-  uint8_t shadowSize = 4;
-  uint8_t shadowInset;
+  u8 shadowAlphaBase = 80;
+  u8 shadowSize = 4;
+  u8 shadowInset;
+
+  y += height;
+
   for(int16_t tmpx = x; tmpx < (x + width); tmpx+=4) {
     for(int16_t tmpy = y; tmpy < (y + height); tmpy++) {
       shadowColor = makeColor(0, 0, 0, shadowAlphaBase * (1.0F - (float)(tmpy - y) / ((float)shadowSize)));

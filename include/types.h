@@ -2,13 +2,11 @@
 
 #include <switch.h>
 
-typedef __uint128_t uint128_t;
-
 typedef union {
-  uint32_t color_abgr;
+  u32 color_abgr;
 
   struct {
-    uint8_t r, g, b, a;
+    u8 r, g, b, a;
   };
 
 } color_t;

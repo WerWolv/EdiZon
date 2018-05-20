@@ -12,8 +12,9 @@ extern "C" {
   #include "theme.h"
 }
 
-Gui *currGui = nullptr;
 std::unordered_map<u64, Title*> titles;
+
+Gui* currGui = nullptr;
 
 void initTitles() {
   std::vector<FsSaveDataInfo> saveInfoList;
@@ -21,14 +22,12 @@ void initTitles() {
 
   for(auto saveInfo : saveInfoList) {
     if(titles.find(saveInfo.titleID) == titles.end())
-    {
       titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
-    }
-
-    else
-     titles[saveInfo.titleID]->userID(saveInfo.userID);
+    else titles[saveInfo.titleID]->addUserID(saveInfo.userID);
   }
 }
+
+
 
 int main(int argc, char** argv) {
   gfxInitDefault();
@@ -39,7 +38,7 @@ int main(int argc, char** argv) {
 
   initTitles();
 
-  currGui = new GuiMain();
+  Gui::g_nextGui = new GuiMain();
 
   while(appletMainLoop()) {
     hidScanInput();
@@ -48,7 +47,12 @@ int main(int argc, char** argv) {
     if(kdown & KEY_PLUS)
       break;
 
+    currGui = Gui::g_nextGui;
+
     currGui->draw();
+
+    if(kdown)
+      currGui->onInput(kdown);
   }
 
   delete currGui;

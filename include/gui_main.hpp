@@ -1,3 +1,5 @@
+#pragma once
+
 #include "gui.hpp"
 
 #include <vector>
@@ -8,7 +10,9 @@ public:
   ~GuiMain();
 
   void draw();
+  void onInput(u32 kdown);
 
 private:
-  uint8_t m_selectedItem;
+  u8 m_selectedItem;
+  u64 m_selectedTitleId;
 };

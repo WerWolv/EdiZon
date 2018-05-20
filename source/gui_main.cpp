@@ -66,9 +66,9 @@ void GuiMain::onInput(u32 kdown) {
       this->m_selectedItem += 5;
   }
 
-  //TODO: MEMORY LEAK!!!
   if(kdown & KEY_A) {
-    Gui::g_nextGui = new GuiEditor(titles[m_selectedTitleId]);
+    Gui::g_currTitle = titles[m_selectedTitleId];
+    Gui::g_nextGui = GUI_EDITOR;
   }
 
 }

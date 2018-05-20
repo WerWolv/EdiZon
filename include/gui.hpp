@@ -3,6 +3,8 @@
 #include <switch.h>
 #include <cstring>
 
+#include "title.hpp"
+
 extern "C" {
   #include "theme.h"
   #include "types.h"
@@ -15,9 +17,16 @@ extern const ffnt_header_t interuiregular14_nxfnt;
 #define font20 &interuiregular20_nxfnt
 #define font14 &interuiregular14_nxfnt
 
+enum gui_t {
+  GUI_INVALID,
+  GUI_MAIN,
+  GUI_EDITOR
+};
+
 class Gui {
 public:
-  static Gui *g_nextGui;
+  static enum gui_t g_nextGui;
+  static Title *g_currTitle;
 
   Gui();
   virtual ~Gui();

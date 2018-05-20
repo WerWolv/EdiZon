@@ -5,6 +5,7 @@
 
 #include "gui.hpp"
 #include "gui_main.hpp"
+#include "gui_editor.hpp"
 
 #include "title.hpp"
 
@@ -38,7 +39,7 @@ int main(int argc, char** argv) {
 
   initTitles();
 
-  Gui::g_nextGui = new GuiMain();
+  Gui::g_nextGui = GUI_MAIN;
 
   while(appletMainLoop()) {
     hidScanInput();
@@ -47,7 +48,19 @@ int main(int argc, char** argv) {
     if(kdown & KEY_PLUS)
       break;
 
-    currGui = Gui::g_nextGui;
+    if(Gui::g_nextGui != GUI_INVALID) {
+      delete currGui;
+      switch(Gui::g_nextGui) {
+        case GUI_MAIN:
+          currGui = new GuiMain();
+          break;
+        case GUI_EDITOR:
+          currGui = new GuiEditor();
+          break;
+        default: break;
+      }
+      Gui::g_nextGui = GUI_INVALID;
+    }
 
     currGui->draw();
 

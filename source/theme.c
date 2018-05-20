@@ -8,7 +8,7 @@ void setTheme(ColorSetId colorSetId, u32 accentColorA, u32 accentColorB) {
       currTheme = (theme_t) {
         .textColor = RGBA8(0x00, 0x00, 0x00, 0xFF),
         .backgroundColor = RGBA8(0xE9, 0xEC, 0xF1, 0xFF),
-        .highlightColor = RGBA8(0x5B, 0xED, 0xE0, 0xFF),
+        .highlightColor = RGBA8(0x5B, 0xED, 0xF4, 0x00),
         .separatorColor = RGBA8(0xC9, 0xCC, 0xD1, 0xFF)
       };
       break;
@@ -16,7 +16,7 @@ void setTheme(ColorSetId colorSetId, u32 accentColorA, u32 accentColorB) {
       currTheme = (theme_t) {
         .textColor = RGBA8(0xFF, 0xFF, 0xFF, 0xFF),
         .backgroundColor = RGBA8(0x2D, 0x2D, 0x32, 0xFF),
-        .highlightColor = RGBA8(0x5B, 0xED, 0xE0, 0xFF),
+        .highlightColor = RGBA8(0x5B, 0xED, 0xF4, 0x00),
         .separatorColor = RGBA8(0x4D, 0x4D, 0x52, 0xFF)
       };
       break;

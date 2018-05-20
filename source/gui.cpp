@@ -25,8 +25,8 @@ color_t Gui::makeColor(u8 r, u8 g, u8 b, u8 a) {
     return clr;
 }
 
-inline void Gui::drawPixel(u32 x, u32 y, color_t clr) {
-    if (x >= 1280 || y >= 720)
+inline void Gui::drawPixel(int x, int y, color_t clr) {
+    if (x >= 1280 || y >= 720 || x < 0 || y < 0)
         return;
     u32 off = (y * this->m_framebuffer_width + x)*4;
     this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.r, clr.a); off++;
@@ -35,8 +35,8 @@ inline void Gui::drawPixel(u32 x, u32 y, color_t clr) {
     this->m_framebuffer[off] = 0xff;
 }
 
-inline void Gui::draw4PixelsRaw(u32 x, u32 y, color_t clr) {
-    if (x >= 1280 || y >= 720 || x > 1280-4)
+inline void Gui::draw4PixelsRaw(int x, int y, color_t clr) {
+    if (x >= 1280 || y >= 720 || x > 1280-4 || x < 0 || y < 0)
         return;
 
     u32 color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
@@ -73,9 +73,9 @@ inline bool Gui::fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, u32 co
     return true;
 }
 
-void Gui::drawGlyph(u32 x, u32 y, color_t clr, const glyph_t* glyph)
+void Gui::drawGlyph(int x, int y, color_t clr, const glyph_t* glyph)
 {
-    u32 i, j;
+    int i, j;
     const u8* data = glyph->data;
     x += glyph->posX;
     y += glyph->posY;
@@ -146,9 +146,9 @@ inline u32 Gui::decodeUTF8(const char** ptr) {
     return 0xFFFD;
 }
 
-void Gui::drawText_(const ffnt_header_t* font, u32 x, u32 y, color_t clr, const char* text, u32 max_width) {
+void Gui::drawText_(const ffnt_header_t* font, int x, int y, color_t clr, const char* text, int max_width) {
     y += font->baseline;
-    u32 origX = x;
+    int origX = x;
 
     while (*text) {
         if (max_width && x-origX >= max_width) {
@@ -178,17 +178,17 @@ void Gui::drawText_(const ffnt_header_t* font, u32 x, u32 y, color_t clr, const 
     }
 }
 
-void Gui::drawText(const ffnt_header_t* font, u32 x, u32 y, color_t clr, const char* text) {
+void Gui::drawText(const ffnt_header_t* font, int x, int y, color_t clr, const char* text) {
     drawText_(font, x, y, clr, text, 0);
 }
 
-void Gui::drawTextTruncate(const ffnt_header_t* font, u32 x, u32 y, color_t clr, const char* text, u32 max_width) {
+void Gui::drawTextTruncate(const ffnt_header_t* font, int x, int y, color_t clr, const char* text, u32 max_width) {
     drawText_(font, x, y, clr, text, max_width);
 }
 
 void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out) {
-    u32 x = 0;
-    u32 width = 0, height = 0;
+    int x = 0;
+    int width = 0, height = 0;
     while (*text) {
         glyph_t glyph;
         u32 codepoint = decodeUTF8(&text);
@@ -238,23 +238,23 @@ void Gui::drawImage(int x, int y, int width, int height, const u8 *image, ImageM
     }
 }
 
-void Gui::drawRectangled(u32 x, u32 y, u32 w, u32 h, color_t color) {
-    for (u32 j = y; j < y + h; j++) {
-        for (u32 i = x; i < x + w; i++) {
+void Gui::drawRectangled(int x, int y, int w, int h, color_t color) {
+    for (int j = y; j < y + h; j++) {
+        for (int i = x; i < x + w; i++) {
             drawPixel(i, j, color);
         }
     }
 }
 
-void Gui::drawRectangle(u32 x, u32 y, u32 w, u32 h, color_t color) {
-    for (u32 j = y; j < y + h; j++) {
-        for (u32 i = x; i < x + w; i+=4) {
+void Gui::drawRectangle(int x, int y, int w, int h, color_t color) {
+    for (int j = y; j < y + h; j++) {
+        for (int i = x; i < x + w; i+=4) {
             draw4PixelsRaw(i, j, color);
         }
     }
 }
 
-void Gui::drawShadow(u16 x, u16 y, u16 width, u16 height) {
+void Gui::drawShadow(int x, int y, int width, int height) {
   color_t shadowColor;
   u8 shadowAlphaBase = 80;
   u8 shadowSize = 4;
@@ -262,13 +262,14 @@ void Gui::drawShadow(u16 x, u16 y, u16 width, u16 height) {
 
   y += height;
 
-  for(int16_t tmpx = x; tmpx < (x + width); tmpx+=4) {
-    for(int16_t tmpy = y; tmpy < (y + height); tmpy++) {
+  for(int tmpx = x; tmpx < (x + width); tmpx+=4) {
+    for(int tmpy = y; tmpy < (y + height); tmpy++) {
       shadowColor = makeColor(0, 0, 0, shadowAlphaBase * (1.0F - (float)(tmpy - y) / ((float)shadowSize)));
       shadowInset = (tmpy - y);
 
       if(tmpx >= (x + shadowInset) && tmpx < (x + width - shadowInset))
-        for(int16_t i = 0; i < 4; i++) {
+        for(int i = 0; i < 4; i++) {
+          if(tmpx < 0 || tmpy < 0) continue;
           drawPixel(tmpx + i,tmpy, shadowColor);
         }
     }

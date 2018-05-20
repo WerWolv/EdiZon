@@ -5,6 +5,23 @@
 #include <sstream>
 
 GuiEditor::GuiEditor() : Gui() {
+  accountInitialize();
+
+  for(auto userID : Gui::g_currTitle->getUserIDs()) {
+    struct Account account;
+    accountGetProfile(&account.profile, userID);
+    accountProfileGet(&account.profile, &account.userData, &account.profileBase);
+
+    accountProfileGetImageSize(&account.profile, &account.profileImageSize);
+
+    //TODO: Load account icon here
+
+    //accountProfileLoadImage(&account.profile, buffer, account.profileImageSize, &account.profileImageSize);
+
+    accounts.insert({userID, account});
+  }
+
+  accountExit();
 }
 
 GuiEditor::~GuiEditor() {
@@ -23,6 +40,10 @@ void GuiEditor::draw() {
   Gui::drawText(font20, 370, 160, currTheme.textColor, ss.str().c_str());
   Gui::drawShadow(50, 50, 256, 256);
   Gui::drawShadow(20, 20, Gui::m_framebuffer_width - 40, 256 + 70);
+
+  uint16_t i = 0;
+  for(auto account : accounts)
+    Gui::drawText(font20, 500, 500 + (i += 50), currTheme.textColor, account.second.profileBase.username);
 
   gfxFlushBuffers();
   gfxSwapBuffers();

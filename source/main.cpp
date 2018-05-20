@@ -24,7 +24,7 @@ void initTitles() {
   for(auto saveInfo : saveInfoList) {
     if(titles.find(saveInfo.titleID) == titles.end())
       titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
-    else titles[saveInfo.titleID]->addUserID(saveInfo.userID);
+    titles[saveInfo.titleID]->addUserID(saveInfo.userID);
   }
 }
 

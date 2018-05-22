@@ -24,8 +24,9 @@ GuiMain::~GuiMain() {
 void GuiMain::draw() {
   xOffset = m_selectedItem > 5 ? m_selectedItem > titles.size() - 5 ? 256 * ceil((titles.size() - (titles.size() > 10 ? 11.0F : 9.0F)) / 2) : 256 * ceil((m_selectedItem - 5.0F) / 2) : 0;
   Gui::drawRectangle(0, 0, Gui::m_framebuffer_width, Gui::m_framebuffer_height, currTheme.backgroundColor);
+  Gui::drawRectangle(0, 0, Gui::m_framebuffer_width, 10, COLOR_BLACK);
 
-  signed int x = 0, y = 0, currItem = 0;
+  signed int x = 0, y = 10, currItem = 0;
   u16 selectedX = 0, selectedY = 0;
 
   for(auto title : titles) {
@@ -38,17 +39,18 @@ void GuiMain::draw() {
       m_selectedTitleId = title.first;
     }
 
-    y = y == 0 ? 256 : 0;
-    if(y == 0)
+    y = y == 10 ? 266 : 10;
+    if(y == 10)
       x += 256;
 
     currItem++;
   }
 
-  float highlightMultiplier = fmax(0.0, fabs(fmod(menuTimer, 1.0) - 0.5) / 0.5);
+  float highlightMultiplier = fmax(0.5, fabs(fmod(menuTimer, 1.0) - 0.5) / 0.5);
   color_t highlightColor = currTheme.highlightColor;
-  highlightColor.a = 0xC0 * highlightMultiplier;
+  highlightColor.a = 0xE0 * highlightMultiplier;
   Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, highlightColor);
+  Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.spacerColor);
   Gui::drawImage(selectedX, selectedY, 256, 256, titles[m_selectedTitleId]->getTitleIcon(), IMAGE_MODE_RGB24);
   Gui::drawShadow(selectedX, selectedY, 256, 256);
 

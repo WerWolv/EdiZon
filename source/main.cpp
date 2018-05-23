@@ -14,6 +14,7 @@ extern "C" {
 }
 
 std::unordered_map<u64, Title*> titles;
+std::unordered_map<u128, Account*> accounts;
 
 Gui* currGui = nullptr;
 
@@ -25,6 +26,9 @@ void initTitles() {
     if(titles.find(saveInfo.titleID) == titles.end())
       titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
     titles[saveInfo.titleID]->addUserID(saveInfo.userID);
+
+    if(accounts.find(saveInfo.userID) != accounts.end())
+      accounts.insert({(u128)saveInfo.userID, new Account(saveInfo.userID)});
   }
 }
 

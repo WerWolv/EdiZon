@@ -3,6 +3,7 @@
 #include "gui.hpp"
 
 #include <vector>
+#include <unordered_map>
 
 class GuiMain : public Gui {
 public:
@@ -13,6 +14,10 @@ public:
   void onInput(u32 kdown);
 
 private:
-  u8 m_selectedItem;
+  u8 m_selectedTitle;
+  u8 m_selectedAccount;
+  u8 m_selectedSaveFile;
+
   u64 m_selectedTitleId;
+  u128 m_selectedUserId;
 };

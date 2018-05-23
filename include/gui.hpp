@@ -48,7 +48,6 @@ protected:
   void getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out);
   void drawImage(int x, int y, int width, int height, const u8 *image, ImageMode mode);
   void drawShadow(int x, int y, int width, int height);
-
 private:
   void drawText_(const ffnt_header_t* font, int x, int y, color_t clr, const char* text, int max_width);
   inline void draw4PixelsRaw(int x, int y, color_t clr);

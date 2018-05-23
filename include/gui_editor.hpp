@@ -14,14 +14,5 @@ public:
   void onInput(u32 kdown);
 
 private:
-  struct Account {
-    AccountProfile profile;
-    AccountUserData userData;
-    AccountProfileBase profileBase;
 
-    size_t profileImageSize;
-    u8 *profileImage;
-  };
-
-  std::unordered_map<u128, struct Account> accounts;
 };

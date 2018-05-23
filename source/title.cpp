@@ -1,4 +1,5 @@
 #include "title.hpp"
+
 extern "C" {
 #include "nanojpeg.h"
 }
@@ -73,7 +74,6 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   }
 
   m_titleIcon = (u8*)malloc(imagesize);
-  //std::copy(ptr, ptr + iconbytesize, m_titleIcon);
   memcpy(m_titleIcon, ptr, imagesize);
   ptr = NULL;
 

@@ -4,6 +4,7 @@
 #include <string>
 #include "types.h"
 #include "save.hpp"
+#include "account.hpp"
 
 class Title {
 public:

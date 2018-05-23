@@ -5,24 +5,11 @@
 #include <sstream>
 #include <map>
 
+u16 width = 0;
+u8 errorCode = 0;
+
 GuiEditor::GuiEditor() : Gui() {
-  accountInitialize();
 
-  for(auto userID : Gui::g_currTitle->getUserIDs()) {
-    struct Account account;
-    accountGetProfile(&account.profile, userID);
-    accountProfileGet(&account.profile, &account.userData, &account.profileBase);
-
-    accountProfileGetImageSize(&account.profile, &account.profileImageSize);
-
-    //TODO: Load account icon here
-
-    //accountProfileLoadImage(&account.profile, buffer, account.profileImageSize, &account.profileImageSize);
-
-    accounts.insert({userID, account});
-  }
-
-  accountExit();
 }
 
 GuiEditor::~GuiEditor() {
@@ -40,11 +27,7 @@ void GuiEditor::draw() {
   Gui::drawText(font20, 370, 100, currTheme.textColor, Gui::g_currTitle->getTitleAuthor().c_str());
   Gui::drawText(font20, 370, 160, currTheme.textColor, ss.str().c_str());
   Gui::drawShadow(20, 50, Gui::m_framebuffer_width - 80, 256);
-
-  uint16_t i = 0;
-  for(auto account : accounts)
-    Gui::drawText(font20, 500, 500 + (i += 50), currTheme.textColor, account.second.profileBase.username);
-
+    //Gui::drawText(font20, 500, 500 + (i += 50), currTheme.textColor, account.second.profileBase.username);
   gfxFlushBuffers();
   gfxSwapBuffers();
   gfxWaitForVsync();

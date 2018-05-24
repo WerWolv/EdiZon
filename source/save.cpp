@@ -54,14 +54,9 @@ Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
   return 0;
 }
 
-Result mountSaveBySaveDataInfo(const FsSaveDataInfo & info, const char * dev) {
-  Result rc=0;
-  int ret=0;
-
-  u64 titleID = info.titleID;
-  u128 userID = info.userID;
-
-  FsFileSystem tmpfs;
+Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs)
+{
+  Result rc = 0;
 
   printf("\n\nUsing titleID=0x%016lx userID: 0x%lx 0x%lx\n", titleID, (u64)(userID>>64), (u64)userID);
 
@@ -71,14 +66,43 @@ Result mountSaveBySaveDataInfo(const FsSaveDataInfo & info, const char * dev) {
     return rc;
   }
 
-  ret = fsdevMountDevice(dev, tmpfs);
+  int ret = fsdevMountDevice(SAVE_DEV, tmpfs);
   if (ret==-1) {
     printf("fsdevMountDevice() failed.\n");
     rc = ret;
-    return rc;
   }
-
   return rc;
+}
+
+Result mountSaveBySaveDataInfo(const FsSaveDataInfo & info) {
+  FsFileSystem tmpfs;
+  return mountSaveByTitleAccountIDs(info.titleID, info.userID, tmpfs);
+}
+
+bool getSavefilesForGame(std::vector<int>& vec, u64 titleID, u128 userID)
+{
+  FsFileSystem tmpfs;
+  Result rc = 0;
+  if (titleID != 0x0100000000010000)
+    return false;
+
+  rc = mountSaveByTitleAccountIDs(titleID, userID, tmpfs);
+  if (R_FAILED(rc))
+    return false;
+
+  char fname[0x10];
+  struct stat statbuf;
+  int i;
+  for (i=0; i != 6; i++)
+  {
+    sprintf(fname, "File%d.bin", i);
+    if (stat(fname, &statbuf) != 0)
+      break;
+    vec.push_back(i);
+  }
+  if (i == 0)
+    return false;
+  return true;
 }
 
 int isDirectory(const char *path) {

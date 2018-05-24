@@ -6,6 +6,8 @@
 
 class Account {
 public:
+  static Account *g_currAccount;
+
   Account(u128 userID);
   ~Account();
 

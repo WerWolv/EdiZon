@@ -6,6 +6,8 @@ extern "C" {
   #include "nanojpeg.h"
 }
 
+Account *Account::g_currAccount = nullptr;
+
 Account::Account(u128 userID) : m_userID(userID) {
   accountInitialize();
 

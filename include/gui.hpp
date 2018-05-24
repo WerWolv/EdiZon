@@ -26,7 +26,6 @@ enum gui_t {
 class Gui {
 public:
   static enum gui_t g_nextGui;
-  static Title *g_currTitle;
 
   Gui();
   virtual ~Gui();

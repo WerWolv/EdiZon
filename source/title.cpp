@@ -4,6 +4,8 @@ extern "C" {
 #include "nanojpeg.h"
 }
 
+Title *Title::g_currTitle = nullptr;
+
 Title::Title(FsSaveDataInfo& saveInfo) {
   Result rc=0;
 

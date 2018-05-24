@@ -8,6 +8,8 @@
 
 class Title {
 public:
+  static Title *g_currTitle;
+
   Title(FsSaveDataInfo& saveInfo);
   ~Title();
 

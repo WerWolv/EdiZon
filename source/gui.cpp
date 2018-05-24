@@ -1,7 +1,6 @@
 #include "gui.hpp"
 
 gui_t Gui::g_nextGui = GUI_INVALID;
-Title *Gui::g_currTitle = nullptr;
 
 Gui::Gui() {
   this->m_framebuffer = gfxGetFramebuffer(&this->m_framebuffer_width, &this->m_framebuffer_height);

@@ -93,7 +93,7 @@ bool getSavefilesForGame(std::vector<int>& vec, u64 titleID, u128 userID)
   char fname[0x10];
   struct stat statbuf;
   int i;
-  for (i=0; i != 6; i++)
+  for (i=0; i != 7; i++)
   {
     sprintf(fname, "File%d.bin", i);
     if (stat(fname, &statbuf) != 0)

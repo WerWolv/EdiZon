@@ -12,6 +12,7 @@ public:
 
   void draw();
   void onInput(u32 kdown);
+  void onTouch(touchPosition &touch);
 
 private:
   struct {

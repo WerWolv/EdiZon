@@ -32,6 +32,7 @@ public:
   virtual ~Gui();
   virtual void draw() = 0;
   virtual void onInput(u32 kdown) = 0;
+  virtual void onTouch(touchPosition &touch) = 0;
 
 
 protected:

@@ -35,6 +35,8 @@ void initTitles() {
 
 
 int main(int argc, char** argv) {
+  u8 touchCntOld, touchCnt;
+
   gfxInitDefault();
   setsysInitialize();
   ColorSetId colorSetId;
@@ -44,6 +46,7 @@ int main(int argc, char** argv) {
   initTitles();
 
   Gui::g_nextGui = GUI_MAIN;
+  touchCntOld = hidTouchCount();
 
   while(appletMainLoop()) {
     hidScanInput();
@@ -70,6 +73,16 @@ int main(int argc, char** argv) {
 
     if(kdown)
       currGui->onInput(kdown);
+
+    touchCnt = hidTouchCount();
+
+    if(touchCnt > touchCntOld) {
+      touchPosition touch;
+      hidTouchRead(&touch, 0);
+      currGui->onTouch(touch);
+    }
+
+    touchCntOld = touchCnt;
   }
 
   delete currGui;

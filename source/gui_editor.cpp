@@ -37,3 +37,7 @@ void GuiEditor::onInput(u32 kdown) {
   if(kdown & KEY_B)
     Gui::g_nextGui = GUI_MAIN;
 }
+
+void GuiEditor::onTouch(touchPosition &touch) {
+
+}

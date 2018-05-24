@@ -27,7 +27,7 @@ void initTitles() {
       titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
     titles[saveInfo.titleID]->addUserID(saveInfo.userID);
 
-    if(accounts.find(saveInfo.userID) != accounts.end())
+    if(accounts.find(saveInfo.userID) == accounts.end())
       accounts.insert({(u128)saveInfo.userID, new Account(saveInfo.userID)});
   }
 }

@@ -14,10 +14,13 @@ public:
   void onInput(u32 kdown);
 
 private:
-  u8 m_selectedTitle;
-  u8 m_selectedAccount;
-  u8 m_selectedSaveFile;
+  struct {
+    u8 titleIndex;
+    u8 accountIndex;
+    u8 saveFileIndex;
 
-  u64 m_selectedTitleId;
-  u128 m_selectedUserId;
+    u64 titleId;
+    u128 userId;
+  } m_selected;
+
 };

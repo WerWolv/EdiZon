@@ -1,5 +1,7 @@
 #include "account.hpp"
 
+#include <cstring>
+
 extern "C" {
   #include "nanojpeg.h"
 }
@@ -14,13 +16,16 @@ Account::Account(u128 userID) : m_userID(userID) {
   m_userName = std::string(m_profileBase.username, 0x20);
 
   u8 *buffer = (u8*) malloc(m_profileImageSize);
+  u8 *decodedBuffer = nullptr;
   size_t imageSize = 0;
 
   accountProfileLoadImage(&m_profile, buffer, m_profileImageSize, &imageSize);
   njInit();
-  njDecode(buffer, m_profileImageSize);
+  njDecode(buffer, imageSize);
 
-  m_profileImage = njGetImage();
+  decodedBuffer = njGetImage();
+  m_profileImage = (u8*) malloc(128*128*3);
+  resizeImage(decodedBuffer, m_profileImage, 256, 256, 128, 128);
 
   njDone();
 
@@ -40,11 +45,8 @@ std::string Account::getUserName() {
   return m_userName;
 }
 
-u8* Account::getProfileImage(size_t size) {
-  u8* out = (u8*) malloc(size*size*3);
-  resizeImage(m_profileImage, out, 256, 256, size, size);
-
-  return out;
+u8* Account::getProfileImage() {
+  return m_profileImage;
 }
 
 inline unsigned char getpixel(u8* in, size_t src_width, size_t src_height, unsigned x, unsigned y, int channel) {

@@ -11,7 +11,7 @@ public:
 
   std::string getUserName();
   u128 getUserID();
-  u8* getProfileImage(size_t size);
+  u8* getProfileImage();
 
 private:
   AccountProfile m_profile;

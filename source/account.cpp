@@ -64,9 +64,9 @@ void Account::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, 
 
     unsigned char C[5] = { 0 };
 
-    for (int i = 0; i < dest_height; ++i)
+    for (unsigned int i = 0; i < dest_height; ++i)
     {
-        for (int j = 0; j < dest_width; ++j)
+        for (unsigned int j = 0; j < dest_width; ++j)
         {
             const int x = int(tx * j);
             const int y = int(ty * i);

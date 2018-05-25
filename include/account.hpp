@@ -24,6 +24,4 @@ private:
   u8 *m_profileImage;
   size_t m_profileImageSize;
   std::string m_userName;
-
-  void resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
 };

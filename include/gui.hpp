@@ -33,7 +33,7 @@ public:
   virtual void onInput(u32 kdown) = 0;
   virtual void onTouch(touchPosition &touch) = 0;
 
-
+  static void resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
 protected:
   u8 *m_framebuffer;
   u32 m_framebuffer_width;
@@ -48,6 +48,7 @@ protected:
   void getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out);
   void drawImage(int x, int y, int width, int height, const u8 *image, ImageMode mode);
   void drawShadow(int x, int y, int width, int height);
+
 private:
   void drawText_(const ffnt_header_t* font, int x, int y, color_t clr, const char* text, int max_width);
   inline void draw4PixelsRaw(int x, int y, color_t clr);

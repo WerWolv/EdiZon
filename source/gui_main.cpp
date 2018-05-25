@@ -16,8 +16,7 @@ float menuTimer = 0.0F;
 
 enum {
   TITLE_SELECT,
-  ACCOUNT_SELECT,
-  SELECTED
+  ACCOUNT_SELECT
 } selectionState = TITLE_SELECT;
 
 GuiMain::GuiMain() : Gui() {
@@ -68,12 +67,10 @@ void GuiMain::draw() {
   }
 
   if(selectionState >= ACCOUNT_SELECT) {
-    if(selectionState == ACCOUNT_SELECT) {
       Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 10, 550, 148, 148, highlightColorAnim);
       Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.spacerColor);
       Gui::drawImage(40 + m_selected.accountIndex * 150, 560, 128, 128, titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
       Gui::drawShadow(40 + m_selected.accountIndex * 150, 560, 128, 128);
-    }
 
     u16 accountX = 0;
     for(u128 userID : titles[m_selected.titleId]->getUserIDs()) {
@@ -81,17 +78,6 @@ void GuiMain::draw() {
       Gui::drawShadow(40 + accountX, 560, 128, 128);
       accountX += 150;
     }
-  }
-
-  if(selectionState == SELECTED) {
-    Gui::drawRectangle(40 + m_selected.accountIndex * 150, 560, 400, 128, currTheme.spacerColor);
-    Gui::drawImage(40 + m_selected.accountIndex * 150, 560, 128, 128, accounts[titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]]->getProfileImage(), IMAGE_MODE_RGB24);
-    Gui::drawShadow(40 +  m_selected.accountIndex * 150, 560, 400, 128);
-
-    Gui::drawRectangled(178 + m_selected.accountIndex * 150, 570, 252, 108, highlightColorAnim);
-    Gui::drawRectangle(183 + m_selected.accountIndex * 150, 575, 242, 98, currTheme.separatorColor);
-    Gui::drawShadow(183 + m_selected.accountIndex * 150, 575, 242, 98);
-    Gui::drawText(font24, 233 + m_selected.accountIndex * 150, 605, currTheme.textColor, "EDIT SAVE");
   }
 
   menuTimer += 0.025;
@@ -137,9 +123,7 @@ void GuiMain::onInput(u32 kdown) {
   if(kdown & KEY_A) {
     if(selectionState == TITLE_SELECT)
       selectionState = ACCOUNT_SELECT;
-    else if(selectionState == ACCOUNT_SELECT)
-      selectionState = SELECTED;
-    else if(selectionState == SELECTED) {
+    else if(selectionState == ACCOUNT_SELECT) {
       Title::g_currTitle = titles[m_selected.titleId];
       Account::g_currAccount = accounts[titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]];
       Gui::g_nextGui = GUI_EDITOR;
@@ -151,8 +135,6 @@ void GuiMain::onInput(u32 kdown) {
         selectionState = TITLE_SELECT;
         m_selected.accountIndex = 0;
     }
-    else if(selectionState == SELECTED)
-      selectionState = ACCOUNT_SELECT;
   }
 }
 
@@ -178,7 +160,9 @@ void GuiMain::onTouch(touchPosition &touch) {
       if(account < titles[m_selected.titleId]->getUserIDs().size() && touch.py > 560 && touch.py < (560 + 128)) {
         if(m_selected.accountIndex == account) {
           m_selected.userId = titles[m_selected.titleId]->getUserIDs()[account];
-          selectionState = SELECTED;
+          Title::g_currTitle = titles[m_selected.titleId];
+          Account::g_currAccount = accounts[titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]];
+          Gui::g_nextGui = GUI_EDITOR;
         }
         m_selected.accountIndex = account;
       } else {
@@ -186,15 +170,6 @@ void GuiMain::onTouch(touchPosition &touch) {
         m_selected.accountIndex = 0;
       }
 
-      break;
-    }
-    case SELECTED: {
-      u16 rectPos = m_selected.accountIndex * 150 + 168;
-      if(touch.px > rectPos && touch.px < rectPos + 400 && touch.py > 560 && touch.py < (560 + 128)) {
-        Title::g_currTitle = titles[m_selected.titleId];
-        Account::g_currAccount = accounts[titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]];
-        Gui::g_nextGui = GUI_EDITOR;
-      } else selectionState = ACCOUNT_SELECT;
       break;
     }
   }

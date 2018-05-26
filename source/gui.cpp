@@ -3,7 +3,7 @@
 gui_t Gui::g_nextGui = GUI_INVALID;
 
 Gui::Gui() {
-  this->m_framebuffer = gfxGetFramebuffer(&this->m_framebuffer_width, &this->m_framebuffer_height);
+  this->framebuffer = gfxGetFramebuffer(&this->framebuffer_width, &this->framebuffer_height);
 }
 
 Gui::~Gui() {
@@ -27,11 +27,11 @@ color_t Gui::makeColor(u8 r, u8 g, u8 b, u8 a) {
 inline void Gui::drawPixel(int x, int y, color_t clr) {
     if (x >= 1280 || y >= 720 || x < 0 || y < 0)
         return;
-    u32 off = (y * this->m_framebuffer_width + x)*4;
-    this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.r, clr.a); off++;
-    this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.g, clr.a); off++;
-    this->m_framebuffer[off] = blendColor(this->m_framebuffer[off], clr.b, clr.a); off++;
-    this->m_framebuffer[off] = 0xff;
+    u32 off = (y * this->framebuffer_width + x)*4;
+    this->framebuffer[off] = blendColor(this->framebuffer[off], clr.r, clr.a); off++;
+    this->framebuffer[off] = blendColor(this->framebuffer[off], clr.g, clr.a); off++;
+    this->framebuffer[off] = blendColor(this->framebuffer[off], clr.b, clr.a); off++;
+    this->framebuffer[off] = 0xff;
 }
 
 inline void Gui::draw4PixelsRaw(int x, int y, color_t clr) {
@@ -40,8 +40,8 @@ inline void Gui::draw4PixelsRaw(int x, int y, color_t clr) {
 
     u32 color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
     u128 val = color | ((u128)color<<32) | ((u128)color<<64) | ((u128)color<<96);
-    u32 off = (y * this->m_framebuffer_width + x)*4;
-    *((u128*)&this->m_framebuffer[off]) = val;
+    u32 off = (y * this->framebuffer_width + x)*4;
+    *((u128*)&this->framebuffer[off]) = val;
 }
 
 inline const ffnt_page_t* Gui::fontGetPage(const ffnt_header_t* font, u32 page_id) {

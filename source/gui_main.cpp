@@ -32,8 +32,8 @@ GuiMain::~GuiMain() {
 
 void GuiMain::draw() {
   xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > titles.size() - 5 ? 256 * ceil((titles.size() - (titles.size() > 10 ? 11.0F : 9.0F)) / 2) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2) : 0;
-  Gui::drawRectangle(0, 0, Gui::m_framebuffer_width, Gui::m_framebuffer_height, currTheme.backgroundColor);
-  Gui::drawRectangle(0, 0, Gui::m_framebuffer_width, 10, COLOR_BLACK);
+  Gui::drawRectangle(0, 0, Gui::framebuffer_width, Gui::framebuffer_height, currTheme.backgroundColor);
+  Gui::drawRectangle(0, 0, Gui::framebuffer_width, 10, COLOR_BLACK);
 
   signed int x = 0, y = 10, currItem = 0;
   u16 selectedX = 0, selectedY = 0;

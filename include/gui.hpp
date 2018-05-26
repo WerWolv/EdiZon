@@ -27,6 +27,10 @@ class Gui {
 public:
   static enum gui_t g_nextGui;
 
+  u8 *framebuffer;
+  u32 framebuffer_width;
+  u32 framebuffer_height;
+
   Gui();
   virtual ~Gui();
   virtual void draw() = 0;
@@ -34,11 +38,6 @@ public:
   virtual void onTouch(touchPosition &touch) = 0;
 
   static void resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
-protected:
-  u8 *m_framebuffer;
-  u32 m_framebuffer_width;
-  u32 m_framebuffer_height;
-
   inline u8 blendColor(u32 src, u32 dst, u8 alpha);
   color_t makeColor(u8 r, u8 g, u8 b, u8 a);
   void drawRectangle(int x, int y, int w, int h, color_t color);

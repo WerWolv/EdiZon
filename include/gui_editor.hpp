@@ -3,6 +3,9 @@
 #include "gui.hpp"
 #include "title.hpp"
 
+#include "widget.hpp"
+#include "widget_switch.hpp"
+
 #include <unordered_map>
 
 class GuiEditor : public Gui {
@@ -15,5 +18,5 @@ public:
   void onTouch(touchPosition &touch);
 
 private:
-
+  WidgetList m_widgets;
 };

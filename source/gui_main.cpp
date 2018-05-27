@@ -11,7 +11,7 @@
 extern std::unordered_map<u64, Title*> titles;
 extern std::unordered_map<u128, Account*> accounts;
 
-signed int xOffset;
+s16 xOffset;
 float menuTimer = 0.0F;
 
 enum {
@@ -35,7 +35,7 @@ void GuiMain::draw() {
   Gui::drawRectangle(0, 0, Gui::framebuffer_width, Gui::framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle(0, 0, Gui::framebuffer_width, 10, COLOR_BLACK);
 
-  signed int x = 0, y = 10, currItem = 0;
+  s16 x = 0, y = 10, currItem = 0;
   u16 selectedX = 0, selectedY = 0;
 
   for(auto title : titles) {
@@ -92,10 +92,10 @@ void GuiMain::onInput(u32 kdown) {
 
   if(kdown & KEY_LEFT) {
     if(selectionState == TITLE_SELECT) {
-      if(((signed int)m_selected.titleIndex - 2) >= 0)
+      if(((s16)m_selected.titleIndex - 2) >= 0)
         m_selected.titleIndex -= 2;
     } else if(selectionState == ACCOUNT_SELECT) {
-      if(((signed int)m_selected.accountIndex - 1) >= 0)
+      if(((s16)m_selected.accountIndex - 1) >= 0)
         m_selected.accountIndex--;
     }
   }

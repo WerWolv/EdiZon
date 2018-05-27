@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 
 #include "gui.hpp"
 #include "gui_main.hpp"
@@ -12,6 +13,9 @@
 extern "C" {
   #include "theme.h"
 }
+
+#define LONG_PRESS_DELAY              2
+#define LONG_PRESS_ACTIVATION_DELAY   10
 
 std::unordered_map<u64, Title*> titles;
 std::unordered_map<u128, Account*> accounts;
@@ -32,10 +36,12 @@ void initTitles() {
   }
 }
 
-
-
 int main(int argc, char** argv) {
   u8 touchCntOld, touchCnt;
+  u32 kheld = 0, kheldOld = 0;
+  u32 kdown = 0;
+  s32 inputTicker = 0;
+
 
   gfxInitDefault();
   setsysInitialize();
@@ -50,7 +56,8 @@ int main(int argc, char** argv) {
 
   while(appletMainLoop()) {
     hidScanInput();
-    u32 kdown = hidKeysDown(CONTROLLER_P1_AUTO);
+    kdown = hidKeysDown(CONTROLLER_P1_AUTO);
+    kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
 
     if(kdown & KEY_PLUS)
       break;
@@ -74,6 +81,17 @@ int main(int argc, char** argv) {
     if(kdown)
       currGui->onInput(kdown);
 
+    if(kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;
+    else inputTicker = 0;
+
+    if(kheld != kheldOld)
+      inputTicker = 0;
+
+    if(inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0)
+      currGui->onInput(kheld);
+
+
+
     touchCnt = hidTouchCount();
 
     if(touchCnt > touchCntOld) {
@@ -83,6 +101,7 @@ int main(int argc, char** argv) {
     }
 
     touchCntOld = touchCnt;
+    kheldOld = kheld;
   }
 
   delete currGui;

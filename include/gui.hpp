@@ -40,24 +40,24 @@ public:
   static void resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
   inline u8 blendColor(u32 src, u32 dst, u8 alpha);
   color_t makeColor(u8 r, u8 g, u8 b, u8 a);
-  void drawRectangle(int x, int y, int w, int h, color_t color);
-  void drawRectangled(int x, int y, int w, int h, color_t color);
-  void drawText(const ffnt_header_t* font, int x, int y, color_t clr, const char* text);
-  void drawTextTruncate(const ffnt_header_t* font, int x, int y, color_t clr, const char* text, u32 max_width);
+  void drawRectangle(s16 x, s16 y, s16 w, s16 h, color_t color);
+  void drawRectangled(s16 x, s16 y, s16 w, s16 h, color_t color);
+  void drawText(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text);
+  void drawTextTruncate(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, u32 max_width);
   void getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out);
-  void drawImage(int x, int y, int width, int height, const u8 *image, ImageMode mode);
-  void drawShadow(int x, int y, int width, int height);
+  void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);
+  void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
 private:
-  void drawText_(const ffnt_header_t* font, int x, int y, color_t clr, const char* text, int max_width);
-  inline void draw4PixelsRaw(int x, int y, color_t clr);
+  void drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s16 max_width);
+  inline void draw4PixelsRaw(s16 x, s16 y, color_t clr);
   inline bool fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, u32 codepoint);
-  void drawGlyph(int x, int y, color_t clr, const glyph_t* glyph);
+  void drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph);
   inline u8 decodeByte(const char** ptr);
-  inline int8_t decodeUTF8Cont(const char** ptr);
+  inline char decodeUTF8Cont(const char** ptr);
   inline u32 decodeUTF8(const char** ptr);
   inline const ffnt_page_t* fontGetPage(const ffnt_header_t* font, u32 page_id);
-  inline void drawPixel(int x, int y, color_t clr);
+  inline void drawPixel(s16 x, s16 y, color_t clr);
 };
 
 #define COLOR_WHITE makeColor(255, 255, 255, 255)

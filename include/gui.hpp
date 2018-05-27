@@ -49,12 +49,12 @@ public:
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
 private:
-  void drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s16 max_width);
+  void drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s32 max_width);
   inline void draw4PixelsRaw(s16 x, s16 y, color_t clr);
   inline bool fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, u32 codepoint);
   void drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph);
   inline u8 decodeByte(const char** ptr);
-  inline char decodeUTF8Cont(const char** ptr);
+  inline s8 decodeUTF8Cont(const char** ptr);
   inline u32 decodeUTF8(const char** ptr);
   inline const ffnt_page_t* fontGetPage(const ffnt_header_t* font, u32 page_id);
   inline void drawPixel(s16 x, s16 y, color_t clr);

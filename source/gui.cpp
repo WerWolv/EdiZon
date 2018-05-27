@@ -74,7 +74,7 @@ inline bool Gui::fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, u32 co
 
 void Gui::drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph)
 {
-    s16 i, j;
+    s32 i, j;
     const u8* data = glyph->data;
     x += glyph->posX;
     y += glyph->posY;
@@ -98,8 +98,8 @@ inline u8 Gui::decodeByte(const char** ptr)
 
 // UTF-8 code adapted from http://www.json.org/JSON_checker/utf8_decode.c
 
-inline char Gui::decodeUTF8Cont(const char** ptr) {
-    s16 c = decodeByte(ptr);
+inline s8 Gui::decodeUTF8Cont(const char** ptr) {
+    s32 c = decodeByte(ptr);
     return ((c & 0xC0) == 0x80) ? (c & 0x3F) : -1;
 }
 
@@ -145,9 +145,9 @@ inline u32 Gui::decodeUTF8(const char** ptr) {
     return 0xFFFD;
 }
 
-void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s16 max_width) {
+void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s32 max_width) {
     y += font->baseline;
-    s16 origX = x;
+    s32 origX = x;
 
     while (*text) {
         if (max_width && x-origX >= max_width) {
@@ -186,8 +186,8 @@ void Gui::drawTextTruncate(const ffnt_header_t* font, s16 x, s16 y, color_t clr,
 }
 
 void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out) {
-    s16 x = 0;
-    s16 width = 0, height = 0;
+    s32 x = 0;
+    s32 width = 0, height = 0;
     while (*text) {
         glyph_t glyph;
         u32 codepoint = decodeUTF8(&text);
@@ -216,8 +216,8 @@ void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* wi
 }
 
 void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode) {
-    s16 tmpx, tmpy;
-    s16 pos;
+    s32 tmpx, tmpy;
+    s32 pos;
     color_t current_color;
 
     for (tmpy = 0; tmpy < height; tmpy++) {
@@ -238,16 +238,16 @@ void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageM
 }
 
 void Gui::drawRectangled(s16 x, s16 y, s16 w, s16 h, color_t color) {
-    for (s16 j = y; j < y + h; j++) {
-        for (s16 i = x; i < x + w; i++) {
+    for (s32 j = y; j < y + h; j++) {
+        for (s32 i = x; i < x + w; i++) {
             drawPixel(i, j, color);
         }
     }
 }
 
 void Gui::drawRectangle(s16 x, s16 y, s16 w, s16 h, color_t color) {
-    for (s16 j = y; j < y + h; j++) {
-        for (s16 i = x; i < x + w; i+=4) {
+    for (s32 j = y; j < y + h; j++) {
+        for (s32 i = x; i < x + w; i+=4) {
             draw4PixelsRaw(i, j, color);
         }
     }
@@ -261,13 +261,13 @@ void Gui::drawShadow(s16 x, s16 y, s16 width, s16 height) {
 
   y += height;
 
-  for(s16 tmpx = x; tmpx < (x + width); tmpx+=4) {
-    for(s16 tmpy = y; tmpy < (y + height); tmpy++) {
+  for(s32 tmpx = x; tmpx < (x + width); tmpx+=4) {
+    for(s32 tmpy = y; tmpy < (y + height); tmpy++) {
       shadowColor = makeColor(0, 0, 0, shadowAlphaBase * (1.0F - (float)(tmpy - y) / ((float)shadowSize)));
       shadowInset = (tmpy - y);
 
       if(tmpx >= (x + shadowInset) && tmpx < (x + width - shadowInset))
-        for(s16 i = 0; i < 4; i++) {
+        for(s32 i = 0; i < 4; i++) {
           if(tmpx < 0 || tmpy < 0) continue;
           drawPixel(tmpx + i,tmpy, shadowColor);
         }
@@ -275,7 +275,7 @@ void Gui::drawShadow(s16 x, s16 y, s16 width, s16 height) {
   }
 }
 
-inline u8 getpixel(u8* in, size_t src_width, size_t src_height, u16 x, u16 y, u16 channel) {
+inline unsigned char getpixel(u8* in, size_t src_width, size_t src_height, unsigned x, unsigned y, s32 channel) {
     if (x < src_width && y < src_height)
         return in[(x * 3 * src_width) + (3 * y) + channel];
 
@@ -285,25 +285,25 @@ inline u8 getpixel(u8* in, size_t src_width, size_t src_height, u16 x, u16 y, u1
 void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height) {
     const float tx = float(src_width) / dest_width;
     const float ty = float(src_height) / dest_height;
-    const s16 channels = 3;
+    const s32 channels = 3;
     const std::size_t row_stride = dest_width * channels;
 
-    u8 C[5] = { 0 };
+    unsigned char C[5] = { 0 };
 
-    for (u16 i = 0; i < dest_height; ++i)
+    for (u32 i = 0; i < dest_height; ++i)
     {
-        for (u16 j = 0; j < dest_width; ++j)
+        for (u32 j = 0; j < dest_width; ++j)
         {
-            const s16 x = s16(tx * j);
-            const s16 y = s16(ty * i);
+            const s32 x = s32(tx * j);
+            const s32 y = s32(ty * i);
             const float dx = tx * j - x;
             const float dy = ty * i - y;
 
-            for (s16 k = 0; k < 3; ++k)
+            for (s32 k = 0; k < 3; ++k)
             {
-                for (s16 jj = 0; jj < 4; ++jj)
+                for (s32 jj = 0; jj < 4; ++jj)
                 {
-                    const s16 z = y - 1 + jj;
+                    const s32 z = y - 1 + jj;
                     u8 a0 = getpixel(in, src_width, src_height, z, x, k);
                     u8 d0 = getpixel(in, src_width, src_height, z, x - 1, k) - a0;
                     u8 d2 = getpixel(in, src_width, src_height, z, x + 1, k) - a0;

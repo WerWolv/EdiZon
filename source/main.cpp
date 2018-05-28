@@ -42,7 +42,6 @@ int main(int argc, char** argv) {
   u32 kdown = 0;
   s32 inputTicker = 0;
 
-
   gfxInitDefault();
   setsysInitialize();
   ColorSetId colorSetId;

@@ -9,8 +9,7 @@ typedef struct {
   color_t highlightColor;
   color_t selectedColor;
   color_t separatorColor;
-  color_t activeColor;
-  color_t spacerColor;
+  color_t selectedButtonColor;
 
   color_t accentColorA;
   color_t accentColorB;

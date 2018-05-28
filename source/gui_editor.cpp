@@ -5,6 +5,8 @@
 #include <sstream>
 #include <map>
 
+#include "save.hpp"
+
 u16 width = 0;
 u8 errorCode = 0;
 
@@ -27,7 +29,7 @@ GuiEditor::~GuiEditor() {
 
 void GuiEditor::draw() {
   std::stringstream ss;
-  ss << "0x" << std::hex << Title::g_currTitle->getTitleID();
+  ss << "0x" << errorCode;
 
   Gui::drawRectangle(0, 0, Gui::framebuffer_width, Gui::framebuffer_height, currTheme.backgroundColor);
   Gui::drawImage(0, 0, 128, 128, titleIcon, IMAGE_MODE_RGB24);
@@ -40,7 +42,7 @@ void GuiEditor::draw() {
   Gui::getTextDimensions(font20, Title::g_currTitle->getTitleAuthor().c_str(), &titleWidth, &titleHeight);
   Gui::drawText(font20, (Gui::framebuffer_width / 2) - (titleWidth / 2), 45, currTheme.textColor, Title::g_currTitle->getTitleAuthor().c_str());
   Gui::getTextDimensions(font20, ss.str().c_str(), &titleWidth, &titleHeight);
-  Gui::drawText(font20, (Gui::framebuffer_width / 2) - (titleWidth / 2), 80, currTheme.textColor, ss.str().c_str());
+  Gui::drawText(font20, (Gui::framebuffer_width / 2) - (titleWidth / 2), 80, currTheme.textColor, std::to_string(errorCode).c_str());
 
   Widget::drawWidgets(this, m_widgets, 200, 0, 0);
 
@@ -52,6 +54,21 @@ void GuiEditor::draw() {
 void GuiEditor::onInput(u32 kdown) {
   if(kdown & KEY_B)
     Gui::g_nextGui = GUI_MAIN;
+
+  if(kdown & KEY_X) {
+    FsFileSystem tmpfs;
+    char ptr[100];
+    Result rc = 0;
+    rc = mountSaveByTitleAccountIDs(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), tmpfs);
+    if(R_FAILED(rc)) {
+      errorCode = 1;
+      return;
+    }
+
+    makeExInjDir(ptr, Title::g_currTitle->getTitleID(), false);
+    std::string path = std::string("");
+    errorCode = copyAllSave(path.c_str(), false, ptr);
+  }
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {

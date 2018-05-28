@@ -61,14 +61,14 @@ void GuiMain::draw() {
 
   if(selectionState >= TITLE_SELECT) {
     Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? highlightColorAnim : currTheme.selectedColor);
-    Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.spacerColor);
+    Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
     Gui::drawImage(selectedX, selectedY, 256, 256, titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
     Gui::drawShadow(selectedX, selectedY, 256, 256);
   }
 
   if(selectionState >= ACCOUNT_SELECT) {
       Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 10, 550, 148, 148, highlightColorAnim);
-      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.spacerColor);
+      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.selectedButtonColor);
       Gui::drawImage(40 + m_selected.accountIndex * 150, 560, 128, 128, titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
       Gui::drawShadow(40 + m_selected.accountIndex * 150, 560, 128, 128);
 

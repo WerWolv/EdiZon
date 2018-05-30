@@ -112,13 +112,34 @@ int isDirectory(const char *path) {
  return S_ISDIR(statbuf.st_mode);
 }
 
-int cpFile(const char * filenameI, const char * filenameO) {
-  remove( filenameO );
+int cpFile(std::string srcPath, std::string dstPath) {
+  FILE* src = fopen(srcPath.c_str(), "rb");
+  FILE* dst = fopen(dstPath.c_str(), "wb");
 
-  std::ifstream src(filenameI, std::ios::binary);
-  std::ofstream dst(filenameO, std::ios::binary);
+  if (src == nullptr || dst == nullptr)
+      return - 1;
 
-  dst << src.rdbuf();
+  fseek(src, 0, SEEK_END);
+  u64 sz = ftell(src);
+  rewind(src);
+
+  size_t size;
+  char* buf = new char[0x50000];
+
+  u64 offset = 0;
+  size_t slashpos = srcPath.rfind("/");
+  std::string name = srcPath.substr(slashpos + 1, srcPath.length() - slashpos - 1);
+  while ((size = fread(buf, 1, 0x50000, src)) > 0) {
+      fwrite(buf, 1, size, dst);
+      offset += size;
+  }
+
+  delete[] buf;
+  fclose(src);
+  fclose(dst);
+
+  if (dstPath.rfind("save:/", 0) == 0)
+      fsdevCommitDevice("save");
 
   return 0;
 }
@@ -166,7 +187,7 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
         printf("Copying %s... ", filename);
 
         if (isInject) {
-          cpFile(filenameSD, filenameSave);
+          cpFile(std::string(filenameSD), std::string(filenameSave));
           if (R_SUCCEEDED(fsdevCommitDevice(SAVE_DEV))) { // Thx yellows8
               printf("committed.\n");
           } else {
@@ -174,7 +195,7 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
               return -2;
           }
         } else {
-          cpFile(filenameSave, filenameSD);
+          cpFile(std::string(filenameSave), std::string(filenameSD));
           printf("\n");
         }
       }

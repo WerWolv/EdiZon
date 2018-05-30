@@ -21,5 +21,5 @@ void makeExInjDir(char ptr[0x100], u64 titleID, bool isInject);
 Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs);
 bool getSavefilesForGame(std::vector<int>& vec, u64 titleID, u128 userID);
 int isDirectory(const char *path);
-int cpFile(const char * filenameI, const char * filenameO);
+int cpFile(std::string srcPath, std::string dstPath);
 int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]);

@@ -59,7 +59,7 @@ void GuiEditor::onInput(u32 kdown) {
     backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID());
   }
   if(kdown & KEY_Y)
-    restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), "");
+    restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), "20180531145819");
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {

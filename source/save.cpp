@@ -255,28 +255,44 @@ Result _getUserNameById(u128 userID, char * username) {
 
 int backupSave(u64 titleID, u128 userID) {
   FsFileSystem fs;
-  char ptr[0x100];
+  char *ptr = new char[0x100];
   int res = 0;
 
   fsMount_SaveData(&fs, titleID, userID);
   fsdevMountDevice("save", fs);
   makeExInjDir(ptr, titleID, false, "");
+
+  if(ptr == nullptr) {
+      fsdevUnmountDevice("save");
+      return 1;
+  }
+
   res = copyAllSave("", false, ptr);
   fsdevUnmountDevice("save");
+
+  delete[] ptr;
 
   return res;
 }
 
 int restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
   FsFileSystem fs;
-  char ptr[0x100];
+  char *ptr = new char[0x100];
   int res = 0;
 
   fsMount_SaveData(&fs, titleID, userID);
   fsdevMountDevice("save", fs);
   makeExInjDir(ptr, titleID, true, injectFolder);
+
+  if(ptr == nullptr) {
+      fsdevUnmountDevice("save");
+      return 1;
+  }
+
   res = copyAllSave("", true, ptr);
   fsdevUnmountDevice("save");
+
+  delete[] ptr;
 
   return res;
 }

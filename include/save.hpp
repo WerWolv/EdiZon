@@ -23,3 +23,6 @@ bool getSavefilesForGame(std::vector<int>& vec, u64 titleID, u128 userID);
 int isDirectory(const char *path);
 int cpFile(std::string srcPath, std::string dstPath);
 int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]);
+
+int backupSave(u64 titleID, u128 userID);
+int restoreSave(u64 titleID, u128 userID, const char* injectFolder);

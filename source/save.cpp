@@ -6,7 +6,7 @@ extern "C" {
 const char* ROOT_DIR = "/EdiZon/";
 const char* SAVE_DEV = "save";
 
-void makeExInjDir(char ptr[0x100], u64 titleID, bool isInject)
+void makeExInjDir(char ptr[0x100], u64 titleID, bool isInject, const char* injectFolder)
 {
   time_t t = time(nullptr);
   std::stringstream ss;
@@ -16,7 +16,7 @@ void makeExInjDir(char ptr[0x100], u64 titleID, bool isInject)
   mkdir(ss.str().c_str(), 0700);
 
   if (isInject)
-    ss << "inject/";
+    ss << injectFolder << "/";
   else
     ss << std::put_time(std::gmtime(&t), "%Y%m%d%H%M%S") << "/";
 
@@ -251,4 +251,32 @@ Result _getUserNameById(u128 userID, char * username) {
   }
 
   return rc;
+}
+
+int backupSave(u64 titleID, u128 userID) {
+  FsFileSystem fs;
+  char ptr[0x100];
+  int res = 0;
+
+  fsMount_SaveData(&fs, titleID, userID);
+  fsdevMountDevice("save", fs);
+  makeExInjDir(ptr, titleID, false, "");
+  res = copyAllSave("", false, ptr);
+  fsdevUnmountDevice("save");
+
+  return res;
+}
+
+int restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
+  FsFileSystem fs;
+  char ptr[0x100];
+  int res = 0;
+
+  fsMount_SaveData(&fs, titleID, userID);
+  fsdevMountDevice("save", fs);
+  makeExInjDir(ptr, titleID, true, injectFolder);
+  res = copyAllSave("", true, ptr);
+  fsdevUnmountDevice("save");
+
+  return res;
 }

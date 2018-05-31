@@ -56,14 +56,10 @@ void GuiEditor::onInput(u32 kdown) {
     Gui::g_nextGui = GUI_MAIN;
 
   if(kdown & KEY_X) {
-    FsFileSystem fs;
-    char ptr[0x100];
-    fsMount_SaveData(&fs, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID());
-    fsdevMountDevice("save", fs);
-    makeExInjDir(ptr, Title::g_currTitle->getTitleID(), false);
-    errorCode = copyAllSave("", false, ptr);
-    fsdevUnmountDevice("save");
+    backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID());
   }
+  if(kdown & KEY_Y)
+    restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), "");
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {

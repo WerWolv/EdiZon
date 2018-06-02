@@ -1,4 +1,7 @@
 #include "save.hpp"
+
+#include "account.hpp"
+
 extern "C" {
 #include "nanojpeg.h"
 }
@@ -6,7 +9,7 @@ extern "C" {
 const char* ROOT_DIR = "/EdiZon/";
 const char* SAVE_DEV = "save";
 
-void makeExInjDir(char ptr[0x100], u64 titleID, bool isInject, const char* injectFolder)
+void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder)
 {
   time_t t = time(nullptr);
   std::stringstream ss;
@@ -17,8 +20,10 @@ void makeExInjDir(char ptr[0x100], u64 titleID, bool isInject, const char* injec
 
   if (isInject)
     ss << injectFolder << "/";
-  else
-    ss << std::put_time(std::gmtime(&t), "%Y%m%d%H%M%S") << "/";
+  else {
+    ss << std::put_time(std::gmtime(&t), "%Y%m%d%H%M%S") << "_" << Account::g_accounts[userID]->getUserName() << "/";
+  }
+
 
   strcpy(ptr, ss.str().c_str());
   mkdir(ptr, 0700);
@@ -120,7 +125,6 @@ int cpFile(std::string srcPath, std::string dstPath) {
       return - 1;
 
   fseek(src, 0, SEEK_END);
-  u64 sz = ftell(src);
   rewind(src);
 
   size_t size;
@@ -210,54 +214,6 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   }
 }
 
-int _dumpToTitleUserDir(FsSaveDataInfo info, bool isInject) {
-  char exInjDir[0x100];
-  makeExInjDir(exInjDir, info.titleID, isInject);
-  return copyAllSave(".", isInject, exInjDir);
-}
-
-Result _getUserNameById(u128 userID, char * username) {
-  Result rc=0;
-
-  AccountProfile profile;
-  AccountUserData userdata;
-  AccountProfileBase profilebase;
-
-  memset(&userdata, 0, sizeof(userdata));
-  memset(&profilebase, 0, sizeof(profilebase));
-
-  rc = accountInitialize();
-  if (R_FAILED(rc)) {
-      printf("accountInitialize() failed: 0x%x\n", rc);
-  }
-
-  if (R_SUCCEEDED(rc)) {
-      rc = accountGetProfile(&profile, userID);
-
-      if (R_FAILED(rc)) {
-          printf("accountGetProfile() failed: 0x%x\n", rc);
-      }
-
-
-      if (R_SUCCEEDED(rc)) {
-          rc = accountProfileGet(&profile, &userdata, &profilebase);//userdata is otional, see libnx acc.h.
-
-          if (R_FAILED(rc)) {
-              printf("accountProfileGet() failed: 0x%x\n", rc);
-          }
-
-          if (R_SUCCEEDED(rc)) {
-              memset(username,  0, sizeof(*username));
-              strncpy(username, profilebase.username, sizeof(profilebase.username));//Even though profilebase.username usually has a NUL-terminator, don't assume it does for safety.
-          }
-          accountProfileClose(&profile);
-      }
-      accountExit();
-  }
-
-  return rc;
-}
-
 int backupSave(u64 titleID, u128 userID) {
   FsFileSystem fs;
   char *ptr = new char[0x100];
@@ -265,7 +221,7 @@ int backupSave(u64 titleID, u128 userID) {
 
   fsMount_SaveData(&fs, titleID, userID);
   fsdevMountDevice("save", fs);
-  makeExInjDir(ptr, titleID, false, nullptr);
+  makeExInjDir(ptr, titleID, userID, false, nullptr);
 
   if(ptr == nullptr) {
       fsdevUnmountDevice("save");
@@ -287,7 +243,7 @@ int restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
 
   fsMount_SaveData(&fs, titleID, userID);
   fsdevMountDevice("save", fs);
-  makeExInjDir(ptr, titleID, true, injectFolder);
+  makeExInjDir(ptr, titleID, userID, true, injectFolder);
 
   if(ptr == nullptr) {
       fsdevUnmountDevice("save");

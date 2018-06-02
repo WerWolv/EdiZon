@@ -1,7 +1,6 @@
 #include <switch.h>
 #include <stdio.h>
 #include <vector>
-#include <unordered_map>
 #include <algorithm>
 
 #include "gui.hpp"
@@ -19,9 +18,6 @@ extern "C" {
 #define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   10
 
-std::unordered_map<u64, Title*> titles;
-std::unordered_map<u128, Account*> accounts;
-
 Gui* currGui = nullptr;
 
 void initTitles() {
@@ -29,12 +25,12 @@ void initTitles() {
   _getSaveList(saveInfoList);
 
   for(auto saveInfo : saveInfoList) {
-    if(titles.find(saveInfo.titleID) == titles.end())
-      titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
-    titles[saveInfo.titleID]->addUserID(saveInfo.userID);
+    if(Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
+      Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
+    Title::g_titles[saveInfo.titleID]->addUserID(saveInfo.userID);
 
-    if(accounts.find(saveInfo.userID) == accounts.end())
-      accounts.insert({(u128)saveInfo.userID, new Account(saveInfo.userID)});
+    if(Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())
+      Account::g_accounts.insert({(u128)saveInfo.userID, new Account(saveInfo.userID)});
   }
 }
 
@@ -111,7 +107,10 @@ int main(int argc, char** argv) {
   }
 
   delete currGui;
-  titles.clear();
+
+  //TODO: Memory leak?
+  Title::g_titles.clear();
+  Account::g_accounts.clear();
 
 #ifdef NXLINK
   socketExit();

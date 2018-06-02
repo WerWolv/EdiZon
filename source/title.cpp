@@ -5,6 +5,7 @@ extern "C" {
 }
 
 Title *Title::g_currTitle = nullptr;
+std::unordered_map<u64, Title*> Title::g_titles;
 
 Title::Title(FsSaveDataInfo& saveInfo) {
   Result rc=0;

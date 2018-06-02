@@ -2,6 +2,8 @@
 
 #include <switch.h>
 #include <string>
+#include <unordered_map>
+
 #include "types.h"
 #include "save.hpp"
 #include "account.hpp"
@@ -9,6 +11,7 @@
 class Title {
 public:
   static Title *g_currTitle;
+  static std::unordered_map<u64, Title*> g_titles;
 
   Title(FsSaveDataInfo& saveInfo);
   ~Title();

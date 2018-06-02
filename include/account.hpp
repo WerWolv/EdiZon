@@ -3,10 +3,12 @@
 #include <switch.h>
 
 #include <string>
+#include <unordered_map>
 
 class Account {
 public:
   static Account *g_currAccount;
+  static std::unordered_map<u128, Account*> g_accounts;
 
   Account(u128 userID);
   ~Account();

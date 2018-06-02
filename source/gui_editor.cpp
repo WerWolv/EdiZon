@@ -12,14 +12,15 @@ u8 errorCode = 0;
 
 u8* titleIcon;
 
+Snackbar *snackbar = nullptr;
+
 GuiEditor::GuiEditor() : Gui() {
   titleIcon = (u8*) malloc(128*128*3);
 
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
-
-  m_widgets.push_back({ std::string("Coins"), new WidgetSwitch() });
+  /*m_widgets.push_back({ std::string("Coins"), new WidgetSwitch() });
   m_widgets.push_back({ std::string("Health"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("Power Moons"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("Power Moons"), new WidgetSwitch() });*/
 }
 
 GuiEditor::~GuiEditor() {
@@ -28,8 +29,10 @@ GuiEditor::~GuiEditor() {
 }
 
 void GuiEditor::draw() {
+  Gui::beginDraw();
+
   std::stringstream ss;
-  ss << "0x" << errorCode;
+  ss << "0x" << std::hex << Title::g_currTitle->getTitleID();
 
   Gui::drawRectangle(0, 0, Gui::framebuffer_width, Gui::framebuffer_height, currTheme.backgroundColor);
   Gui::drawImage(0, 0, 128, 128, titleIcon, IMAGE_MODE_RGB24);
@@ -42,18 +45,21 @@ void GuiEditor::draw() {
   Gui::getTextDimensions(font20, Title::g_currTitle->getTitleAuthor().c_str(), &titleWidth, &titleHeight);
   Gui::drawText(font20, (Gui::framebuffer_width / 2) - (titleWidth / 2), 45, currTheme.textColor, Title::g_currTitle->getTitleAuthor().c_str());
   Gui::getTextDimensions(font20, ss.str().c_str(), &titleWidth, &titleHeight);
-  Gui::drawText(font20, (Gui::framebuffer_width / 2) - (titleWidth / 2), 80, currTheme.textColor, std::to_string(errorCode).c_str());
+  Gui::drawText(font20, (Gui::framebuffer_width / 2) - (titleWidth / 2), 80, currTheme.textColor, ss.str().c_str());
 
   Widget::drawWidgets(this, m_widgets, 200, 0, 0);
 
-  gfxFlushBuffers();
-  gfxSwapBuffers();
-  gfxWaitForVsync();
+  Gui::endDraw();
 }
 
 void GuiEditor::onInput(u32 kdown) {
   if(kdown & KEY_B)
     Gui::g_nextGui = GUI_MAIN;
+
+  if(kdown & KEY_ZL) {
+    snackbar = new Snackbar(this, "HELLO WORLD");
+    snackbar->show();
+  }
 
   if(kdown & KEY_X) {
     backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID());

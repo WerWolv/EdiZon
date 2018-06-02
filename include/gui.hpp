@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "title.hpp"
+#include "snackbar.hpp"
 
 extern "C" {
   #include "theme.h"
@@ -31,6 +32,8 @@ public:
   u32 framebuffer_width;
   u32 framebuffer_height;
 
+  Snackbar *currSnackbar;
+
   Gui();
   virtual ~Gui();
   virtual void draw() = 0;
@@ -47,6 +50,10 @@ public:
   void getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out);
   void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
+
+protected:
+  void beginDraw();
+  void endDraw();
 
 private:
   void drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s32 max_width);

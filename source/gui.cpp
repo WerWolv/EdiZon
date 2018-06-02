@@ -4,10 +4,12 @@ gui_t Gui::g_nextGui = GUI_INVALID;
 
 Gui::Gui() {
   this->framebuffer = gfxGetFramebuffer(&this->framebuffer_width, &this->framebuffer_height);
+
+  currSnackbar = nullptr;
 }
 
 Gui::~Gui() {
-
+  currSnackbar = nullptr;
 }
 
 inline u8 Gui::blendColor(u32 src, u32 dst, u8 alpha) {
@@ -325,4 +327,23 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
             }
         }
     }
+}
+
+void Gui::beginDraw() {
+
+}
+
+void Gui::endDraw() {
+  if(currSnackbar != nullptr) {
+    currSnackbar->draw();
+
+    if(currSnackbar->isDead()) {
+        delete currSnackbar;
+        currSnackbar = nullptr;
+    }
+  }
+
+  gfxFlushBuffers();
+  gfxSwapBuffers();
+  gfxWaitForVsync();
 }

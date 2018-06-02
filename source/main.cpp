@@ -14,6 +14,8 @@ extern "C" {
   #include "theme.h"
 }
 
+#define NXLINK
+
 #define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   10
 
@@ -41,6 +43,11 @@ int main(int argc, char** argv) {
   u32 kheld = 0, kheldOld = 0;
   u32 kdown = 0;
   s32 inputTicker = 0;
+
+#ifdef NXLINK
+  socketInitializeDefault();
+  nxlinkStdio();
+#endif
 
   gfxInitDefault();
   setsysInitialize();
@@ -105,6 +112,10 @@ int main(int argc, char** argv) {
 
   delete currGui;
   titles.clear();
+
+#ifdef NXLINK
+  socketExit();
+#endif
 
   gfxExit();
 

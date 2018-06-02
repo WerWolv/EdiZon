@@ -114,7 +114,7 @@ int isDirectory(const char *path) {
 
 int cpFile(std::string srcPath, std::string dstPath) {
   FILE* src = fopen(srcPath.c_str(), "rb");
-  FILE* dst = fopen(dstPath.c_str(), "wb");
+  FILE* dst = fopen(dstPath.c_str(), "ab+");
 
   if (src == nullptr || dst == nullptr)
       return - 1;
@@ -157,7 +157,11 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   strcpy(filenameSD, exInjDir);
   strcat(filenameSD, path);
 
-  dir = opendir(filenameSave);
+  if(isInject)
+    dir = opendir(filenameSD);
+  else
+    dir = opendir(filenameSave);
+
   if(dir==NULL)
   {
     printf("Failed to open dir: %s\n", filenameSave);
@@ -188,6 +192,7 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
 
         if (isInject) {
           cpFile(std::string(filenameSD), std::string(filenameSave));
+
           if (R_SUCCEEDED(fsdevCommitDevice(SAVE_DEV))) { // Thx yellows8
               printf("committed.\n");
           } else {
@@ -260,7 +265,7 @@ int backupSave(u64 titleID, u128 userID) {
 
   fsMount_SaveData(&fs, titleID, userID);
   fsdevMountDevice("save", fs);
-  makeExInjDir(ptr, titleID, false, "");
+  makeExInjDir(ptr, titleID, false, nullptr);
 
   if(ptr == nullptr) {
       fsdevUnmountDevice("save");

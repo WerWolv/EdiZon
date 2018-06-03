@@ -70,20 +70,22 @@ void GuiEditor::draw() {
     Gui::drawRectangle(50, 300, Gui::framebuffer_width - 100, 2, currTheme.textColor);
     Gui::drawText(font24, 100, 240, currTheme.textColor, "Restore backup");
 
-    for(s16 currBackup = -2; currBackup < 3; currBackup++) {
-      if((currBackup + selectedBackup) < backupNames.size()) {
-        Gui::drawText(font20, 300, 340 + 60 * (currBackup + 2), currTheme.textColor, backupNames[(currBackup + selectedBackup)].c_str());
-        Gui::drawRectangle(250, 325 + 60 * (currBackup + 2), Gui::framebuffer_width - 500, 1, currTheme.separatorColor);
-        Gui::drawRectangle(250, 325 + 60 * (currBackup + 3), Gui::framebuffer_width - 500, 1, currTheme.separatorColor);
+    if(backupNames.size() != 0) {
+      for(s16 currBackup = -2; currBackup < 3; currBackup++) {
+        if((currBackup + selectedBackup) >= 0 && (currBackup + selectedBackup) < backupNames.size()) {
+          Gui::drawText(font20, 300, 340 + 60 * (currBackup + 2), currTheme.textColor, backupNames[(currBackup + selectedBackup)].c_str());
+          Gui::drawRectangle(250, 325 + 60 * (currBackup + 2), Gui::framebuffer_width - 500, 1, currTheme.separatorColor);
+          Gui::drawRectangle(250, 325 + 60 * (currBackup + 3), Gui::framebuffer_width - 500, 1, currTheme.separatorColor);
+        }
       }
-    }
-    Gui::drawRectangled(245, 320 + 60 * 2, Gui::framebuffer_width - 490, 71, highlightColorAnim);
-    Gui::drawRectangle(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61, COLOR_WHITE);
-    Gui::drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, backupNames[selectedBackup].c_str());
-    Gui::drawShadow(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61);
+      Gui::drawRectangled(245, 320 + 60 * 2, Gui::framebuffer_width - 490, 71, highlightColorAnim);
+      Gui::drawRectangle(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61, COLOR_WHITE);
+      Gui::drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, backupNames[selectedBackup].c_str());
+      Gui::drawShadow(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61);
+    } else Gui::drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, "No backups present!");
 
     Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
-    Gui::drawText(font20, 900, Gui::framebuffer_height - 50, currTheme.textColor, "A - Restore     B - Back");
+    Gui::drawText(font20, 800, Gui::framebuffer_height - 50, currTheme.textColor, "A - Restore     X - Delete     B - Back");
   }
 
   menuTimer += 0.025;
@@ -91,19 +93,48 @@ void GuiEditor::draw() {
   Gui::endDraw();
 }
 
+void updateBackupList() {
+  DIR *dir;
+  struct dirent *ent;
+
+  std::stringstream path;
+  path << "/EdiZon/";
+  path << std::setfill('0') << std::setw(16) << std::hex << Title::g_currTitle->getTitleID();
+  backupNames.clear();
+  if((dir = opendir(path.str().c_str())) != nullptr) {
+    while((ent = readdir(dir)) != nullptr)
+      backupNames.push_back(ent->d_name);
+    closedir(dir);
+  }
+}
+
 void GuiEditor::onInput(u32 kdown) {
 
   if(isRestoreListShown) {
     if(kdown & KEY_A) {
-      if(!restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[selectedBackup].c_str()))
-        (new Snackbar(this, "Sucessfully loaded backup!"))->show();
-      else (new Snackbar(this, "An error occured while restoring the backup!"))->show();
+        if(backupNames.size() != 0) {
+        if(!restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[selectedBackup].c_str()))
+          (new Snackbar(this, "Sucessfully loaded backup!"))->show();
+        else (new Snackbar(this, "An error occured while restoring the backup!"))->show();
 
-      isRestoreListShown = false;
+        isRestoreListShown = false;
+      }
     }
 
     if(kdown & KEY_B)
       isRestoreListShown = false;
+
+    if(kdown & KEY_X) {
+      std::stringstream path;
+      path << "/EdiZon/";
+      path << std::setfill('0') << std::setw(16) << std::hex << Title::g_currTitle->getTitleID();
+      path << "/" << backupNames[selectedBackup];
+      deleteDirRecursively(path.str().c_str());
+      updateBackupList();
+
+      if(selectedBackup == backupNames.size() && selectedBackup > 0)
+        selectedBackup--;
+    }
 
     if(kdown & KEY_UP)
       if(selectedBackup > 0)
@@ -125,21 +156,9 @@ void GuiEditor::onInput(u32 kdown) {
     if(kdown & KEY_Y) {
       isRestoreListShown = true;
       selectedBackup = 0;
-      DIR *dir;
-      struct dirent *ent;
-
-      std::stringstream path;
-      path << "/EdiZon/";
-      path << std::setfill('0') << std::setw(16) << std::hex << Title::g_currTitle->getTitleID();
-      backupNames.clear();
-      if((dir = opendir(path.str().c_str())) != nullptr) {
-        while((ent = readdir(dir)) != nullptr)
-          backupNames.push_back(ent->d_name);
-        closedir(dir);
-      }
+      updateBackupList();
     }
   }
-    //
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {

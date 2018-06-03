@@ -1,13 +1,77 @@
 #include "save.hpp"
 
-#include "account.hpp"
+#include <unistd.h>
 
+#include "account.hpp"
 extern "C" {
 #include "nanojpeg.h"
 }
 
+
+
 const char* ROOT_DIR = "/EdiZon/";
 const char* SAVE_DEV = "save";
+
+s32 deleteDirRecursively(const char *path) {
+  DIR *d = opendir(path);
+     size_t path_len = strlen(path);
+     int r = -1;
+
+     if (d)
+     {
+        struct dirent *p;
+
+        r = 0;
+
+        while (!r && (p=readdir(d)))
+        {
+            int r2 = -1;
+            char *buf;
+            size_t len;
+
+            /* Skip the names "." and ".." as we don't want to recurse on them. */
+            if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+            {
+               continue;
+            }
+
+            len = path_len + strlen(p->d_name) + 2;
+            buf = new char[len];
+
+            if (buf)
+            {
+               struct stat statbuf;
+
+               snprintf(buf, len, "%s/%s", path, p->d_name);
+
+               if (!stat(buf, &statbuf))
+               {
+                  if (S_ISDIR(statbuf.st_mode))
+                  {
+                     r2 = deleteDirRecursively(buf);
+                  }
+                  else
+                  {
+                     r2 = unlink(buf);
+                  }
+               }
+
+               delete[] buf;
+            }
+
+            r = r2;
+        }
+
+        closedir(d);
+     }
+
+     if (!r)
+     {
+        r = rmdir(path);
+     }
+
+     return r;
+}
 
 void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder)
 {
@@ -71,7 +135,7 @@ Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSy
     return rc;
   }
 
-  int ret = fsdevMountDevice(SAVE_DEV, tmpfs);
+  s32 ret = fsdevMountDevice(SAVE_DEV, tmpfs);
   if (ret==-1) {
     printf("fsdevMountDevice() failed.\n");
     rc = ret;
@@ -84,7 +148,7 @@ Result mountSaveBySaveDataInfo(const FsSaveDataInfo & info) {
   return mountSaveByTitleAccountIDs(info.titleID, info.userID, tmpfs);
 }
 
-bool getSavefilesForGame(std::vector<int>& vec, u64 titleID, u128 userID)
+bool getSavefilesForGame(std::vector<s32>& vec, u64 titleID, u128 userID)
 {
   FsFileSystem tmpfs;
   Result rc = 0;
@@ -97,7 +161,7 @@ bool getSavefilesForGame(std::vector<int>& vec, u64 titleID, u128 userID)
 
   char fname[0x10];
   struct stat statbuf;
-  int i;
+  s32 i;
   for (i=0; i != 7; i++)
   {
     sprintf(fname, "File%d.bin", i);
@@ -110,14 +174,14 @@ bool getSavefilesForGame(std::vector<int>& vec, u64 titleID, u128 userID)
   return true;
 }
 
-int isDirectory(const char *path) {
+s32 isDirectory(const char *path) {
  struct stat statbuf;
  if (stat(path, &statbuf) != 0)
    return 0;
  return S_ISDIR(statbuf.st_mode);
 }
 
-int cpFile(std::string srcPath, std::string dstPath) {
+s32 cpFile(std::string srcPath, std::string dstPath) {
   FILE* src = fopen(srcPath.c_str(), "rb");
   FILE* dst = fopen(dstPath.c_str(), "ab+");
 
@@ -148,7 +212,7 @@ int cpFile(std::string srcPath, std::string dstPath) {
   return 0;
 }
 
-int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
+s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   DIR* dir;
   struct dirent* ent;
 
@@ -188,7 +252,7 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
 
       if(isDirectory(filenameSave)) {
           mkdir(filenameSD, 0700);
-          int res = copyAllSave(filename, isInject, exInjDir);
+          s32 res = copyAllSave(filename, isInject, exInjDir);
           if(res != 0)
               return res;
       } else {
@@ -214,10 +278,10 @@ int copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   }
 }
 
-int backupSave(u64 titleID, u128 userID) {
+s32 backupSave(u64 titleID, u128 userID) {
   FsFileSystem fs;
   char *ptr = new char[0x100];
-  int res = 0;
+  s32 res = 0;
 
   fsMount_SaveData(&fs, titleID, userID);
   fsdevMountDevice("save", fs);
@@ -236,10 +300,10 @@ int backupSave(u64 titleID, u128 userID) {
   return res;
 }
 
-int restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
+s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
   FsFileSystem fs;
   char *ptr = new char[0x100];
-  int res = 0;
+  s32 res = 0;
 
   fsMount_SaveData(&fs, titleID, userID);
   fsdevMountDevice("save", fs);

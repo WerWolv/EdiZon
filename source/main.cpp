@@ -108,7 +108,12 @@ int main(int argc, char** argv) {
 
   delete currGui;
 
-  //TODO: Memory leak?
+  for(auto it = Title::g_titles.begin(); it != Title::g_titles.end(); it++)
+    delete it->second;
+
+  for(auto it = Account::g_accounts.begin(); it != Account::g_accounts.end(); it++)
+    delete it->second;
+
   Title::g_titles.clear();
   Account::g_accounts.clear();
 

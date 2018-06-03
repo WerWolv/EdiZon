@@ -113,11 +113,12 @@ void GuiEditor::onInput(u32 kdown) {
   if(isRestoreListShown) {
     if(kdown & KEY_A) {
         if(backupNames.size() != 0) {
-        if(!restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[selectedBackup].c_str()))
-          (new Snackbar(this, "Sucessfully loaded backup!"))->show();
-        else (new Snackbar(this, "An error occured while restoring the backup!"))->show();
+          s16 res;
+          if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[selectedBackup].c_str())))
+            (new Snackbar(this, "Sucessfully loaded backup!"))->show();
+          else (new Snackbar(this, "An error occured while restoring the backup! Error " + std::to_string(res)))->show();
 
-        isRestoreListShown = false;
+          isRestoreListShown = false;
       }
     }
 
@@ -148,9 +149,10 @@ void GuiEditor::onInput(u32 kdown) {
       Gui::g_nextGui = GUI_MAIN;
 
     if(kdown & KEY_X) {
-      if(!backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID()))
+      s16 res;
+      if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID())))
         (new Snackbar(this, "Sucessfully created backup!"))->show();
-      else (new Snackbar(this, "An error occured while creating the backup!"))->show();
+      else (new Snackbar(this, "An error occured while creating the backup! Error " + std::to_string(res)))->show();
     }
 
     if(kdown & KEY_Y) {

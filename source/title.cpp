@@ -48,7 +48,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   m_titleName = std::string(langentry->name);
   m_titleAuthor = std::string(langentry->author);
 
-  m_titleID = buf->nacp.titleID0;
+  m_titleID = saveInfo.titleID;
 
   njInit();
 

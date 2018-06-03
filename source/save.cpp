@@ -78,6 +78,8 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
   time_t t = time(nullptr);
   std::stringstream ss;
 
+  mkdir(ROOT_DIR, 0700);
+
   ss << ROOT_DIR << std::setfill('0') << std::setw(sizeof(titleID)*2)
      << std::hex << titleID << "/";
   mkdir(ss.str().c_str(), 0700);
@@ -141,11 +143,6 @@ Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSy
     rc = ret;
   }
   return rc;
-}
-
-Result mountSaveBySaveDataInfo(const FsSaveDataInfo & info) {
-  FsFileSystem tmpfs;
-  return mountSaveByTitleAccountIDs(info.titleID, info.userID, tmpfs);
 }
 
 bool getSavefilesForGame(std::vector<s32>& vec, u64 titleID, u128 userID)
@@ -283,16 +280,20 @@ s32 backupSave(u64 titleID, u128 userID) {
   char *ptr = new char[0x100];
   s32 res = 0;
 
-  fsMount_SaveData(&fs, titleID, userID);
-  fsdevMountDevice("save", fs);
+  if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
+    printf("Failed to mount save.\n");
+    return 1;
+  }
+
   makeExInjDir(ptr, titleID, userID, false, nullptr);
 
   if(ptr == nullptr) {
+    printf("makeExInjDir failed.\n");
       fsdevUnmountDevice("save");
       return 1;
   }
 
-  res = copyAllSave("", false, ptr);
+  res = copyAllSave("", true, ptr);
   fsdevUnmountDevice("save");
 
   delete[] ptr;
@@ -305,11 +306,15 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
   char *ptr = new char[0x100];
   s32 res = 0;
 
-  fsMount_SaveData(&fs, titleID, userID);
-  fsdevMountDevice("save", fs);
+  if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
+    printf("Failed to mount save.\n");
+    return 1;
+  }
+
   makeExInjDir(ptr, titleID, userID, true, injectFolder);
 
   if(ptr == nullptr) {
+    printf("makeExInjDir failed.\n");
       fsdevUnmountDevice("save");
       return 1;
   }

@@ -9,7 +9,7 @@
 #include <math.h>
 
 s16 xOffset;
-float menuTimer = 0.0F;
+static float menuTimer = 0.0F;
 
 enum {
   TITLE_SELECT,

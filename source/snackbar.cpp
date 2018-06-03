@@ -26,6 +26,8 @@ void Snackbar::draw() {
 
   if(m_displayTime < 20)
     yOffset = SNACKBAR_HEIGHT - m_displayTime * 5;
+  else if(m_displayTime > (DISPLAY_TIME - 20))
+    yOffset = SNACKBAR_HEIGHT - (DISPLAY_TIME - m_displayTime) * 5;
   else yOffset = 0;
 
   m_gui->drawRectangle(0, (m_gui->framebuffer_height - SNACKBAR_HEIGHT) + yOffset, m_gui->framebuffer_width, m_gui->framebuffer_height, currTheme.textColor);

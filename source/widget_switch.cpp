@@ -20,6 +20,6 @@ void WidgetSwitch::onInput(u32 kdown) {
     m_value = !m_value;
 }
 
-void WidgetSwitch::onTouch(touchPosition &touch, u16 widgetX, u16 widgetY) {
+void WidgetSwitch::onTouch(touchPosition &touch) {
   m_value = !m_value;
 }

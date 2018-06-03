@@ -27,7 +27,7 @@ public:
 
   virtual void draw(Gui *gui, u16 x, u16 y) = 0;
   virtual void onInput(u32 kdown) = 0;
-  virtual void onTouch(touchPosition &touch, u16 widgetX, u16 widgetY) = 0;
+  virtual void onTouch(touchPosition &touch) = 0;
 
   u16 getValue();
   void setValue(u16 value);

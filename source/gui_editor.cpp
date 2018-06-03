@@ -202,5 +202,15 @@ void GuiEditor::onInput(u32 kdown) {
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
+  if(!isRestoreListShown) {
+    s8 widgetTouchPos = floor((touch.py - 150) / ((float)WIDGET_HEIGHT + WIDGET_SEPARATOR)) + 6 * widgetPage;
 
+    if(touch.px > 100 && touch.px < Gui::framebuffer_width - 100) {
+      if(widgetTouchPos >= 0 && widgetTouchPos < m_widgets.size() && widgetTouchPos < (6 * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? m_widgets.size() % 6 + 1 : 0)) {
+        if(Widget::g_selectedWidgetIndex == widgetTouchPos)
+          m_widgets[widgetTouchPos].widget->onTouch(touch);
+        Widget::g_selectedWidgetIndex = widgetTouchPos;
+      }
+    }
+  }
 }

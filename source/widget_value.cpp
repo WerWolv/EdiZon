@@ -32,6 +32,6 @@ void WidgetValue::onInput(u32 kdown) {
   }
 }
 
-void WidgetValue::onTouch(touchPosition &touch, u16 widgetX, u16 widgetY) {
+void WidgetValue::onTouch(touchPosition &touch) {
 
 }

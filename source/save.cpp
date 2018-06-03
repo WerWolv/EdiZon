@@ -293,7 +293,7 @@ s32 backupSave(u64 titleID, u128 userID) {
       return 1;
   }
 
-  res = copyAllSave("", true, ptr);
+  res = copyAllSave("", false, ptr);
   fsdevUnmountDevice("save");
 
   delete[] ptr;

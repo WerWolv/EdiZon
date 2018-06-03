@@ -27,15 +27,9 @@ GuiEditor::GuiEditor() : Gui() {
   titleIcon = (u8*) malloc(128*128*3);
 
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
-  m_widgets.push_back({ std::string("Coins"), new WidgetValue(0x0000, 0xFFFF) });
-  m_widgets.push_back({ std::string("Health"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("Power Moons"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("Test"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("Purple Coins"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("Costumes"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("ASDASDASD"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("ROFLLOL"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("DERP"), new WidgetSwitch() });
+
+  //TODO: Fix crash when no widgets are present
+  m_widgets.push_back({ std::string("Test Value"), new WidgetSwitch() });
 
   isRestoreListShown = false;
   selectedBackup = 0;
@@ -48,6 +42,8 @@ GuiEditor::~GuiEditor() {
   for(auto widget : m_widgets)
     delete widget.widget;
 }
+
+const char* todo = "SAVE GAME EDITOR GOES HERE";
 
 void GuiEditor::draw() {
   Gui::beginDraw();
@@ -69,6 +65,9 @@ void GuiEditor::draw() {
   Gui::drawText(font20, (Gui::framebuffer_width / 2) - (textWidth / 2), 80, currTheme.textColor, ss.str().c_str());
 
   Widget::drawWidgets(this, m_widgets, 150, widgetPage * 6, widgetPage * 6 + 6);
+
+  Gui::getTextDimensions(font20, todo, &textWidth, &textHeight);
+  Gui::drawText(font24, (Gui::framebuffer_width / 2) - (textWidth / 2), (Gui::framebuffer_height / 2) - (textHeight / 2), currTheme.textColor, todo);
 
   for(u8 page = 0; page < widgetPageCnt; page++) {
     Gui::drawRectangle((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + (40 * page), 615, 20, 20, currTheme.separatorColor);
@@ -212,5 +211,7 @@ void GuiEditor::onTouch(touchPosition &touch) {
         Widget::g_selectedWidgetIndex = widgetTouchPos;
       }
     }
+  } else {
+
   }
 }

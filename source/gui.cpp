@@ -1,6 +1,10 @@
 #include "gui.hpp"
 
+#include <math.h>
+
 gui_t Gui::g_nextGui = GUI_INVALID;
+
+static float menuTimer = 0.0F;
 
 Gui::Gui() {
   this->framebuffer = gfxGetFramebuffer(&this->framebuffer_width, &this->framebuffer_height);
@@ -330,7 +334,8 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
 }
 
 void Gui::beginDraw() {
-
+  float highlightMultiplier = fmax(0.5, fabs(fmod(menuTimer, 1.0) - 0.5) / 0.5);
+  currTheme.highlightColor.a = 0xE0 * highlightMultiplier;
 }
 
 void Gui::endDraw() {
@@ -342,6 +347,8 @@ void Gui::endDraw() {
         currSnackbar = nullptr;
     }
   }
+
+  menuTimer += 0.025;
 
   gfxFlushBuffers();
   gfxSwapBuffers();

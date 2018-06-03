@@ -9,7 +9,6 @@
 #include <math.h>
 
 s16 xOffset;
-static float menuTimer = 0.0F;
 
 enum {
   TITLE_SELECT,
@@ -54,19 +53,15 @@ void GuiMain::draw() {
     currItem++;
   }
 
-  float highlightMultiplier = fmax(0.5, fabs(fmod(menuTimer, 1.0) - 0.5) / 0.5);
-  color_t highlightColorAnim = currTheme.highlightColor;
-  highlightColorAnim.a = 0xE0 * highlightMultiplier;
-
   if(selectionState >= TITLE_SELECT) {
-    Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? highlightColorAnim : currTheme.selectedColor);
+    Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
     Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
     Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
     Gui::drawShadow(selectedX, selectedY, 256, 256);
   }
 
   if(selectionState >= ACCOUNT_SELECT) {
-      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 10, 550, 148, 148, highlightColorAnim);
+      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 10, 550, 148, 148, currTheme.highlightColor);
       Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.selectedButtonColor);
       Gui::drawImage(40 + m_selected.accountIndex * 150, 560, 128, 128, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
       Gui::drawShadow(40 + m_selected.accountIndex * 150, 560, 128, 128);
@@ -79,14 +74,10 @@ void GuiMain::draw() {
     }
   }
 
-  menuTimer += 0.025;
-
   Gui::endDraw();
 }
 
 void GuiMain::onInput(u32 kdown) {
-  menuTimer = 1.0F;
-
   if(kdown & KEY_LEFT) {
     if(selectionState == TITLE_SELECT) {
       if(((s16)m_selected.titleIndex - 2) >= 0)

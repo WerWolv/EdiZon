@@ -4,13 +4,16 @@
 
 #include <switch.h>
 
-class WidgetSwitch : public Widget {
+class WidgetValue : public Widget {
 public:
-  WidgetSwitch();
-  ~WidgetSwitch();
+  WidgetValue(u16 minValue, u16 maxValue);
+  ~WidgetValue();
 
   void draw(Gui *gui, u16 x, u16 y);
 
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch, u16 widgetX, u16 widgetY);
+
+private:
+  u16 m_minValue, m_maxValue;
 };

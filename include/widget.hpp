@@ -1,13 +1,15 @@
 #pragma once
 
+#include <switch.h>
+
 #include <string>
 #include <utility>
 
 #include "gui.hpp"
 
 #define WIDGET_WIDTH      300
-#define WIDGET_HEIGHT     75
-#define WIDGET_SEPARATOR  20
+#define WIDGET_HEIGHT     65
+#define WIDGET_SEPARATOR  10
 
 class Widget;
 typedef struct { std::string title; Widget *widget; } WidgetPair;
@@ -20,14 +22,16 @@ public:
   Widget();
   virtual ~Widget();
 
-  virtual void draw(Gui *gui, u16 x, u16 y) = 0;
   static void drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 end);
+  static void handleInput(u32 kdown, WidgetList &widgets);
 
+  virtual void draw(Gui *gui, u16 x, u16 y) = 0;
   virtual void onInput(u32 kdown) = 0;
   virtual void onTouch(touchPosition &touch, u16 widgetX, u16 widgetY) = 0;
 
-  u32 getValue();
+  u16 getValue();
+  void setValue(u16 value);
 
 protected:
-  u32 m_value;
+  u16 m_value;
 };

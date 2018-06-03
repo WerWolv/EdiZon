@@ -1,37 +1,53 @@
 #include "gui_editor.hpp"
 #include "gui_main.hpp"
 
+#include "title.hpp"
+#include "save.hpp"
+
+#include "widget_switch.hpp"
+#include "widget_value.hpp"
+
 #include <string>
 #include <sstream>
 #include <vector>
 #include <map>
 #include <math.h>
-
-#include "save.hpp"
+#include <unordered_map>
 
 u8* titleIcon;
 
-bool isRestoreListShown = false;
-u16 selectedBackup = 0;
+bool isRestoreListShown;
+u16 selectedBackup;
 std::vector<std::string> backupNames;
 
-static float menuTimer = 0.0F;
+u16 widgetPage;
+u16 widgetPageCnt;
 
 GuiEditor::GuiEditor() : Gui() {
   titleIcon = (u8*) malloc(128*128*3);
 
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
-  /*m_widgets.push_back({ std::string("Coins"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("Coins"), new WidgetValue(0x0000, 0xFFFF) });
   m_widgets.push_back({ std::string("Health"), new WidgetSwitch() });
-  m_widgets.push_back({ std::string("Power Moons"), new WidgetSwitch() });*/
+  m_widgets.push_back({ std::string("Power Moons"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("Test"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("Purple Coins"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("Costumes"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("ASDASDASD"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("ROFLLOL"), new WidgetSwitch() });
+  m_widgets.push_back({ std::string("DERP"), new WidgetSwitch() });
+
+  isRestoreListShown = false;
+  selectedBackup = 0;
+  widgetPage = 0;
+  widgetPageCnt = ceil(m_widgets.size() / 5.0F);
+  Widget::g_selectedWidgetIndex = 0;
 }
 
 GuiEditor::~GuiEditor() {
   for(auto widget : m_widgets)
     delete widget.widget;
 }
-
-const char* todo = "SAVE GAME EDITOR GOES HERE";
 
 void GuiEditor::draw() {
   Gui::beginDraw();
@@ -52,17 +68,16 @@ void GuiEditor::draw() {
   Gui::getTextDimensions(font20, ss.str().c_str(), &textWidth, &textHeight);
   Gui::drawText(font20, (Gui::framebuffer_width / 2) - (textWidth / 2), 80, currTheme.textColor, ss.str().c_str());
 
-  Widget::drawWidgets(this, m_widgets, 200, 0, 0);
+  Widget::drawWidgets(this, m_widgets, 150, widgetPage * 6, widgetPage * 6 + 6);
 
-  Gui::getTextDimensions(font20, todo, &textWidth, &textHeight);
-  Gui::drawText(font24, (Gui::framebuffer_width / 2) - (textWidth / 2), (Gui::framebuffer_height / 2) - (textHeight / 2), currTheme.textColor, todo);
+  for(u8 page = 0; page < widgetPageCnt; page++) {
+    Gui::drawRectangle((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + (40 * page), 615, 20, 20, currTheme.separatorColor);
+    if(page == widgetPage)
+      Gui::drawRectangled((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + (40 * page) + 4, 619, 12, 12, currTheme.highlightColor);
+  }
 
   Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
   Gui::drawText(font20, 750, Gui::framebuffer_height - 50, currTheme.textColor, "B - Back     X - Backup     Y - Restore");
-
-  float highlightMultiplier = fmax(0.5, fabs(fmod(menuTimer, 1.0) - 0.5) / 0.5);
-  color_t highlightColorAnim = currTheme.highlightColor;
-  highlightColorAnim.a = 0xE0 * highlightMultiplier;
 
   if(isRestoreListShown) {
     Gui::drawRectangled(0, 0, Gui::framebuffer_width, Gui::framebuffer_height - 100, Gui::makeColor(0x00, 0x00, 0x00, 0xAA));
@@ -78,7 +93,7 @@ void GuiEditor::draw() {
           Gui::drawRectangle(250, 325 + 60 * (currBackup + 3), Gui::framebuffer_width - 500, 1, currTheme.separatorColor);
         }
       }
-      Gui::drawRectangled(245, 320 + 60 * 2, Gui::framebuffer_width - 490, 71, highlightColorAnim);
+      Gui::drawRectangled(245, 320 + 60 * 2, Gui::framebuffer_width - 490, 71, currTheme.highlightColor);
       Gui::drawRectangle(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61, currTheme.selectedButtonColor);
       Gui::drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, backupNames[selectedBackup].c_str());
       Gui::drawShadow(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61);
@@ -87,8 +102,6 @@ void GuiEditor::draw() {
     Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
     Gui::drawText(font20, 800, Gui::framebuffer_height - 50, currTheme.textColor, "A - Restore     X - Delete     B - Back");
   }
-
-  menuTimer += 0.025;
 
   Gui::endDraw();
 }
@@ -109,6 +122,7 @@ void updateBackupList() {
 }
 
 void GuiEditor::onInput(u32 kdown) {
+  Widget::handleInput(kdown, m_widgets);
 
   if(isRestoreListShown) {
     if(kdown & KEY_A) {
@@ -159,6 +173,30 @@ void GuiEditor::onInput(u32 kdown) {
       isRestoreListShown = true;
       selectedBackup = 0;
       updateBackupList();
+    }
+
+    if(kdown & KEY_L) {
+      if(widgetPage > 0)
+        widgetPage--;
+      Widget::g_selectedWidgetIndex = 6 * widgetPage;
+    }
+
+    if(kdown & KEY_R) {
+      if(widgetPage < widgetPageCnt - 1)
+        widgetPage++;
+      Widget::g_selectedWidgetIndex = 6 * widgetPage;
+    }
+
+    if(kdown & KEY_UP) {
+      if(Widget::g_selectedWidgetIndex > 0)
+        Widget::g_selectedWidgetIndex--;
+      widgetPage = floor(Widget::g_selectedWidgetIndex / 6.0F);
+    }
+
+    if(kdown & KEY_DOWN) {
+      if(Widget::g_selectedWidgetIndex < m_widgets.size() - 1)
+        Widget::g_selectedWidgetIndex++;
+      widgetPage = floor(Widget::g_selectedWidgetIndex / 6.0F);
     }
   }
 }

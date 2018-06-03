@@ -79,7 +79,7 @@ void GuiEditor::draw() {
         }
       }
       Gui::drawRectangled(245, 320 + 60 * 2, Gui::framebuffer_width - 490, 71, highlightColorAnim);
-      Gui::drawRectangle(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61, COLOR_WHITE);
+      Gui::drawRectangle(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61, currTheme.selectedButtonColor);
       Gui::drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, backupNames[selectedBackup].c_str());
       Gui::drawShadow(250, 325 + 60 * 2, Gui::framebuffer_width - 500, 61);
     } else Gui::drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, "No backups present!");

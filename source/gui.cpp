@@ -5,11 +5,13 @@
 gui_t Gui::g_nextGui = GUI_INVALID;
 
 static float menuTimer = 0.0F;
+u8 transitionAlpha;
 
 Gui::Gui() {
   this->framebuffer = gfxGetFramebuffer(&this->framebuffer_width, &this->framebuffer_height);
 
   currSnackbar = nullptr;
+  transitionAlpha = 200;
 }
 
 Gui::~Gui() {
@@ -347,6 +349,13 @@ void Gui::endDraw() {
         currSnackbar = nullptr;
     }
   }
+
+  color_t transitionColor = currTheme.backgroundColor;
+  if(transitionAlpha > 1) {
+    transitionColor.a = transitionAlpha -= 25;
+    Gui::drawRectangled(0, 0, Gui::framebuffer_width, Gui::framebuffer_height, transitionColor);
+  }
+
 
   menuTimer += 0.025;
 

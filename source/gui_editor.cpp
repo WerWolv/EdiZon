@@ -216,6 +216,7 @@ void GuiEditor::onTouch(touchPosition &touch) {
         nextTitle = Title::g_titles.begin()->second;
 
       Title::g_currTitle = nextTitle;
+      Account::g_currAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
       Gui::g_nextGui = GUI_EDITOR;
 
     }

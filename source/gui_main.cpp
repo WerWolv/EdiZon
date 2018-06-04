@@ -61,7 +61,7 @@ void GuiMain::draw() {
     Gui::drawShadow(selectedX, selectedY, 256, 256);
   }
 
-  if(selectionState >= ACCOUNT_SELECT) {
+  if(selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
       Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 10, 550, 148, 148, currTheme.highlightColor);
       Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.selectedButtonColor);
       Gui::drawImage(40 + m_selected.accountIndex * 150, 560, 128, 128, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
@@ -118,7 +118,7 @@ void GuiMain::onInput(u32 kdown) {
   if(kdown & KEY_A) {
     if(selectionState == TITLE_SELECT)
       selectionState = ACCOUNT_SELECT;
-    else if(selectionState == ACCOUNT_SELECT) {
+    else if(selectionState == ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
       Title::g_currTitle = Title::g_titles[m_selected.titleId];
       Account::g_currAccount = Account::g_accounts[Title::g_titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]];
       Gui::g_nextGui = GUI_EDITOR;

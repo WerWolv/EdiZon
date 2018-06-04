@@ -26,11 +26,9 @@ void initTitles() {
 
   for(auto saveInfo : saveInfoList) {
 
-    if(Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end()) {
+    if(Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
       Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
-      if(Title::g_titles.size() >= 15) break;
-      Title::g_titles.insert({(u64)saveInfo.titleID + 1, new Title(saveInfo)});
-    }
+
     Title::g_titles[saveInfo.titleID]->addUserID(saveInfo.userID);
 
     if(Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())

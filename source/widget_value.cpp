@@ -1,6 +1,6 @@
 #include "widget_value.hpp"
 
-WidgetValue::WidgetValue(u16 minValue, u16 maxValue) : m_minValue(minValue), m_maxValue(maxValue), Widget() {
+WidgetValue::WidgetValue(u16 minValue, u16 maxValue) : Widget(), m_minValue(minValue), m_maxValue(maxValue) {
   m_value = 0;
 }
 

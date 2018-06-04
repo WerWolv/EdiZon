@@ -28,9 +28,6 @@ GuiEditor::GuiEditor() : Gui() {
 
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
 
-  //TODO: Fix crash when no widgets are present
-  //m_widgets.push_back({ std::string("Test Value"), new WidgetSwitch() });
-
   isRestoreListShown = false;
   selectedBackup = 0;
   widgetPage = 0;
@@ -201,17 +198,53 @@ void GuiEditor::onInput(u32 kdown) {
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
-  if(!isRestoreListShown && m_widgets.size() > 0) {
+  if(!isRestoreListShown) {
     s8 widgetTouchPos = floor((touch.py - 150) / ((float)WIDGET_HEIGHT + WIDGET_SEPARATOR)) + 6 * widgetPage;
 
-    if(touch.px > 100 && touch.px < Gui::framebuffer_width - 100) {
+    if(touch.px < 256 && touch.py < 256) {
+      Title *nextTitle = nullptr;
+      bool isCurrTitle = false;
+      for(auto title : Title::g_titles) {
+        if(isCurrTitle) {
+          nextTitle = title.second;
+          break;
+        }
+
+        isCurrTitle = title.second == Title::g_currTitle;
+      }
+      if(nextTitle == nullptr)
+        nextTitle = Title::g_titles.begin()->second;
+
+      Title::g_currTitle = nextTitle;
+      Gui::g_nextGui = GUI_EDITOR;
+
+    }
+
+    if(touch.px > Gui::framebuffer_width - 256 && touch.py < 256) {
+      Account *nextAccount = nullptr;
+      bool isCurrAccount = false;
+      for(auto userID : Title::g_currTitle->getUserIDs()) {
+        if(isCurrAccount) {
+          nextAccount = Account::g_accounts[userID];
+          break;
+        }
+
+        isCurrAccount = userID == Account::g_currAccount->getUserID();
+      }
+      if(nextAccount == nullptr)
+        nextAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
+
+      Account::g_currAccount = nextAccount;
+      Gui::g_nextGui = GUI_EDITOR;
+
+    }
+
+    if(touch.px > 100 && touch.px < Gui::framebuffer_width - 100 && m_widgets.size() > 0) {
       if(widgetTouchPos >= 0 && widgetTouchPos < (s16)m_widgets.size() && widgetTouchPos < (6 * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? (s16)m_widgets.size() % 6 + 1 : 0)) {
         if(Widget::g_selectedWidgetIndex == widgetTouchPos)
           m_widgets[widgetTouchPos].widget->onTouch(touch);
         Widget::g_selectedWidgetIndex = widgetTouchPos;
       }
     }
-  } else {
-
   }
 }

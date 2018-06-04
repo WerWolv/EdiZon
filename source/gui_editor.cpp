@@ -29,7 +29,7 @@ GuiEditor::GuiEditor() : Gui() {
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
 
   //TODO: Fix crash when no widgets are present
-  m_widgets.push_back({ std::string("Test Value"), new WidgetSwitch() });
+  //m_widgets.push_back({ std::string("Test Value"), new WidgetSwitch() });
 
   isRestoreListShown = false;
   selectedBackup = 0;
@@ -76,7 +76,7 @@ void GuiEditor::draw() {
   }
 
   Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
-  Gui::drawText(font20, 750, Gui::framebuffer_height - 50, currTheme.textColor, "B - Back     X - Backup     Y - Restore");
+  Gui::drawText(font20, 750, Gui::framebuffer_height - 50, currTheme.textColor, "X - Backup     Y - Restore     B - Back");
 
   if(isRestoreListShown) {
     Gui::drawRectangled(0, 0, Gui::framebuffer_width, Gui::framebuffer_height - 100, Gui::makeColor(0x00, 0x00, 0x00, 0xAA));
@@ -86,7 +86,7 @@ void GuiEditor::draw() {
 
     if(backupNames.size() != 0) {
       for(s16 currBackup = -2; currBackup < 3; currBackup++) {
-        if((currBackup + selectedBackup) >= 0 && (currBackup + selectedBackup) < backupNames.size()) {
+        if((currBackup + selectedBackup) >= 0 && (currBackup + selectedBackup) < (s16)backupNames.size()) {
           Gui::drawText(font20, 300, 340 + 60 * (currBackup + 2), currTheme.textColor, backupNames[(currBackup + selectedBackup)].c_str());
           Gui::drawRectangle(250, 325 + 60 * (currBackup + 2), Gui::framebuffer_width - 500, 1, currTheme.separatorColor);
           Gui::drawRectangle(250, 325 + 60 * (currBackup + 3), Gui::framebuffer_width - 500, 1, currTheme.separatorColor);
@@ -99,7 +99,7 @@ void GuiEditor::draw() {
     } else Gui::drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, "No backups present!");
 
     Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
-    Gui::drawText(font20, 800, Gui::framebuffer_height - 50, currTheme.textColor, "A - Restore     X - Delete     B - Back");
+    Gui::drawText(font20, 750, Gui::framebuffer_height - 50, currTheme.textColor, "A - Restore     X - Delete      B - Back");
   }
 
   Gui::endDraw();
@@ -155,7 +155,7 @@ void GuiEditor::onInput(u32 kdown) {
         selectedBackup--;
 
     if(kdown & KEY_DOWN)
-      if(selectedBackup < (backupNames.size() - 1))
+      if(selectedBackup < ((s16)backupNames.size() - 1))
         selectedBackup++;
   } else {
     if(kdown & KEY_B)
@@ -201,11 +201,11 @@ void GuiEditor::onInput(u32 kdown) {
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
-  if(!isRestoreListShown) {
+  if(!isRestoreListShown && m_widgets.size() > 0) {
     s8 widgetTouchPos = floor((touch.py - 150) / ((float)WIDGET_HEIGHT + WIDGET_SEPARATOR)) + 6 * widgetPage;
 
     if(touch.px > 100 && touch.px < Gui::framebuffer_width - 100) {
-      if(widgetTouchPos >= 0 && widgetTouchPos < m_widgets.size() && widgetTouchPos < (6 * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? m_widgets.size() % 6 + 1 : 0)) {
+      if(widgetTouchPos >= 0 && widgetTouchPos < (s16)m_widgets.size() && widgetTouchPos < (6 * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? (s16)m_widgets.size() % 6 + 1 : 0)) {
         if(Widget::g_selectedWidgetIndex == widgetTouchPos)
           m_widgets[widgetTouchPos].widget->onTouch(touch);
         Widget::g_selectedWidgetIndex = widgetTouchPos;

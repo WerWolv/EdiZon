@@ -9,6 +9,7 @@
 #include <math.h>
 
 s16 xOffset;
+s16 xOffsetNext;
 
 enum {
   TITLE_SELECT,
@@ -29,7 +30,7 @@ GuiMain::~GuiMain() {
 void GuiMain::draw() {
   Gui::beginDraw();
 
-  xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() > 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
+  xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() > 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
   Gui::drawRectangle(0, 0, Gui::framebuffer_width, Gui::framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle(0, 0, Gui::framebuffer_width, 10, COLOR_BLACK);
 
@@ -73,6 +74,12 @@ void GuiMain::draw() {
       accountX += 150;
     }
   }
+
+  s16 deltaOffset = xOffsetNext - xOffset;
+  s16 scrollSpeed = ceil(deltaOffset / 4.0F);
+
+  if(xOffset != xOffsetNext)
+    xOffset += (abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset;
 
   Gui::endDraw();
 }

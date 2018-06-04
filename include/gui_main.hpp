@@ -5,6 +5,8 @@
 #include <vector>
 #include <unordered_map>
 
+#define MENU_SCROLL_SPEED 40
+
 class GuiMain : public Gui {
 public:
   GuiMain();

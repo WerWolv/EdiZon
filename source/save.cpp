@@ -318,7 +318,7 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
       fsdevUnmountDevice("save");
       return 1;
   }
-
+  deleteDirRecursively("save:/");
   res = copyAllSave("", true, ptr);
   fsdevUnmountDevice("save");
 

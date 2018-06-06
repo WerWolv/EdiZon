@@ -140,7 +140,7 @@ void GuiEditor::onInput(u32 kdown) {
       path << "/EdiZon/";
       path << std::setfill('0') << std::setw(16) << std::hex << Title::g_currTitle->getTitleID();
       path << "/" << backupNames[selectedBackup];
-      deleteDirRecursively(path.str().c_str());
+      deleteDirRecursively(path.str().c_str(), false);
       updateBackupList();
 
       if(selectedBackup == backupNames.size() && selectedBackup > 0)

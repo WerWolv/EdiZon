@@ -12,7 +12,7 @@ extern "C" {
 const char* ROOT_DIR = "/EdiZon/";
 const char* SAVE_DEV = "save";
 
-s32 deleteDirRecursively(const char *path) {
+s32 deleteDirRecursively(const char *path, bool isSave) {
   DIR *d = opendir(path);
      size_t path_len = strlen(path);
      int r = -1;
@@ -48,7 +48,7 @@ s32 deleteDirRecursively(const char *path) {
                {
                   if (S_ISDIR(statbuf.st_mode))
                   {
-                     r2 = deleteDirRecursively(buf);
+                     r2 = deleteDirRecursively(buf, isSave);
                   }
                   else
                   {
@@ -68,6 +68,13 @@ s32 deleteDirRecursively(const char *path) {
      if (!r)
      {
         r = rmdir(path);
+     }
+
+
+     if (isSave && R_FAILED(fsdevCommitDevice(SAVE_DEV)))
+     {
+       printf("Committing failed.\n");
+       return -3;
      }
 
      return r;
@@ -180,7 +187,7 @@ s32 isDirectory(const char *path) {
 
 s32 cpFile(std::string srcPath, std::string dstPath) {
   FILE* src = fopen(srcPath.c_str(), "rb");
-  FILE* dst = fopen(dstPath.c_str(), "ab+");
+  FILE* dst = fopen(dstPath.c_str(), "wb+");
 
   if (src == nullptr || dst == nullptr)
       return - 1;
@@ -202,9 +209,6 @@ s32 cpFile(std::string srcPath, std::string dstPath) {
   delete[] buf;
   fclose(src);
   fclose(dst);
-
-  if (dstPath.rfind("save:/", 0) == 0)
-      fsdevCommitDevice("save");
 
   return 0;
 }
@@ -229,7 +233,7 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
 
   if(dir==NULL)
   {
-    printf("Failed to open dir: %s\n", filenameSave);
+    printf("Failed to open dir: %s\n", isInject ? filenameSD : filenameSave);
     return -1;
   }
   else
@@ -247,8 +251,14 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
       strcpy(filenameSD, exInjDir);
       strcat(filenameSD, filename);
 
-      if(isDirectory(filenameSave)) {
-          mkdir(filenameSD, 0700);
+      if(isDirectory(isInject ? filenameSD : filenameSave)) {
+          if (isInject)
+          {
+            mkdir(filenameSave, 0700);
+            if (R_FAILED(fsdevCommitDevice(SAVE_DEV)))
+              printf("Failed to commit directory %s.", filenameSave);
+          } else
+            mkdir(filenameSD, 0700);
           s32 res = copyAllSave(filename, isInject, exInjDir);
           if(res != 0)
               return res;
@@ -318,9 +328,15 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
       fsdevUnmountDevice("save");
       return 1;
   }
-
+  res = deleteDirRecursively("save:/", true);
+  if (!res)
+  {
+    printf("Deleting save:/ failed: %d.\n", res);
+    return res;
+  }
   res = copyAllSave("", true, ptr);
   fsdevUnmountDevice("save");
+  fsFsClose(&fs);
 
   delete[] ptr;
 

@@ -32,7 +32,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 1
 VERSION_MINOR := 0
-VERSION_MICRO := 3
+VERSION_MICRO := 4
 
 APP_TITLE	:=	EdiZon
 APP_AUTHOR	:=	WerWolv and thomasnet

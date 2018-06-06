@@ -335,9 +335,14 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
     }
 }
 
+
+//FULL: 0x88F2F0
+//OFF : 0x27A3C7
 void Gui::beginDraw() {
-  float highlightMultiplier = fmax(0.5, fabs(fmod(menuTimer, 1.0) - 0.5) / 0.5);
-  currTheme.highlightColor.a = 0xE0 * highlightMultiplier;
+  float highlightMultiplier = (sin(menuTimer) + 1) / 2.0F;
+  currTheme.highlightColor.r = 0x27 + 0x61 * highlightMultiplier;
+  currTheme.highlightColor.g = 0xA3 + 0x4F * highlightMultiplier;
+  currTheme.highlightColor.b = 0xC7 + 0x29 * highlightMultiplier;
 }
 
 void Gui::endDraw() {
@@ -357,7 +362,7 @@ void Gui::endDraw() {
   }
 
 
-  menuTimer += 0.025;
+  menuTimer += 0.2;
 
   gfxFlushBuffers();
   gfxSwapBuffers();

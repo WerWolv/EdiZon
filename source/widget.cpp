@@ -19,7 +19,7 @@ void Widget::drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 en
     if(start == Widget::g_selectedWidgetIndex) {
       gui->drawRectangled(150, y, gui->framebuffer_width - 300, WIDGET_HEIGHT, currTheme.highlightColor);
       gui->drawRectangle(155, y + 5, gui->framebuffer_width - 315, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
-      gui->drawShadow(155, y + 5, gui->framebuffer_width - 315, WIDGET_HEIGHT - 10);
+      gui->drawShadow(150, y, gui->framebuffer_width - 300, WIDGET_HEIGHT);
     }
 
     u32 textWidth, textHeight;

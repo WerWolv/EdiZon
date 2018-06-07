@@ -5,13 +5,11 @@
 gui_t Gui::g_nextGui = GUI_INVALID;
 
 static float menuTimer = 0.0F;
-u8 transitionAlpha;
 
 Gui::Gui() {
   this->framebuffer = gfxGetFramebuffer(&this->framebuffer_width, &this->framebuffer_height);
 
   currSnackbar = nullptr;
-  transitionAlpha = 200;
 }
 
 Gui::~Gui() {
@@ -335,9 +333,6 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
     }
 }
 
-
-//FULL: 0x88F2F0
-//OFF : 0x27A3C7
 void Gui::beginDraw() {
   float highlightMultiplier = (sin(menuTimer) + 1) / 2.0F;
   currTheme.highlightColor.r = 0x27 + 0x61 * highlightMultiplier;
@@ -354,13 +349,6 @@ void Gui::endDraw() {
         currSnackbar = nullptr;
     }
   }
-
-  color_t transitionColor = currTheme.backgroundColor;
-  if(transitionAlpha > 1) {
-    transitionColor.a = transitionAlpha -= 25;
-    Gui::drawRectangled(0, 0, Gui::framebuffer_width, Gui::framebuffer_height, transitionColor);
-  }
-
 
   menuTimer += 0.2;
 

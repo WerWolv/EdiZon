@@ -24,3 +24,7 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]);
 
 s32 backupSave(u64 titleID, u128 userID);
 s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder);
+
+s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char *path);
+u16 getValueFromAddressAtOffset(u8 *buffer, u32 offsetAddress, u32 address);
+void setValueAtAddressAtOffset(u8 *buffer, u32 offsetAddress, u32 address, u16 value);

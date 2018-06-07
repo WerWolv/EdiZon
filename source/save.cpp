@@ -342,3 +342,58 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
 
   return res;
 }
+
+s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char *path) {
+  FsFileSystem fs;
+  size_t size;
+
+  if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
+    printf("Failed to mount save.\n");
+    return 1;
+  }
+
+  char filePath[0x100];
+
+  strcpy(filePath, "save:/");
+  strcat(filePath, path);
+
+
+  FILE *file = fopen(filePath, "rb");
+
+  if(file == nullptr) {
+    printf("Failed to open file.\n");
+    return 2;
+  }
+
+  fseek(file, 0, SEEK_END);
+  size = ftell(file);
+  rewind(file);
+
+  if(size <= 0) {
+    printf("File reading failed. File length is %d.", size);
+    return 3;
+  }
+
+  *buffer = new u8[size];
+  fread(*buffer, size, 1, file);
+  fclose(file);
+
+  *length = size;
+
+  fsdevUnmountDevice("save");
+  fsFsClose(&fs);
+
+  return 0;
+}
+
+u16 getValueFromAddressAtOffset(u8 *buffer, u32 offsetAddress, u32 address) {
+  u16 offset = *((u16*)(buffer + offsetAddress));
+
+  return *((u16*)(buffer + offset + address));
+}
+
+void setValueAtAddressAtOffset(u8 *buffer, u32 offsetAddress, u32 address, u16 value) {
+  u16 offset = *((u16*)(buffer + offsetAddress));
+
+  *(((u16*)buffer) + offset + address) = value;
+}

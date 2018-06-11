@@ -94,7 +94,7 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
   if (isInject)
     ss << injectFolder << "/";
   else {
-    ss << std::put_time(std::gmtime(&t), "%Y%m%d%H%M%S") << "_" << Account::g_accounts[userID]->getUserName() << "/";
+    ss << std::put_time(std::gmtime(&t), "%Y%m%d%H%M%S") << "/";
   }
 
 

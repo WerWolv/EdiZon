@@ -9,6 +9,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <tuple>
 
 #include <switch.h>
 
@@ -26,5 +27,6 @@ s32 backupSave(u64 titleID, u128 userID);
 s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder);
 
 s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char *path);
-u16 getValueFromAddressAtOffset(u8 *buffer, u32 offsetAddress, u32 address);
-void setValueAtAddressAtOffset(u8 *buffer, u32 offsetAddress, u32 address, u16 value);
+s32 writeSaveFile(std::tuple<std::string, size_t, u8*> t, u64 titleID, u128 userID);
+u16 getValueFromAddress(u8 *buffer, u16 address);
+void setValueAtAddress(u8 *buffer, u16 address, u16 value);

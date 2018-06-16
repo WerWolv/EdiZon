@@ -1,11 +1,18 @@
 #include "widget_value.hpp"
+#include "save.hpp"
 
-WidgetValue::WidgetValue(u16 minValue, u16 maxValue) : Widget(), m_minValue(minValue), m_maxValue(maxValue) {
-  m_value = 0;
+WidgetValue::WidgetValue(u16 minValue, u16 maxValue, u16 offsetAddr, u16 address, u8* buffer) : Widget(), m_minValue(minValue), m_maxValue(maxValue) {
+  m_address = *((u16*)(buffer + offsetAddr));
+  if (buffer == NULL)
+    m_value = 0;
+  else
+    m_value = getValueFromAddress(buffer, address);
+  printf("offsetaddr: %d, address: %d, m_value: %d\n", offsetAddr, m_address, m_value);
+  m_buffer = &buffer;
 }
 
 WidgetValue::~WidgetValue() {
-
+  //setValueAtAddress(*m_buffer, m_address, m_value);
 }
 
 void WidgetValue::draw(Gui *gui, u16 x, u16 y) {

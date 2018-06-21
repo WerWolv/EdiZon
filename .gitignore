@@ -4,3 +4,4 @@
 
 build/
 out/
+.build-tools.cson

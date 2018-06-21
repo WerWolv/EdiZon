@@ -2,6 +2,8 @@
 
 #include "gui.hpp"
 #include "widget.hpp"
+#include <vector>
+#include <tuple>
 
 class GuiEditor : public Gui {
 public:
@@ -14,4 +16,5 @@ public:
 
 private:
   WidgetList m_widgets;
+  std::vector<std::tuple<std::string, size_t, u8*>> m_files;
 };

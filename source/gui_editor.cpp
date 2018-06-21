@@ -9,10 +9,8 @@
 
 #include <string>
 #include <sstream>
-#include <vector>
 #include <map>
 #include <math.h>
-#include <unordered_map>
 
 u8* titleIcon;
 
@@ -22,6 +20,8 @@ std::vector<std::string> backupNames;
 
 u16 widgetPage;
 u16 widgetPageCnt;
+
+const char* noItems = "No widgets to show.";
 
 GuiEditor::GuiEditor() : Gui() {
   titleIcon = (u8*) malloc(128*128*3);
@@ -33,14 +33,20 @@ GuiEditor::GuiEditor() : Gui() {
   widgetPage = 0;
   widgetPageCnt = ceil(m_widgets.size() / 5.0F);
   Widget::g_selectedWidgetIndex = 0;
+  Widget::getList(m_widgets, m_files);
 }
 
 GuiEditor::~GuiEditor() {
   for(auto widget : m_widgets)
-    delete widget.widget;
-}
+    delete[] widget.widget;
 
-const char* todo = "SAVE GAME EDITOR GOES HERE";
+  for (auto& item : m_files)
+  {
+    printf("Destroying buffer.\n");
+    //writeSaveFile(item, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID());
+    delete[] std::get<u8*>(item);
+  }
+}
 
 void GuiEditor::draw() {
   Gui::beginDraw();
@@ -61,10 +67,12 @@ void GuiEditor::draw() {
   Gui::getTextDimensions(font20, ss.str().c_str(), &textWidth, &textHeight);
   Gui::drawText(font20, (Gui::framebuffer_width / 2) - (textWidth / 2), 80, currTheme.textColor, ss.str().c_str());
 
-  Widget::drawWidgets(this, m_widgets, 150, widgetPage * 6, widgetPage * 6 + 6);
-
-  Gui::getTextDimensions(font20, todo, &textWidth, &textHeight);
-  Gui::drawText(font24, (Gui::framebuffer_width / 2) - (textWidth / 2), (Gui::framebuffer_height / 2) - (textHeight / 2), currTheme.textColor, todo);
+  if (m_widgets.size() == 0)
+  {
+  Gui::getTextDimensions(font20, noItems, &textWidth, &textHeight);
+  Gui::drawText(font24, (Gui::framebuffer_width / 2) - (textWidth / 2), (Gui::framebuffer_height / 2) - (textHeight / 2), currTheme.textColor, noItems);
+  } else
+    Widget::drawWidgets(this, m_widgets, 150, widgetPage * 6, widgetPage * 6 + 6);
 
   for(u8 page = 0; page < widgetPageCnt; page++) {
     Gui::drawRectangle((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + (40 * page), 615, 20, 20, currTheme.separatorColor);

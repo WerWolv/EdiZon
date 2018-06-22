@@ -1,12 +1,6 @@
 #include "widget.hpp"
-#include "widget_switch.hpp"
-#include "widget_value.hpp"
 
-#include <sstream>
-#include <fstream>
-#include "json.hpp"
-
-#include "save.hpp"
+#include "gui_editor.hpp"
 
 u16 Widget::g_selectedWidgetIndex = 0;
 
@@ -19,6 +13,8 @@ Widget::~Widget() {
 }
 
 void Widget::drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 end) {
+  if(widgets.size() <= 0) return;
+
   for(;start < end; start++) {
     if(start > widgets.size() - 1) break;
 
@@ -38,64 +34,25 @@ void Widget::drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 en
   }
 }
 
-bool Widget::getList(WidgetList& list, std::vector<std::tuple<std::string, size_t, u8*>> files)
-{
-  std::stringstream ss;
-  ss << CONFIG_ROOT << std::uppercase << std::setfill('0') << std::setw(sizeof(u64)*2) << std::hex << Title::g_currTitle->getTitleID();
-  ss << ".json";
-	std::ifstream i(ss.str().c_str());
-	if (i.fail())
-  {
-    printf("Failed to open config file.\n");
-		return false;
-  }
-
-  nlohmann::json j;
-	try { i >> j; }
-	catch (nlohmann::json::parse_error& e)
-	{
-		printf("Failed to parse JSON file.\n");
-		return false;
-	}
-
-  for (auto& item : j["files"])
-  {
-    u8* buffer;
-    size_t size;
-    if (loadSaveFile(&buffer, &size, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), item.get<std::string>().c_str()) != 0)
-      return false;
-    files.push_back({item.get<std::string>(), size, buffer});
-  }
-
-  for (auto& item : j["items"])
-  {
-    std::string type = item["widget"]["type"].get<std::string>();
-    u16 offsetAddr = (u16)stoul(item["offsetAddress"].get<std::string>(), NULL, 16);
-    u16 address = (u16)stoul(item["address"].get<std::string>(), NULL, 16);
-    printf("%x %x %s\n", offsetAddr, address, type.c_str());
-    if (type == "bool")
-      list.push_back({item["name"].get<std::string>(), new WidgetSwitch(item["widget"]["onValue"].get<u16>(), item["widget"]["offValue"].get<u16>(), offsetAddr, address, std::get<u8*>(files[item["file"].get<int>()]))});
-    else if (type == "int")
-      list.push_back({item["name"].get<std::string>(), new WidgetValue(item["widget"]["minValue"].get<u16>(), item["widget"]["maxValue"].get<u16>(), offsetAddr, address, std::get<u8*>(files[item["file"].get<int>()]))});
-    else
-    {
-      printf("Unknown widget type: %s\n", type.c_str());
-      return false;
-    }
-  }
-
-	return true;
-}
-
 void Widget::handleInput(u32 kdown, WidgetList &widgets) {
   if(widgets.size() <= 0) return;
   widgets[Widget::g_selectedWidgetIndex].widget->onInput(kdown);
 }
 
 u16 Widget::getValue() {
-  return m_value;
+  return getValueFromAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address);
 }
 
 void Widget::setValue(u16 value) {
-  this->m_value = value;
+  setValueAtAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address, value);
+}
+
+void Widget::setOffset(u16 offsetAddress, u16 address) {
+  this->m_offsetAddress = offsetAddress;
+  this->m_address = address;
+}
+
+void Widget::setOffset(u16 address) {
+  this->m_offsetAddress = 0x0000;
+  this->m_address = address;
 }

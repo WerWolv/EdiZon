@@ -5,6 +5,7 @@
 
 #include "title.hpp"
 #include "snackbar.hpp"
+#include "list_selector.hpp"
 
 extern "C" {
   #include "theme.h"
@@ -33,6 +34,7 @@ public:
   u32 framebuffer_height;
 
   Snackbar *currSnackbar;
+  ListSelector *currListSelector;
 
   Gui();
   virtual ~Gui();

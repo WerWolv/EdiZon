@@ -6,7 +6,7 @@
 
 class WidgetSwitch : public Widget {
 public:
-  WidgetSwitch(u16 onValue, u16 offValue, u16 offsetAddr, u16 address, u8* buffer);
+  WidgetSwitch(u16 onValue, u16 offValue);
   ~WidgetSwitch();
 
   void draw(Gui *gui, u16 x, u16 y);

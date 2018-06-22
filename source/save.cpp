@@ -7,8 +7,9 @@ extern "C" {
 #include "nanojpeg.h"
 }
 
+
+
 const char* ROOT_DIR = "/EdiZon/";
-const char* SAVE_DEV = "save";
 
 s32 deleteDirRecursively(const char *path, bool isSave) {
   DIR *d = opendir(path);
@@ -91,9 +92,8 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
 
   if (isInject)
     ss << injectFolder << "/";
-  else {
+  else
     ss << std::put_time(std::gmtime(&t), "%Y%m%d%H%M%S") << "/";
-  }
 
   strcpy(ptr, ss.str().c_str());
   mkdir(ptr, 0700);
@@ -138,6 +138,8 @@ Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSy
   rc = fsMount_SaveData(&tmpfs, titleID, userID);//See also libnx fs.h.
   if (R_FAILED(rc)) {
     printf("fsMount_SaveData() failed: 0x%x\n", rc);
+    fsdevUnmountDevice(SAVE_DEV);
+    fsFsClose(&tmpfs);
     return rc;
   }
 
@@ -163,7 +165,7 @@ bool getSavefilesForGame(std::vector<s32>& vec, u64 titleID, u128 userID)
   char fname[0x10];
   struct stat statbuf;
   s32 i;
-  for (i=1; i != 7; i++)
+  for (i=0; i != 7; i++)
   {
     sprintf(fname, "File%d.bin", i);
     if (stat(fname, &statbuf) != 0)
@@ -296,12 +298,12 @@ s32 backupSave(u64 titleID, u128 userID) {
 
   if(ptr == nullptr) {
     printf("makeExInjDir failed.\n");
-      fsdevUnmountDevice("save");
+      fsdevUnmountDevice(SAVE_DEV);
       return 1;
   }
 
   res = copyAllSave("", false, ptr);
-  fsdevUnmountDevice("save");
+  fsdevUnmountDevice(SAVE_DEV);
 
   delete[] ptr;
 
@@ -322,7 +324,7 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
 
   if(ptr == nullptr) {
     printf("makeExInjDir failed.\n");
-      fsdevUnmountDevice("save");
+      fsdevUnmountDevice(SAVE_DEV);
       return 1;
   }
   res = deleteDirRecursively("save:/", true);
@@ -332,7 +334,7 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
     return res;
   }
   res = copyAllSave("", true, ptr);
-  fsdevUnmountDevice("save");
+  fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
 
   delete[] ptr;
@@ -340,7 +342,7 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
   return res;
 }
 
-s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char* path) {
+s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char *path) {
   FsFileSystem fs;
   size_t size;
 
@@ -348,7 +350,7 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
     printf("Failed to mount save.\n");
     fsdevUnmountDevice(SAVE_DEV);
     fsFsClose(&fs);
-    return 1;
+    return -1;
   }
 
   char filePath[0x100];
@@ -356,13 +358,14 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
   strcpy(filePath, "save:/");
   strcat(filePath, path);
 
+
   FILE *file = fopen(filePath, "rb");
 
-  if (file == nullptr) {
+  if(file == nullptr) {
     printf("Failed to open file.\n");
     fsdevUnmountDevice(SAVE_DEV);
     fsFsClose(&fs);
-    return 2;
+    return -2;
   }
 
   fseek(file, 0, SEEK_END);
@@ -370,15 +373,17 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
   rewind(file);
 
   if(size <= 0) {
-    printf("File reading failed. File length is %ld.", size);
-    return 3;
+    printf("File reading failed. File length is %zu.\n", size);
+    fclose(file);
+    fsdevUnmountDevice(SAVE_DEV);
+    return -3;
   }
 
   *buffer = new u8[size];
   fread(*buffer, size, 1, file);
   fclose(file);
 
-  if (length != nullptr) *length = size;
+  *length = size;
 
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
@@ -386,37 +391,45 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
   return 0;
 }
 
-s32 writeSaveFile(std::tuple<std::string, size_t, u8*> t, u64 titleID, u128 userID) {
+s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const char *path) {
   FsFileSystem fs;
+  size_t size;
 
   if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
     printf("Failed to mount save.\n");
     fsdevUnmountDevice(SAVE_DEV);
     fsFsClose(&fs);
-    return 1;
+    return -1;
   }
 
   char filePath[0x100];
 
   strcpy(filePath, "save:/");
-  strcat(filePath, std::get<std::string>(t).c_str());
+  strcat(filePath, path);
 
-  printf("Path: %s\n", filePath);
 
-  FILE *file = fopen(filePath, "wb");
+  FILE *file = fopen(filePath, "rwb+");
 
-  if (file == nullptr) {
+  if(file == nullptr) {
     printf("Failed to open file.\n");
     fsdevUnmountDevice(SAVE_DEV);
     fsFsClose(&fs);
-    return 2;
+    return -2;
   }
 
-  fwrite(std::get<u8*>(t), std::get<size_t>(t), 1, file);
+  fseek(file, 0, SEEK_END);
+  size = ftell(file);
+  rewind(file);
+
+  fwrite(buffer, size, 1, file);
   fclose(file);
 
-  if (R_FAILED(fsdevCommitDevice(SAVE_DEV)))
-    printf("Failed to commit.\n");
+  if (R_FAILED(fsdevCommitDevice(SAVE_DEV))) {
+    printf("Committing failed.\n");
+    return -3;
+  }
+
+  *length = size;
 
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
@@ -424,10 +437,13 @@ s32 writeSaveFile(std::tuple<std::string, size_t, u8*> t, u64 titleID, u128 user
   return 0;
 }
 
-u16 getValueFromAddress(u8 *buffer, u16 address) {
-  return *((u16*)(buffer + address));
+u16 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address) {
+  u16 offset = *((u16*)(*buffer + offsetAddress));
+
+  return ((u16*)*buffer)[(offset + address) / 2];
 }
 
-void setValueAtAddress(u8 *buffer, u16 address, u16 value) {
-  *(((u16*)buffer) + address) = value;
+void setValueAtAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u16 value) {
+  u16 offset = *((u16*)(*buffer + offsetAddress));
+  ((u16*)*buffer)[(offset + address) / 2] = value;
 }

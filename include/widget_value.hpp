@@ -6,7 +6,7 @@
 
 class WidgetValue : public Widget {
 public:
-  WidgetValue(u16 minValue, u16 maxValue, u16 offsetAddr, u16 address, u8* buffer);
+  WidgetValue(u16 minValue, u16 maxValue);
   ~WidgetValue();
 
   void draw(Gui *gui, u16 x, u16 y);

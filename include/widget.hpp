@@ -11,8 +11,6 @@
 #define WIDGET_HEIGHT     65
 #define WIDGET_SEPARATOR  10
 
-#define CONFIG_ROOT "/EdiZon/editor/"
-
 class Widget;
 typedef struct { std::string title; Widget *widget; } WidgetPair;
 typedef std::vector<WidgetPair> WidgetList;
@@ -26,7 +24,6 @@ public:
 
   static void drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 end);
   static void handleInput(u32 kdown, WidgetList &widgets);
-  static bool getList(WidgetList& list, std::vector<std::tuple<std::string, size_t, u8*>> files);
 
   virtual void draw(Gui *gui, u16 x, u16 y) = 0;
   virtual void onInput(u32 kdown) = 0;
@@ -35,7 +32,10 @@ public:
   u16 getValue();
   void setValue(u16 value);
 
-protected:
-  u16 m_value, m_address;
-  u8** m_buffer;
+  void setOffset(u16 offsetAddress, u16 address);
+  void setOffset(u16 address);
+
+private:
+  u16 m_offsetAddress;
+  u16 m_address;
 };

@@ -2,7 +2,7 @@
 
 theme_t currTheme;
 
-void setTheme(ColorSetId colorSetId, u32 accentColorA, u32 accentColorB) {
+void setTheme(ColorSetId colorSetId) {
   switch(colorSetId) {
     case ColorSetId_Light:
       currTheme = (theme_t) {
@@ -25,8 +25,4 @@ void setTheme(ColorSetId colorSetId, u32 accentColorA, u32 accentColorB) {
       };
       break;
   }
-
-  currTheme.accentColorA.color_abgr = accentColorA;
-  currTheme.accentColorB.color_abgr = accentColorB;
-
 }

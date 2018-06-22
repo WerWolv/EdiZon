@@ -10,11 +10,8 @@ typedef struct {
   color_t selectedColor;
   color_t separatorColor;
   color_t selectedButtonColor;
-
-  color_t accentColorA;
-  color_t accentColorB;
 } theme_t;
 
 extern theme_t currTheme;
 
-void setTheme(ColorSetId colorSetId, u32 accentColorA, u32 accentColorB);
+void setTheme(ColorSetId colorSetId);

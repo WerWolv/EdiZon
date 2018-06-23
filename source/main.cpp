@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
   setsysInitialize();
   ColorSetId colorSetId;
   setsysGetColorSetId(&colorSetId);
-  setTheme(colorSetId, 0x00000000, 0x00000000);
+  setTheme(colorSetId);
 
   initTitles();
 

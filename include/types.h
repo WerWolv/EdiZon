@@ -11,11 +11,18 @@ typedef union {
 
 } color_t;
 
-typedef enum
-{
+typedef enum {
     IMAGE_MODE_RGB24,
-    IMAGE_MODE_RGBA32
+    IMAGE_MODE_RGBA32,
+    IMAGE_MODE_BGR24,
+    IMAGE_MODE_ABGR32
 } ImageMode;
+
+typedef enum {
+  ALIGNED_LEFT,
+  ALIGNED_CENTER,
+  ALIGNED_RIGHT
+} TextAlignment;
 
 typedef struct {
     u8 magic[4]; // 'fFNT'

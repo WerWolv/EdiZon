@@ -48,6 +48,7 @@ public:
   void drawRectangle(s16 x, s16 y, s16 w, s16 h, color_t color);
   void drawRectangled(s16 x, s16 y, s16 w, s16 h, color_t color);
   void drawText(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text);
+  void drawTextAligned(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, TextAlignment alignment);
   void drawTextTruncate(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, u32 max_width);
   void getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out);
   void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);

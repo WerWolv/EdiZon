@@ -6,8 +6,6 @@ ListSelector::ListSelector(Gui *m_gui, std::string title, std::string options, s
   m_optionsWidth = 0;
   m_optionsHeight = 0;
   selectedItem = 0;
-
-  m_gui->getTextDimensions(font20, const_cast<const char*>(m_options.c_str()), &m_optionsWidth, &m_optionsHeight);
 }
 
 ListSelector::~ListSelector() {
@@ -35,7 +33,7 @@ void ListSelector::draw() {
   } else m_gui->drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, "No items present!");
 
   m_gui->drawRectangle(50, m_gui->framebuffer_height - 70, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
-  m_gui->drawText(font20, m_gui->framebuffer_width - m_optionsWidth - 100, m_gui->framebuffer_height - 50, currTheme.textColor, m_options.c_str());
+  m_gui->drawTextAligned(font20, m_gui->framebuffer_width - 100, m_gui->framebuffer_height - 50, currTheme.textColor, m_options.c_str(), ALIGNED_RIGHT);
 }
 
 ListSelector* ListSelector::setInputAction(std::function<void(u32, u16)> inputActions) {

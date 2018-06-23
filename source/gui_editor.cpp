@@ -29,8 +29,7 @@ std::vector<std::string> saveFiles;
 u16 widgetPage;
 u16 widgetPageCnt;
 
-const char *noSaveFile;
-
+bool hasConfigFile;
 
 void updateSaveFileList(const char *path);
 
@@ -43,10 +42,7 @@ GuiEditor::GuiEditor() : Gui() {
   widgetPageCnt = 0;
   Widget::g_selectedWidgetIndex = 0;
 
-  if(loadConfigFile(m_offsetFile))
-    noSaveFile = "No save file loaded. Press - to select one.";
-  else
-    noSaveFile = "No editor JSON file found. Editing is disabled.";
+  hasConfigFile = loadConfigFile(m_offsetFile);
 }
 
 GuiEditor::~GuiEditor() {
@@ -73,32 +69,28 @@ void GuiEditor::draw() {
   Gui::drawImage(Gui::framebuffer_width - 128, 0, 128, 128, Account::g_currAccount->getProfileImage(), IMAGE_MODE_RGB24);
   Gui::drawShadow(0, 0, Gui::framebuffer_width, 128);
 
-  u32 textWidth, textHeight;
-  Gui::getTextDimensions(font24, Title::g_currTitle->getTitleName().c_str(), &textWidth, &textHeight);
-  Gui::drawText(font24, (Gui::framebuffer_width / 2) - (textWidth / 2), 10, currTheme.textColor, Title::g_currTitle->getTitleName().c_str());
-  Gui::getTextDimensions(font20, Title::g_currTitle->getTitleAuthor().c_str(), &textWidth, &textHeight);
-  Gui::drawText(font20, (Gui::framebuffer_width / 2) - (textWidth / 2), 45, currTheme.textColor, Title::g_currTitle->getTitleAuthor().c_str());
-  Gui::getTextDimensions(font20, ss.str().c_str(), &textWidth, &textHeight);
-  Gui::drawText(font20, (Gui::framebuffer_width / 2) - (textWidth / 2), 80, currTheme.textColor, ss.str().c_str());
+  Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2), 10, currTheme.textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::framebuffer_width / 2), 45, currTheme.textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::framebuffer_width / 2), 80, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
 
-  Widget::drawWidgets(this, m_widgets, 150, widgetPage * 6, widgetPage * 6 + 6);
+  Widget::drawWidgets(this, m_widgets, 150, widgetPage * WIDGETS_PER_PAGE, widgetPage * (WIDGETS_PER_PAGE + 1));
 
   Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
 
   if(GuiEditor::g_currSaveFileName == "") {
-    Gui::drawText(font20, 750, Gui::framebuffer_height - 50, currTheme.textColor, "X - Backup     Y - Restore     B - Back");
-    Gui::getTextDimensions(font20, noSaveFile, &textWidth, &textHeight);
-    Gui::drawText(font24, (Gui::framebuffer_width / 2) - (textWidth / 2), (Gui::framebuffer_height / 2) - (textHeight / 2), currTheme.textColor, noSaveFile);
-  } else {
-    Gui::drawText(font20, 750, Gui::framebuffer_height - 50, currTheme.textColor, "X - Apply changes     B - Cancel");
-  }
+    Gui::drawTextAligned(font20, Gui::framebuffer_width - 100, Gui::framebuffer_height - 50, currTheme.textColor, "\x03 - Backup     \x04 - Restore     \x02 - Back", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2), (Gui::framebuffer_height / 2), currTheme.textColor, hasConfigFile ? "No save file loaded. Press \x08 to select one." : "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
+  } else
+    Gui::drawTextAligned(font20, Gui::framebuffer_width - 100, Gui::framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel", ALIGNED_RIGHT);
 
-  if(m_widgets.size() > 6) {
+  if(m_widgets.size() > 0) {
     for(u8 page = 0; page < widgetPageCnt; page++) {
-      Gui::drawRectangle((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + (40 * page), 615, 20, 20, currTheme.separatorColor);
+      Gui::drawRectangle((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + ((40 * (page + 1)) / 2), 615, 20, 20, currTheme.separatorColor);
       if(page == widgetPage)
-        Gui::drawRectangled((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + (40 * page) + 4, 619, 12, 12, currTheme.highlightColor);
+        Gui::drawRectangled((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + ((40 * (page + 1)) / 2) + 4, 619, 12, 12, currTheme.highlightColor);
     }
+
+    Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2), 640, currTheme.textColor, "\x05      \x06", ALIGNED_CENTER);
   }
 
   if(currListSelector != nullptr)
@@ -137,13 +129,13 @@ if(m_offsetFile == nullptr) return;
 for(auto item : m_offsetFile["items"]) {
   if(item["widget"]["type"].get<std::string>().compare("int") == 0)
     m_widgets.push_back({item["name"], new WidgetValue(item["widget"]["minValue"], item["widget"]["maxValue"])});
-    else if(item["widget"]["type"].get<std::string>().compare("bool") == 0)
+  else if(item["widget"]["type"].get<std::string>().compare("bool") == 0)
     m_widgets.push_back({item["name"], new WidgetSwitch(item["widget"]["onValue"], item["widget"]["offValue"])});
 
-    m_widgets.back().widget->setOffset(strtol(item["offsetAddress"].get<std::string>().c_str(), 0, 16), strtol(item["address"].get<std::string>().c_str(), 0, 16));
-  }
+  m_widgets.back().widget->setOffset(strtol(item["offsetAddress"].get<std::string>().c_str(), 0, 16), strtol(item["address"].get<std::string>().c_str(), 0, 16));
+}
 
-  widgetPageCnt = ceil(m_widgets.size() / 6.0F);
+  widgetPageCnt = ceil(m_widgets.size() / WIDGETS_PER_PAGE);
 }
 
 void updateBackupList() {
@@ -195,11 +187,12 @@ void GuiEditor::onInput(u32 kdown) {
   if(Gui::currListSelector == nullptr) {
 
     if(kdown & KEY_MINUS) {
+      if(!hasConfigFile) return;
       saveFiles.clear();
       for(auto saveFilePath : m_offsetFile["saveFilePaths"])
         updateSaveFileList(saveFilePath.get<std::string>().c_str());
 
-      (new ListSelector(this, "Edit save file", "A - Select      B - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
+      (new ListSelector(this, "Edit save file", "\x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
         if(k & KEY_A) {
           if(saveFiles.size() != 0) {
             size_t length;
@@ -258,25 +251,25 @@ void GuiEditor::onInput(u32 kdown) {
       if(kdown & KEY_L) {
         if(widgetPage > 0)
           widgetPage--;
-        Widget::g_selectedWidgetIndex = 6 * widgetPage;
+        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage;
       }
 
       if(kdown & KEY_R) {
         if(widgetPage < widgetPageCnt - 1)
           widgetPage++;
-        Widget::g_selectedWidgetIndex = 6 * widgetPage ;
+        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage ;
       }
 
       if(kdown & KEY_UP) {
         if(Widget::g_selectedWidgetIndex > 0)
           Widget::g_selectedWidgetIndex--;
-        widgetPage = floor(Widget::g_selectedWidgetIndex / 6.0F);
+        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
       }
 
       if(kdown & KEY_DOWN) {
         if(Widget::g_selectedWidgetIndex < m_widgets.size() - 1)
           Widget::g_selectedWidgetIndex++;
-        widgetPage = floor(Widget::g_selectedWidgetIndex / 6.0F);
+        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
       }
     } else {
       if(kdown & KEY_B) {
@@ -292,7 +285,7 @@ void GuiEditor::onInput(u32 kdown) {
 
       if(kdown & KEY_Y) {
         updateBackupList();
-        (new ListSelector(this, "Restore Backup", "A - Restore     X - Delete      B - Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
+        (new ListSelector(this, "Restore Backup", "\x01 - Restore     \x03 - Delete      \x02 - Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
           if(k & KEY_A) {
               if(backupNames.size() != 0) {
                 s16 res;
@@ -323,7 +316,7 @@ void GuiEditor::onInput(u32 kdown) {
 
 void GuiEditor::onTouch(touchPosition &touch) {
   if(Gui::currListSelector == nullptr) {
-    s8 widgetTouchPos = floor((touch.py - 150) / ((float)WIDGET_HEIGHT + WIDGET_SEPARATOR)) + 6 * widgetPage;
+    s8 widgetTouchPos = floor((touch.py - 150) / ((float)WIDGET_HEIGHT + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
 
     if(touch.px < 128 && touch.py < 128) {
       Title *nextTitle = nullptr;
@@ -365,7 +358,7 @@ void GuiEditor::onTouch(touchPosition &touch) {
     }
 
     if(touch.px > 100 && touch.px < Gui::framebuffer_width - 100 && m_widgets.size() > 0) {
-      if(widgetTouchPos >= 0 && widgetTouchPos < (s16)m_widgets.size() && widgetTouchPos < (6 * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? (s16)m_widgets.size() % 6 + 1 : 0)) {
+      if(widgetTouchPos >= 0 && widgetTouchPos < (s16)m_widgets.size() && widgetTouchPos < (WIDGETS_PER_PAGE * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? (s16)m_widgets.size() % static_cast<u16>(WIDGETS_PER_PAGE + 1) : 0)) {
         if(Widget::g_selectedWidgetIndex == widgetTouchPos)
           m_widgets[widgetTouchPos].widget->onTouch(touch);
         Widget::g_selectedWidgetIndex = widgetTouchPos;

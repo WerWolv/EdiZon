@@ -174,6 +174,78 @@ void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const 
             y += font->height;
             continue;
         }
+        else if (codepoint == '\x01') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonA, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
+        else if (codepoint == '\x02') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonB, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
+        else if (codepoint == '\x03') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonX, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
+        else if (codepoint == '\x04') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonY, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
+        else if (codepoint == '\x05') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonL, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
+        else if (codepoint == '\x06') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonR, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
+        else if (codepoint == '\x07') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonPlus, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
+        else if (codepoint == '\x08') {
+            if (max_width) {
+                break;
+            }
+
+            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonMinus, IMAGE_MODE_ABGR32);
+            x += 25;
+            continue;
+        }
 
         if (!fontLoadGlyph(&glyph, font, codepoint)) {
             if (!fontLoadGlyph(&glyph, font, '?'))
@@ -187,6 +259,24 @@ void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const 
 
 void Gui::drawText(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text) {
     drawText_(font, x, y, clr, text, 0);
+}
+
+void Gui::drawTextAligned(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, TextAlignment alignment) {
+    u32 textWidth;
+    switch(alignment) {
+      case ALIGNED_LEFT:
+        drawText_(font, x, y, clr, text, 0);
+        break;
+      case ALIGNED_CENTER:
+        getTextDimensions(font, text, &textWidth, nullptr);
+        drawText_(font, x - (textWidth / 2.0F), y, clr, text, 0);
+        break;
+      case ALIGNED_RIGHT:
+        getTextDimensions(font, text, &textWidth, nullptr);
+        drawText_(font, x - textWidth, y, clr, text, 0);
+        break;
+
+    }
 }
 
 void Gui::drawTextTruncate(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, u32 max_width) {
@@ -204,6 +294,11 @@ void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* wi
             x = 0;
             height += font->height;
             continue;
+        }
+
+        if(codepoint >= '\x01' && codepoint <= '\x08') {
+          x += 25;
+          continue;
         }
 
         if (!fontLoadGlyph(&glyph, font, codepoint)) {
@@ -238,6 +333,14 @@ void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageM
                 case IMAGE_MODE_RGBA32:
                     pos = ((tmpy*width) + tmpx) * 4;
                     current_color = makeColor(image[pos+0], image[pos+1], image[pos+2], image[pos+3]);
+                    break;
+                case IMAGE_MODE_BGR24:
+                    pos = ((tmpy*width) + tmpx) * 3;
+                    current_color = makeColor(image[pos+2], image[pos+1], image[pos+0], 255);
+                    break;
+                case IMAGE_MODE_ABGR32:
+                    pos = ((tmpy*width) + tmpx) * 4;
+                    current_color = makeColor(image[pos+3], image[pos+2], image[pos+1], image[pos+0]);
                     break;
             }
             drawPixel(x+tmpx, y+tmpy, current_color);

@@ -7,7 +7,6 @@
 class WidgetSwitch : public Widget {
 public:
   WidgetSwitch(u16 onValue, u16 offValue);
-  //WidgetSwitch(std::string onValue, std::string offValue);
   ~WidgetSwitch();
 
   void draw(Gui *gui, u16 x, u16 y);

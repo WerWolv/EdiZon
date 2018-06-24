@@ -4,10 +4,6 @@ WidgetSwitch::WidgetSwitch(u16 onValue, u16 offValue) : Widget(), m_onValue(onVa
 
 }
 
-/*WidgetSwitch::WidgetSwitch(std::string onValue, std::string offValue) : Widget(), m_onValueStr(onValue), m_offValueStr(offValue) {
-
-}*/
-
 WidgetSwitch::~WidgetSwitch() {
 
 }

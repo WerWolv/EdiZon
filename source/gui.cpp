@@ -29,6 +29,7 @@ color_t Gui::makeColor(u8 r, u8 g, u8 b, u8 a) {
     clr.g = g;
     clr.b = b;
     clr.a = a;
+
     return clr;
 }
 
@@ -47,10 +48,10 @@ inline void Gui::draw4PixelsRaw(s16 x, s16 y, color_t clr) {
     if (x >= 1280 || y >= 720 || x > 1280-4 || x < 0 || y < 0)
         return;
 
-    u32 color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
-    u128 val = color | ((u128)color<<32) | ((u128)color<<64) | ((u128)color<<96);
-    u32 off = (y * this->framebuffer_width + x)*4;
-    *((u128*)&this->framebuffer[off]) = val;
+    u32 color = clr.r | (clr.g << 8) | (clr.b << 16) | (0xFF << 24);
+    u128 val = color | (static_cast<u128>(color) << 0x20) | (static_cast<u128>(color) << 0x40) | (static_cast<u128>(color) << 0x60);
+    u32 off = (y * this->framebuffer_width + x) * 4;
+    *(reinterpret_cast<u128*>(&this->framebuffer[off])) = val;
 }
 
 inline const ffnt_page_t* Gui::fontGetPage(const ffnt_header_t* font, u32 page_id) {
@@ -105,7 +106,7 @@ void Gui::drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph) {
 
 inline u8 Gui::decodeByte(const char** ptr) {
     u8 c = static_cast<u8>(**ptr);
-    *ptr += 1;
+    *ptr++;
 
     return c;
 }
@@ -405,8 +406,8 @@ inline u8 getPixel(u8* in, size_t src_width, size_t src_height, u16 x, u16 y, s3
 }
 
 void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height) {
-    const float tx = float(src_width) / dest_width;
-    const float ty = float(src_height) / dest_height;
+    const float tx = static_cast<float>(src_width) / dest_width;
+    const float ty = static_cast<float>(src_height) / dest_height;
     const s32 channels = 3;
     const std::size_t row_stride = dest_width * channels;
 
@@ -414,8 +415,8 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
 
     for (u32 i = 0; i < dest_height; ++i) {
         for (u32 j = 0; j < dest_width; ++j) {
-            const s32 x = s32(tx * j);
-            const s32 y = s32(ty * i);
+            const s32 x = static_cast<u32>(tx * j);
+            const s32 y = static_cast<u32>(ty * i);
             const float dx = tx * j - x;
             const float dy = ty * i - y;
 

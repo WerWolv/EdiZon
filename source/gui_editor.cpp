@@ -46,7 +46,7 @@ GuiEditor::GuiEditor() : Gui() {
 }
 
 GuiEditor::~GuiEditor() {
-  for(auto it = m_widgets.begin(); it != m_widgets.end(); it++)
+  for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
     delete it->widget;
 
   delete titleIcon;
@@ -77,23 +77,23 @@ void GuiEditor::draw() {
 
   Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
 
-  if(GuiEditor::g_currSaveFileName == "") {
+  if (GuiEditor::g_currSaveFileName == "") {
     Gui::drawTextAligned(font20, Gui::framebuffer_width - 100, Gui::framebuffer_height - 50, currTheme.textColor, "\x03 - Backup     \x04 - Restore     \x02 - Back", ALIGNED_RIGHT);
     Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2), (Gui::framebuffer_height / 2), currTheme.textColor, hasConfigFile ? "No save file loaded. Press \x08 to select one." : "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
   } else
     Gui::drawTextAligned(font20, Gui::framebuffer_width - 100, Gui::framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel", ALIGNED_RIGHT);
 
-  if(m_widgets.size() > 0) {
-    for(u8 page = 0; page < widgetPageCnt; page++) {
+  if (m_widgets.size() > 0) {
+    for (u8 page = 0; page < widgetPageCnt; page++) {
       Gui::drawRectangle((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + ((40 * (page + 1)) / 2), 615, 20, 20, currTheme.separatorColor);
-      if(page == widgetPage)
+      if (page == widgetPage)
         Gui::drawRectangled((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + ((40 * (page + 1)) / 2) + 4, 619, 12, 12, currTheme.highlightColor);
     }
 
     Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2), 640, currTheme.textColor, "\x05      \x06", ALIGNED_CENTER);
   }
 
-  if(currListSelector != nullptr)
+  if (currListSelector != nullptr)
     currListSelector->draw();
 
   Gui::endDraw();
@@ -107,7 +107,7 @@ bool GuiEditor::loadConfigFile(json &j) {
 
   m_widgets.clear();
 
-  if(file.fail()) {
+  if (file.fail()) {
     printf("Opening editor JSON file failed!\n");
     return false;
   }
@@ -124,12 +124,12 @@ bool GuiEditor::loadConfigFile(json &j) {
 
 void GuiEditor::createWidgets() {
 
-if(m_offsetFile == nullptr) return;
+if (m_offsetFile == nullptr) return;
 
-for(auto item : m_offsetFile["items"]) {
-  if(item["widget"]["type"].get<std::string>().compare("int") == 0)
+for (auto item : m_offsetFile["items"]) {
+  if (item["widget"]["type"].get<std::string>().compare("int") == 0)
     m_widgets.push_back({item["name"], new WidgetValue(item["widget"]["minValue"], item["widget"]["maxValue"])});
-  else if(item["widget"]["type"].get<std::string>().compare("bool") == 0)
+  else if (item["widget"]["type"].get<std::string>().compare("bool") == 0)
     m_widgets.push_back({item["name"], new WidgetSwitch(item["widget"]["onValue"], item["widget"]["offValue"])});
 
   m_widgets.back().widget->setOffset(strtol(item["offsetAddress"].get<std::string>().c_str(), 0, 16), strtol(item["address"].get<std::string>().c_str(), 0, 16));
@@ -143,11 +143,11 @@ void updateBackupList() {
   struct dirent *ent;
 
   std::stringstream path;
-  path << "/EdiZon/";
-  path << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+  path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
   backupNames.clear();
-  if((dir = opendir(path.str().c_str())) != nullptr) {
-    while((ent = readdir(dir)) != nullptr)
+
+  if ((dir = opendir(path.str().c_str())) != nullptr) {
+    while ((ent = readdir(dir)) != nullptr)
       backupNames.push_back(ent->d_name);
     closedir(dir);
   }
@@ -158,17 +158,19 @@ void GuiEditor::updateSaveFileList(const char *saveFilePath) {
   struct dirent *ent;
   FsFileSystem fs;
 
-  if(m_offsetFile == nullptr) return;
+  if (m_offsetFile == nullptr) return;
 
-  if(mountSaveByTitleAccountIDs(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), fs))
+  if (mountSaveByTitleAccountIDs(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), fs))
     return;
 
   std::stringstream path;
   path << "save:" << saveFilePath;
-  if((dir = opendir(path.str().c_str())) != nullptr) {
+
+  if ((dir = opendir(path.str().c_str())) != nullptr) {
     std::regex validSaveFileNames(m_offsetFile["files"].get<std::string>());
-    while((ent = readdir(dir)) != nullptr) {
-      if(std::regex_match(ent->d_name, validSaveFileNames))
+
+    while ((ent = readdir(dir)) != nullptr) {
+      if (std::regex_match(ent->d_name, validSaveFileNames))
         saveFiles.push_back(std::string(saveFilePath) + ent->d_name);
     }
 
@@ -184,17 +186,18 @@ void GuiEditor::updateSaveFileList(const char *saveFilePath) {
 void GuiEditor::onInput(u32 kdown) {
   Widget::handleInput(kdown, m_widgets);
 
-  if(Gui::currListSelector == nullptr) {
+  if (Gui::currListSelector == nullptr) {
 
-    if(kdown & KEY_MINUS) {
-      if(!hasConfigFile) return;
+    if (kdown & KEY_MINUS) {
+      if (!hasConfigFile) return;
       saveFiles.clear();
-      for(auto saveFilePath : m_offsetFile["saveFilePaths"])
+
+      for (auto saveFilePath : m_offsetFile["saveFilePaths"])
         updateSaveFileList(saveFilePath.get<std::string>().c_str());
 
       (new ListSelector(this, "Edit save file", "\x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
-        if(k & KEY_A) {
-          if(saveFiles.size() != 0) {
+        if (k & KEY_A) {
+          if (saveFiles.size() != 0) {
             size_t length;
 
             delete[] GuiEditor::g_currSaveFile;
@@ -202,7 +205,8 @@ void GuiEditor::onInput(u32 kdown) {
             GuiEditor::g_currSaveFileName = "";
 
             GuiEditor::g_currSaveFileName = saveFiles[Gui::currListSelector->selectedItem].c_str();
-            if(loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0)
+
+            if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0)
               createWidgets();
             else {
               (new Snackbar(this, "Failed to load save file! Is it empty?"))->show();
@@ -210,7 +214,7 @@ void GuiEditor::onInput(u32 kdown) {
               GuiEditor::g_currSaveFile = nullptr;
               GuiEditor::g_currSaveFileName = "";
 
-              for(auto it = m_widgets.begin(); it != m_widgets.end(); it++)
+              for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
                 delete it->widget;
 
               m_widgets.clear();
@@ -221,74 +225,78 @@ void GuiEditor::onInput(u32 kdown) {
       })->show();
     }
 
-    if(GuiEditor::g_currSaveFileName != "") {
-      if(kdown & KEY_B) {
+    if (GuiEditor::g_currSaveFileName != "") {
+      if (kdown & KEY_B) {
         delete[] GuiEditor::g_currSaveFile;
         GuiEditor::g_currSaveFileName = "";
         GuiEditor::g_currSaveFile = nullptr;
 
-        for(auto it = m_widgets.begin(); it != m_widgets.end(); it++)
+        for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
           delete it->widget;
 
         m_widgets.clear();
         return;
       }
 
-      if(kdown & KEY_X) {
+      if (kdown & KEY_X) {
         size_t length;
         storeSaveFile(GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str());
+
         delete[] GuiEditor::g_currSaveFile;
         GuiEditor::g_currSaveFile = nullptr;
         GuiEditor::g_currSaveFileName = "";
 
-        for(auto it = m_widgets.begin(); it != m_widgets.end(); it++)
+        for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
           delete it->widget;
 
         m_widgets.clear();
         return;
       }
 
-      if(kdown & KEY_L) {
-        if(widgetPage > 0)
+      if (kdown & KEY_L) {
+        if (widgetPage > 0)
           widgetPage--;
         Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage;
       }
 
-      if(kdown & KEY_R) {
-        if(widgetPage < widgetPageCnt - 1)
+      if (kdown & KEY_R) {
+        if (widgetPage < widgetPageCnt - 1)
           widgetPage++;
         Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage ;
       }
 
-      if(kdown & KEY_UP) {
-        if(Widget::g_selectedWidgetIndex > 0)
+      if (kdown & KEY_UP) {
+        if (Widget::g_selectedWidgetIndex > 0)
           Widget::g_selectedWidgetIndex--;
         widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
       }
 
-      if(kdown & KEY_DOWN) {
-        if(Widget::g_selectedWidgetIndex < m_widgets.size() - 1)
+      if (kdown & KEY_DOWN) {
+        if (Widget::g_selectedWidgetIndex < m_widgets.size() - 1)
           Widget::g_selectedWidgetIndex++;
         widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
       }
     } else {
-      if(kdown & KEY_B) {
+      if (kdown & KEY_B) {
         Gui::g_nextGui = GUI_MAIN;
       }
 
-      if(kdown & KEY_X) {
+      if (kdown & KEY_X) {
         s16 res;
+
         if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID())))
           (new Snackbar(this, "Sucessfully created backup!"))->show();
         else (new Snackbar(this, "An error occured while creating the backup! Error " + std::to_string(res)))->show();
       }
 
-      if(kdown & KEY_Y) {
+      if (kdown & KEY_Y) {
         updateBackupList();
+
         (new ListSelector(this, "Restore Backup", "\x01 - Restore     \x03 - Delete      \x02 - Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
-          if(k & KEY_A) {
-              if(backupNames.size() != 0) {
+          if (k & KEY_A) {
+              if (backupNames.size() != 0) {
                 s16 res;
+
                 if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[Gui::currListSelector->selectedItem].c_str())))
                   (new Snackbar(this, "Sucessfully loaded backup!"))->show();
                 else (new Snackbar(this, "An error occured while restoring the backup! Error " + std::to_string(res)))->show();
@@ -297,15 +305,14 @@ void GuiEditor::onInput(u32 kdown) {
             }
           }
 
-          if(k & KEY_X) {
+          if (k & KEY_X) {
             std::stringstream path;
-            path << "/EdiZon/";
-            path << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+            path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
             path << "/" << backupNames[Gui::currListSelector->selectedItem];
             deleteDirRecursively(path.str().c_str(), false);
             updateBackupList();
 
-            if(Gui::currListSelector->selectedItem == backupNames.size() && Gui::currListSelector->selectedItem > 0)
+            if (Gui::currListSelector->selectedItem == backupNames.size() && Gui::currListSelector->selectedItem > 0)
               Gui::currListSelector->selectedItem--;
           }
         })->show();
@@ -315,21 +322,23 @@ void GuiEditor::onInput(u32 kdown) {
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
-  if(Gui::currListSelector == nullptr) {
-    s8 widgetTouchPos = floor((touch.py - 150) / ((float)WIDGET_HEIGHT + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
+  if (Gui::currListSelector == nullptr) {
+    s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
 
-    if(touch.px < 128 && touch.py < 128) {
+    if (touch.px < 128 && touch.py < 128) {
       Title *nextTitle = nullptr;
       bool isCurrTitle = false;
-      for(auto title : Title::g_titles) {
-        if(isCurrTitle) {
+
+      for (auto title : Title::g_titles) {
+        if (isCurrTitle) {
           nextTitle = title.second;
           break;
         }
 
         isCurrTitle = title.second == Title::g_currTitle;
       }
-      if(nextTitle == nullptr)
+
+      if (nextTitle == nullptr)
         nextTitle = Title::g_titles.begin()->second;
 
       Title::g_currTitle = nextTitle;
@@ -338,28 +347,30 @@ void GuiEditor::onTouch(touchPosition &touch) {
 
     }
 
-    if(touch.px > Gui::framebuffer_width - 128 && touch.py < 128) {
+    if (touch.px > Gui::framebuffer_width - 128 && touch.py < 128) {
       Account *nextAccount = nullptr;
       bool isCurrAccount = false;
-      for(auto userID : Title::g_currTitle->getUserIDs()) {
-        if(isCurrAccount) {
+
+      for (auto userID : Title::g_currTitle->getUserIDs()) {
+        if (isCurrAccount) {
           nextAccount = Account::g_accounts[userID];
           break;
         }
         isCurrAccount = userID == Account::g_currAccount->getUserID();
       }
-      if(nextAccount == nullptr)
+
+      if (nextAccount == nullptr)
         nextAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
 
-      if(Title::g_currTitle->getUserIDs().size() != 1) {
+      if (Title::g_currTitle->getUserIDs().size() != 1) {
         Account::g_currAccount = nextAccount;
         Gui::g_nextGui = GUI_EDITOR;
       } else nextAccount = nullptr;
     }
 
-    if(touch.px > 100 && touch.px < Gui::framebuffer_width - 100 && m_widgets.size() > 0) {
-      if(widgetTouchPos >= 0 && widgetTouchPos < (s16)m_widgets.size() && widgetTouchPos < (WIDGETS_PER_PAGE * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? (s16)m_widgets.size() % static_cast<u16>(WIDGETS_PER_PAGE + 1) : 0)) {
-        if(Widget::g_selectedWidgetIndex == widgetTouchPos)
+    if (touch.px > 100 && touch.px < Gui::framebuffer_width - 100 && m_widgets.size() > 0) {
+      if (widgetTouchPos >= 0 && widgetTouchPos < static_cast<u16>(m_widgets.size()) && widgetTouchPos < (WIDGETS_PER_PAGE * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? static_cast<u16>(m_widgets.size()) % static_cast<u16>(WIDGETS_PER_PAGE + 1) : 0)) {
+        if (Widget::g_selectedWidgetIndex == widgetTouchPos)
           m_widgets[widgetTouchPos].widget->onTouch(touch);
         Widget::g_selectedWidgetIndex = widgetTouchPos;
       }

@@ -13,12 +13,12 @@ Widget::~Widget() {
 }
 
 void Widget::drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 end) {
-  if(widgets.size() <= 0) return;
+  if (widgets.size() <= 0) return;
 
-  for(;start < end; start++) {
-    if(start > widgets.size() - 1) break;
+  for (;start < end; start++) {
+    if (start > widgets.size() - 1) break;
 
-    if(start == Widget::g_selectedWidgetIndex) {
+    if (start == Widget::g_selectedWidgetIndex) {
       gui->drawRectangled(150, y, gui->framebuffer_width - 300, WIDGET_HEIGHT, currTheme.highlightColor);
       gui->drawRectangle(155, y + 5, gui->framebuffer_width - 315, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
       gui->drawShadow(150, y, gui->framebuffer_width - 300, WIDGET_HEIGHT);
@@ -35,7 +35,7 @@ void Widget::drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 en
 }
 
 void Widget::handleInput(u32 kdown, WidgetList &widgets) {
-  if(widgets.size() <= 0) return;
+  if (widgets.size() <= 0) return;
   widgets[Widget::g_selectedWidgetIndex].widget->onInput(kdown);
 }
 

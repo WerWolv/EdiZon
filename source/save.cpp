@@ -14,45 +14,36 @@ const char* ROOT_DIR = "/EdiZon/";
 s32 deleteDirRecursively(const char *path, bool isSave) {
   DIR *d = opendir(path);
      size_t path_len = strlen(path);
-     int r = -1;
+     s32 r = -1;
 
-     if (d)
-     {
+     if (d) {
         struct dirent *p;
 
         r = 0;
 
-        while (!r && (p=readdir(d)))
-        {
-            int r2 = -1;
+        while (!r && (p=readdir(d))) {
+            s32 r2 = -1;
             char *buf;
             size_t len;
 
             /* Skip the names "." and ".." as we don't want to recurse on them. */
-            if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
-            {
+            if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, "..")) {
                continue;
             }
 
             len = path_len + strlen(p->d_name) + 2;
             buf = new char[len];
 
-            if (buf)
-            {
+            if (buf) {
                struct stat statbuf;
 
                snprintf(buf, len, "%s/%s", path, p->d_name);
 
-               if (!stat(buf, &statbuf))
-               {
+               if (!stat(buf, &statbuf)) {
                   if (S_ISDIR(statbuf.st_mode))
-                  {
                      r2 = deleteDirRecursively(buf, isSave);
-                  }
                   else
-                  {
                      r2 = unlink(buf);
-                  }
                }
 
                delete[] buf;
@@ -65,13 +56,10 @@ s32 deleteDirRecursively(const char *path, bool isSave) {
      }
 
      if (!r)
-     {
         r = rmdir(path);
-     }
 
 
-     if (isSave && R_FAILED(fsdevCommitDevice(SAVE_DEV)))
-     {
+     if (isSave && R_FAILED(fsdevCommitDevice(SAVE_DEV))) {
        printf("Committing failed.\n");
        return -3;
      }
@@ -79,8 +67,7 @@ s32 deleteDirRecursively(const char *path, bool isSave) {
      return r;
 }
 
-void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder)
-{
+void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder) {
   time_t t = time(nullptr);
   std::stringstream ss;
 
@@ -114,10 +101,10 @@ Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
   rc = fsSaveDataIteratorRead(&iterator, &info, 1, &total_entries);//See libnx fs.h.
   if (R_FAILED(rc))
     return rc;
-  if (total_entries==0)
+  if (total_entries == 0)
     return MAKERESULT(Module_Libnx, LibnxError_NotFound);
 
-  for(; R_SUCCEEDED(rc) && total_entries > 0;
+  for (; R_SUCCEEDED(rc) && total_entries > 0;
     rc = fsSaveDataIteratorRead(&iterator, &info, 1, &total_entries)) {
     if (info.SaveDataType == FsSaveDataType_SaveData) {
       saveInfoList.push_back(info);
@@ -129,8 +116,7 @@ Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
   return 0;
 }
 
-Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs)
-{
+Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs) {
   Result rc = 0;
 
   printf("Using titleID=0x%016lx userID: 0x%lx 0x%lx\n", titleID, (u64)(userID>>64), (u64)userID);
@@ -144,15 +130,14 @@ Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSy
   }
 
   s32 ret = fsdevMountDevice(SAVE_DEV, tmpfs);
-  if (ret==-1) {
+  if (ret == -1) {
     printf("fsdevMountDevice() failed.\n");
     rc = ret;
   }
   return rc;
 }
 
-bool getSavefilesForGame(std::vector<s32>& vec, u64 titleID, u128 userID)
-{
+bool getSavefilesForGame(std::vector<s32>& vec, u64 titleID, u128 userID) {
   FsFileSystem tmpfs;
   Result rc = 0;
   if (titleID != 0x0100000000010000)
@@ -165,22 +150,23 @@ bool getSavefilesForGame(std::vector<s32>& vec, u64 titleID, u128 userID)
   char fname[0x10];
   struct stat statbuf;
   s32 i;
-  for (i=0; i != 7; i++)
-  {
+
+  for (i=0; i != 7; i++) {
     sprintf(fname, "File%d.bin", i);
     if (stat(fname, &statbuf) != 0)
       break;
     vec.push_back(i);
   }
-  if (i == 0)
-    return false;
-  return true;
+
+  return i != 0;
 }
 
 s32 isDirectory(const char *path) {
  struct stat statbuf;
+
  if (stat(path, &statbuf) != 0)
    return 0;
+
  return S_ISDIR(statbuf.st_mode);
 }
 
@@ -225,20 +211,17 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   strcpy(filenameSD, exInjDir);
   strcat(filenameSD, path);
 
-  if(isInject)
+  if (isInject)
     dir = opendir(filenameSD);
   else
     dir = opendir(filenameSave);
 
-  if(dir==NULL)
-  {
+  if (dir == nullptr) {
     printf("Failed to open dir: %s\n", isInject ? filenameSD : filenameSave);
     return -1;
   }
-  else
-  {
-    while ((ent = readdir(dir)))
-    {
+  else {
+    while ((ent = readdir(dir))) {
       char filename[0x100];
       strcpy(filename, path);
       strcat(filename, "/");
@@ -250,16 +233,15 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
       strcpy(filenameSD, exInjDir);
       strcat(filenameSD, filename);
 
-      if(isDirectory(isInject ? filenameSD : filenameSave)) {
-          if (isInject)
-          {
+      if (isDirectory(isInject ? filenameSD : filenameSave)) {
+          if (isInject) {
             mkdir(filenameSave, 0700);
             if (R_FAILED(fsdevCommitDevice(SAVE_DEV)))
               printf("Failed to commit directory %s.", filenameSave);
           } else
             mkdir(filenameSD, 0700);
           s32 res = copyAllSave(filename, isInject, exInjDir);
-          if(res != 0)
+          if (res != 0)
               return res;
       } else {
         printf("Copying %s... ", filename);
@@ -296,7 +278,7 @@ s32 backupSave(u64 titleID, u128 userID) {
 
   makeExInjDir(ptr, titleID, userID, false, nullptr);
 
-  if(ptr == nullptr) {
+  if (ptr == nullptr) {
     printf("makeExInjDir failed.\n");
       fsdevUnmountDevice(SAVE_DEV);
       return 1;
@@ -322,17 +304,19 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
 
   makeExInjDir(ptr, titleID, userID, true, injectFolder);
 
-  if(ptr == nullptr) {
+  if (ptr == nullptr) {
     printf("makeExInjDir failed.\n");
-      fsdevUnmountDevice(SAVE_DEV);
-      return 1;
+    fsdevUnmountDevice(SAVE_DEV);
+    return 1;
   }
+
   res = deleteDirRecursively("save:/", true);
-  if (!res)
-  {
+
+  if (!res) {
     printf("Deleting save:/ failed: %d.\n", res);
     return res;
   }
+
   res = copyAllSave("", true, ptr);
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
@@ -361,7 +345,7 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
 
   FILE *file = fopen(filePath, "rb");
 
-  if(file == nullptr) {
+  if (file == nullptr) {
     printf("Failed to open file.\n");
     fsdevUnmountDevice(SAVE_DEV);
     fsFsClose(&fs);
@@ -372,7 +356,7 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
   size = ftell(file);
   rewind(file);
 
-  if(size <= 0) {
+  if (size <= 0) {
     printf("File reading failed. File length is %zu.\n", size);
     fclose(file);
     fsdevUnmountDevice(SAVE_DEV);
@@ -410,7 +394,7 @@ s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const ch
 
   FILE *file = fopen(filePath, "rwb+");
 
-  if(file == nullptr) {
+  if (file == nullptr) {
     printf("Failed to open file.\n");
     fsdevUnmountDevice(SAVE_DEV);
     fsFsClose(&fs);
@@ -438,12 +422,12 @@ s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const ch
 }
 
 u16 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address) {
-  u16 offset = *((u16*)(*buffer + offsetAddress));
+  u16 offset = *(reinterpret_cast<u16*>(*buffer + offsetAddress));
 
-  return ((u16*)*buffer)[(offset + address) / 2];
+  return (reinterpret_cast<u16*>(*buffer))[(offset + address) / 2];
 }
 
 void setValueAtAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u16 value) {
-  u16 offset = *((u16*)(*buffer + offsetAddress));
-  ((u16*)*buffer)[(offset + address) / 2] = value;
+  u16 offset = *(reinterpret_cast<u16*>(*buffer + offsetAddress));
+  (reinterpret_cast<u16*>(*buffer))[(offset + address) / 2] = value;
 }

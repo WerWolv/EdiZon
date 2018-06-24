@@ -18,14 +18,14 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
 }
 
 void WidgetValue::onInput(u32 kdown) {
-  if(kdown & KEY_LEFT) {
-    if(Widget::getValue() > m_minValue)
+  if (kdown & KEY_LEFT) {
+    if (Widget::getValue() > m_minValue)
       Widget::setValue(Widget::getValue() - 1);
     else Widget::setValue(m_maxValue);
   }
 
-  if(kdown & KEY_RIGHT) {
-    if(Widget::getValue() < m_maxValue)
+  if (kdown & KEY_RIGHT) {
+    if (Widget::getValue() < m_maxValue)
       Widget::setValue(Widget::getValue() + 1);
     else Widget::setValue(m_minValue);
   }

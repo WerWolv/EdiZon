@@ -18,19 +18,22 @@ void ListSelector::draw() {
   m_gui->drawRectangle(50, 300, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
   m_gui->drawText(font24, 100, 240, currTheme.textColor, m_title.c_str());
 
-  if(m_listItems.size() != 0) {
-    for(s16 currItem = -2; currItem < 3; currItem++) {
-       if((currItem + selectedItem) >= 0 && (currItem + selectedItem) < (s16)m_listItems.size()) {
+  if (m_listItems.size() != 0) {
+    for (s16 currItem = -2; currItem < 3; currItem++) {
+       if ((currItem + selectedItem) >= 0 && (currItem + selectedItem) < static_cast<s16>(m_listItems.size())) {
          m_gui->drawText(font20, 300, 340 + 60 * (currItem + 2), currTheme.textColor, m_listItems[(currItem + selectedItem)].c_str());
          m_gui->drawRectangle(250, 325 + 60 * (currItem + 2), m_gui->framebuffer_width - 500, 1, currTheme.separatorColor);
          m_gui->drawRectangle(250, 325 + 60 * (currItem + 3), m_gui->framebuffer_width - 500, 1, currTheme.separatorColor);
        }
     }
+
     m_gui->drawRectangled(245, 320 + 60 * 2, m_gui->framebuffer_width - 490, 71, currTheme.highlightColor);
     m_gui->drawRectangle(250, 325 + 60 * 2, m_gui->framebuffer_width - 500, 61, currTheme.selectedButtonColor);
     m_gui->drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, m_listItems[selectedItem].c_str());
     m_gui->drawShadow(245, 320 + 60 * 2, m_gui->framebuffer_width - 491, 71);
-  } else m_gui->drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, "No items present!");
+  }
+  else
+    m_gui->drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, "No items present!");
 
   m_gui->drawRectangle(50, m_gui->framebuffer_height - 70, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
   m_gui->drawTextAligned(font20, m_gui->framebuffer_width - 100, m_gui->framebuffer_height - 50, currTheme.textColor, m_options.c_str(), ALIGNED_RIGHT);
@@ -43,15 +46,15 @@ ListSelector* ListSelector::setInputAction(std::function<void(u32, u16)> inputAc
 }
 
 void ListSelector::onInput(u32 kdown) {
- if(kdown & KEY_B)
+ if (kdown & KEY_B)
    hide();
 
- if(kdown & KEY_UP)
-   if(selectedItem > 0)
+ if (kdown & KEY_UP)
+   if (selectedItem > 0)
      selectedItem--;
 
- if(kdown & KEY_DOWN)
-   if(selectedItem < ((s16)m_listItems.size() - 1))
+ if (kdown & KEY_DOWN)
+   if (selectedItem < (static_cast<s16>(m_listItems.size() - 1)))
      selectedItem++;
 
   m_inputActions(kdown, selectedItem);

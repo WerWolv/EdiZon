@@ -20,7 +20,7 @@ Account::Account(u128 userID) : m_userID(userID) {
 
   m_userName = std::string(m_profileBase.username, 0x20);
 
-  u8 *buffer = (u8*) malloc(m_profileImageSize);
+  u8 *buffer = new u8[m_profileImageSize];
   u8 *decodedBuffer = nullptr;
   size_t imageSize = 0;
 
@@ -29,17 +29,19 @@ Account::Account(u128 userID) : m_userID(userID) {
   njDecode(buffer, imageSize);
 
   decodedBuffer = njGetImage();
-  m_profileImage = (u8*) malloc(128*128*3);
+  m_profileImage = new u8[128 * 128 * 3];
   Gui::resizeImage(decodedBuffer, m_profileImage, 256, 256, 128, 128);
 
   njDone();
+
+  delete[] buffer;
 
   accountProfileClose(&m_profile);
   accountExit();
 }
 
 Account::~Account() {
-
+  delete[] m_profileImage;
 }
 
 u128 Account::getUserID() {

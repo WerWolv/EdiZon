@@ -10,13 +10,13 @@ std::unordered_map<u64, Title*> Title::g_titles;
 Title::Title(FsSaveDataInfo& saveInfo) {
   Result rc=0;
 
-  NsApplicationControlData *buf=NULL;
+  NsApplicationControlData *buf = nullptr;
   size_t outsize=0;
 
-  NacpLanguageEntry *langentry = NULL;
+  NacpLanguageEntry *langentry = nullptr;
 
   buf = (NsApplicationControlData*)malloc(sizeof(NsApplicationControlData));
-  if (buf==NULL) {
+  if (buf == nullptr) {
     m_errorCode = 1;
     return;
   }
@@ -40,7 +40,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   }
 
   rc = nacpGetLanguageEntry(&buf->nacp, &langentry);
-  if (R_FAILED(rc) || langentry==NULL) {
+  if (R_FAILED(rc) || langentry==nullptr) {
     m_errorCode = 5;
     return;
   }
@@ -53,7 +53,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   njInit();
 
   size_t iconbytesize = outsize-sizeof(buf->nacp);
-  size_t imagesize = 256*256*3;
+  size_t imagesize = 256 * 256 * 3;
 
   if (njDecode(buf->icon, iconbytesize) != NJ_OK) {
     m_errorCode = 6;
@@ -67,10 +67,10 @@ Title::Title(FsSaveDataInfo& saveInfo) {
     return;
   }
 
-  u8* ptr = NULL;
+  u8* ptr = nullptr;
 
   ptr = njGetImage();
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     m_errorCode = 8;
     njDone();
     return;
@@ -78,7 +78,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
 
   m_titleIcon = (u8*)malloc(imagesize);
   memcpy(m_titleIcon, ptr, imagesize);
-  ptr = NULL;
+  ptr = nullptr;
 
   njDone();
   nsExit();

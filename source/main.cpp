@@ -24,14 +24,14 @@ void initTitles() {
   std::vector<FsSaveDataInfo> saveInfoList;
   _getSaveList(saveInfoList);
 
-  for(auto saveInfo : saveInfoList) {
+  for (auto saveInfo : saveInfoList) {
 
-    if(Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
+    if (Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
       Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
 
     Title::g_titles[saveInfo.titleID]->addUserID(saveInfo.userID);
 
-    if(Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())
+    if (Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())
       Account::g_accounts.insert({(u128)saveInfo.userID, new Account(saveInfo.userID)});
   }
 }
@@ -58,17 +58,17 @@ int main(int argc, char** argv) {
   Gui::g_nextGui = GUI_MAIN;
   touchCntOld = hidTouchCount();
 
-  while(appletMainLoop()) {
+  while (appletMainLoop()) {
     hidScanInput();
     kdown = hidKeysDown(CONTROLLER_P1_AUTO);
     kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
 
-    if(kdown & KEY_PLUS)
+    if (kdown & KEY_PLUS)
       break;
 
-    if(Gui::g_nextGui != GUI_INVALID) {
+    if (Gui::g_nextGui != GUI_INVALID) {
       delete currGui;
-      switch(Gui::g_nextGui) {
+      switch (Gui::g_nextGui) {
         case GUI_MAIN:
           currGui = new GuiMain();
           break;
@@ -82,23 +82,23 @@ int main(int argc, char** argv) {
 
     currGui->draw();
 
-    if(kdown)
+    if (kdown)
       currGui->onInput(kdown);
 
-    if(kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;
+    if (kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;
     else inputTicker = 0;
 
-    if(kheld != kheldOld)
+    if (kheld != kheldOld)
       inputTicker = 0;
 
-    if(inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0)
+    if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0)
       currGui->onInput(kheld);
 
 
 
     touchCnt = hidTouchCount();
 
-    if(touchCnt > touchCntOld) {
+    if (touchCnt > touchCntOld) {
       touchPosition touch;
       hidTouchRead(&touch, 0);
       currGui->onTouch(touch);
@@ -110,10 +110,10 @@ int main(int argc, char** argv) {
 
   delete currGui;
 
-  for(auto it = Title::g_titles.begin(); it != Title::g_titles.end(); it++)
+  for (auto it = Title::g_titles.begin(); it != Title::g_titles.end(); it++)
     delete it->second;
 
-  for(auto it = Account::g_accounts.begin(); it != Account::g_accounts.end(); it++)
+  for (auto it = Account::g_accounts.begin(); it != Account::g_accounts.end(); it++)
     delete it->second;
 
   Title::g_titles.clear();

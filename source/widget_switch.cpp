@@ -20,8 +20,8 @@ void WidgetSwitch::draw(Gui *gui, u16 x, u16 y) {
 }
 
 void WidgetSwitch::onInput(u32 kdown) {
-  if(kdown & KEY_A) {
-    if(Widget::getValue() == m_offValue)
+  if (kdown & KEY_A) {
+    if (Widget::getValue() == m_offValue)
       Widget::setValue(m_onValue);
     else
       Widget::setValue(m_offValue);
@@ -29,7 +29,7 @@ void WidgetSwitch::onInput(u32 kdown) {
 }
 
 void WidgetSwitch::onTouch(touchPosition &touch) {
-  if(Widget::getValue() == m_offValue)
+  if (Widget::getValue() == m_offValue)
     Widget::setValue(m_onValue);
   else
     Widget::setValue(m_offValue);

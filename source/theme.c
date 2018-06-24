@@ -20,7 +20,7 @@
 theme_t currTheme;
 
 void setTheme(ColorSetId colorSetId) {
-  switch(colorSetId) {
+  switch (colorSetId) {
     case ColorSetId_Light:
       currTheme = (theme_t) {
         .textColor            =      RGBA8(0x00, 0x00, 0x00, 0xFF),

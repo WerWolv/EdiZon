@@ -19,14 +19,15 @@ To expanding the functionality of the save file editor, .json files get used to 
 ```json
 {
 	"saveFilePaths" : [ "/" ],
-	"validSaveFileNames" : "File\\d+\\.bin",
+	"files" : "File\\d+\\.bin",
+	"filetype": "bin",
 	"items": [
 	{
 	  "name" : "Integer Value",
 	  "offsetAddress" : "DEAD",
 	  "address" : "BEEF",
 	  "widget" : {
-		  "type" : "integer",
+		  "type" : "int",
 		  "minValue" : 0,
 		  "maxValue" : 9999
 	  }
@@ -36,7 +37,7 @@ To expanding the functionality of the save file editor, .json files get used to 
 	  "offsetAddress" : "CAFE",
 	  "address" : "BABE",
 	  "widget" : {
-		  "type" : "boolean",
+		  "type" : "bool",
 		  "onValue" : 1,
 		  "offValue" : 0
 	  }
@@ -47,6 +48,7 @@ To expanding the functionality of the save file editor, .json files get used to 
 
 - `saveFilePaths`: The folder paths in which the save files are located. Multiple locations may be set. Use '/' to target the root dir.
 - `validSaveFileNames`: How the save file names are formatted. This is a RegEx string.
+- `filetype`: Defines what save file parser will be used. Supported values are: `bin`
 - `items`: Inside this array, every new element will become a new widget inside the editor.
   - `name`: The name of the widget. This is the text which will be displayed next to the value on the widget.
   - `offsetAddress`: Most save files load dynamic offsets from static locations within the save file. This is the address of an offset whose value will get used as final offset. If no dynamic offsets are used, set this to 0. Note: This is a hexadecimal number in a string.

@@ -106,7 +106,7 @@ void Gui::drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph) {
 
 inline u8 Gui::decodeByte(const char** ptr) {
     u8 c = static_cast<u8>(**ptr);
-    *ptr++;
+    (*ptr)++;
 
     return c;
 }

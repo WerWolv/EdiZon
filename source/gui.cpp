@@ -184,73 +184,41 @@ void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const 
             continue;
         }
         else if (codepoint == '\x01') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonA, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x02') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonB, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x03') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonX, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x04') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonY, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x05') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonL, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x06') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonR, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x07') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonPlus, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x08') {
-            if (max_width) {
-                break;
-            }
-
             Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonMinus, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
@@ -309,6 +277,10 @@ void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* wi
 
         if (codepoint >= '\x01' && codepoint <= '\x08') {
           x += 25;
+
+          if (x > width)
+              width = x;
+              
           continue;
         }
 

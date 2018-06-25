@@ -1,6 +1,7 @@
 #include "widget.hpp"
 
 #include "gui_editor.hpp"
+#include <iostream>
 
 u16 Widget::g_selectedWidgetIndex = 0;
 

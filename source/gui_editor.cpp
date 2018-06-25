@@ -73,7 +73,7 @@ void GuiEditor::draw() {
   Gui::drawTextAligned(font20, (Gui::framebuffer_width / 2), 45, currTheme.textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, (Gui::framebuffer_width / 2), 80, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
 
-  Widget::drawWidgets(this, m_widgets, 150, widgetPage * WIDGETS_PER_PAGE, widgetPage * (WIDGETS_PER_PAGE + 1));
+  Widget::drawWidgets(this, m_widgets, 150, widgetPage * WIDGETS_PER_PAGE, (widgetPage + 1) * WIDGETS_PER_PAGE);
 
   Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
 
@@ -83,14 +83,16 @@ void GuiEditor::draw() {
   } else
     Gui::drawTextAligned(font20, Gui::framebuffer_width - 100, Gui::framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel", ALIGNED_RIGHT);
 
-  if (m_widgets.size() > 0) {
+  if (m_widgets.size() > WIDGETS_PER_PAGE) {
     for (u8 page = 0; page < widgetPageCnt; page++) {
-      Gui::drawRectangle((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + ((40 * (page + 1)) / 2), 615, 20, 20, currTheme.separatorColor);
+      Gui::drawRectangle((Gui::framebuffer_width / 2) - widgetPageCnt * 15 + page * 30 , 615, 20, 20, currTheme.separatorColor);
       if (page == widgetPage)
-        Gui::drawRectangled((Gui::framebuffer_width / 2) - ((40 * widgetPageCnt) / 2) + ((40 * (page + 1)) / 2) + 4, 619, 12, 12, currTheme.highlightColor);
+        Gui::drawRectangled((Gui::framebuffer_width / 2) - widgetPageCnt * 15 + page * 30 + 4, 619, 12, 12, currTheme.highlightColor);
     }
 
-    Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2), 640, currTheme.textColor, "\x05      \x06", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2) - widgetPageCnt * 15 - 30, 598, currTheme.textColor, "\x05", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::framebuffer_width / 2) + widgetPageCnt * 15 + 18, 598, currTheme.textColor, "\x06", ALIGNED_CENTER);
+
   }
 
   if (currListSelector != nullptr)
@@ -240,7 +242,10 @@ void GuiEditor::onInput(u32 kdown) {
 
       if (kdown & KEY_X) {
         size_t length;
-        storeSaveFile(GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str());
+        if(!storeSaveFile(GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
+          (new Snackbar(this, "Sucessfully injected modified values!"))->show();
+        else
+          (new Snackbar(this, "Injection of modified values failed!"))->show();
 
         delete[] GuiEditor::g_currSaveFile;
         GuiEditor::g_currSaveFile = nullptr;

@@ -10,8 +10,7 @@
 #define WIDGET_WIDTH      300
 #define WIDGET_HEIGHT     65
 #define WIDGET_SEPARATOR  10
-
-#define WIDGETS_PER_PAGE  5.0F
+#define WIDGETS_PER_PAGE  6.0F
 
 class Widget;
 typedef struct { std::string title; Widget *widget; } WidgetPair;

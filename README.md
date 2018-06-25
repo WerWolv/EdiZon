@@ -13,6 +13,8 @@ A save dumper (future editor) for Horizon by thomasnet and WerWolv
 # Images
 ![Capture of main screen](https://cdn.discordapp.com/attachments/445187205372313601/452783262868307979/2018060302561900-DB1426D1DFD034027CECDE9C2DD914B8.jpg)
 
+![Capture of editor screen](https://i.imgur.com/z4orRi5.jpg)
+
 # Save editor config format
 To expanding the functionality of the save file editor, .json files get used to specify the offset and address of spessific values inside the save file. These files look like follows:
 

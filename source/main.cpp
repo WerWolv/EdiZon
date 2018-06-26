@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
 
     currGui->draw();
 
-    if (kdown)
+    if (kdown || hidKeysUp(CONTROLLER_P1_AUTO))
       currGui->onInput(kdown);
 
     if (kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;

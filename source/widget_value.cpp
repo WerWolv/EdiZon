@@ -15,17 +15,32 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
 }
 
 void WidgetValue::onInput(u32 kdown) {
+  static u32 accelerationTimer = 0;
+
   if (kdown & KEY_LEFT) {
-    if (Widget::getValue() > m_minValue)
-      Widget::setValue(Widget::getValue() - 1);
+    accelerationTimer++;
+    if (Widget::getValue() > m_minValue) {
+      if(accelerationTimer > 50 && Widget::getValue() > m_minValue + 20)
+        Widget::setValue(Widget::getValue() - 20);
+      else
+        Widget::setValue(Widget::getValue() - 1);
+    }
     else Widget::setValue(m_maxValue);
   }
 
   if (kdown & KEY_RIGHT) {
-    if (Widget::getValue() < m_maxValue)
-      Widget::setValue(Widget::getValue() + 1);
+    accelerationTimer++;
+    if (Widget::getValue() < m_maxValue) {
+      if(accelerationTimer > 50 && Widget::getValue() < m_maxValue - 20)
+        Widget::setValue(Widget::getValue() + 20);
+      else
+        Widget::setValue(Widget::getValue() + 1);
+    }
     else Widget::setValue(m_minValue);
   }
+
+  if ((kdown & (KEY_LEFT | KEY_RIGHT)) == 0)
+    accelerationTimer = 0;
 }
 
 void WidgetValue::onTouch(touchPosition &touch) {

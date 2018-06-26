@@ -425,8 +425,9 @@ s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const ch
 u64 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u8 addressSize, u8 valueSize) {
   u64 offset = 0;
 
-  for (u8 i = 0; i < addressSize; i++)
-    offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
+  if (offsetAddress != 0x00000000)
+    for (u8 i = 0; i < addressSize; i++)
+      offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
 
 
   switch (valueSize) {
@@ -441,9 +442,9 @@ u64 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u8 
 void setValueAtAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u64 value, u8 addressSize, u8 valueSize) {
   u64 offset = 0;
 
-  for (u8 i = 0; i < addressSize; i++)
-    offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
-
+  if (offsetAddress != 0x00000000)
+    for (u8 i = 0; i < addressSize; i++)
+      offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
 
   switch (valueSize) {
     case 1:

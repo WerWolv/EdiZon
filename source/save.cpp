@@ -425,9 +425,23 @@ s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const ch
 u64 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u8 addressSize, u8 valueSize) {
   u64 offset = 0;
 
+  if(offsetAddress % addressSize != 0) {
+    printf("Offset address is misaligned!\n");
+    return 0xFFFFFFFFFFFFFFFF;
+  }
+
+  if(address % addressSize != 0) {
+    printf("Address is misaligned!\n");
+    return 0xFFFFFFFFFFFFFFFF;
+  }
+
   for (u8 i = 0; i < addressSize; i++)
     offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
 
+  if(offset % addressSize != 0) {
+    printf("Offset is misaligned!\n");
+    return 0xFFFFFFFFFFFFFFFF;
+  }
 
   switch (valueSize) {
     case 1: return (reinterpret_cast<u8*>(*buffer))[(offset + address)];
@@ -441,9 +455,23 @@ u64 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u8 
 void setValueAtAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u64 value, u8 addressSize, u8 valueSize) {
   u64 offset = 0;
 
+  if(offsetAddress % addressSize != 0) {
+    printf("Offset address is misaligned!\n");
+    return;
+  }
+
+  if(address % addressSize != 0) {
+    printf("Address is misaligned!\n");
+    return;
+  }
+
   for (u8 i = 0; i < addressSize; i++)
     offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
 
+  if(offset % addressSize != 0) {
+    printf("Offset is misaligned!\n");
+    return;
+  }
 
   switch (valueSize) {
     case 1:

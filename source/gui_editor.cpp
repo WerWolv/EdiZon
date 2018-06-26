@@ -130,9 +130,9 @@ if (m_offsetFile == nullptr) return;
 
 for (auto item : m_offsetFile["items"]) {
   if (item["widget"]["type"].get<std::string>().compare("int") == 0)
-    m_widgets.push_back({item["name"], new WidgetValue(item["widget"]["minValue"], item["widget"]["maxValue"])});
+    m_widgets.push_back({item["name"], new WidgetValue(item["addressSize"], item["valueSize"], item["widget"]["minValue"], item["widget"]["maxValue"])});
   else if (item["widget"]["type"].get<std::string>().compare("bool") == 0)
-    m_widgets.push_back({item["name"], new WidgetSwitch(item["widget"]["onValue"], item["widget"]["offValue"])});
+    m_widgets.push_back({item["name"], new WidgetSwitch(item["addressSize"], item["valueSize"], item["widget"]["onValue"], item["widget"]["offValue"])});
 
   m_widgets.back().widget->setOffset(strtol(item["offsetAddress"].get<std::string>().c_str(), 0, 16), strtol(item["address"].get<std::string>().c_str(), 0, 16));
 }

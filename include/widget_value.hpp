@@ -6,7 +6,7 @@
 
 class WidgetValue : public Widget {
 public:
-  WidgetValue(u16 minValue, u16 maxValue);
+  WidgetValue(u8 addressSize, u8 valueSize, u64 minValue, u64 maxValue);
   ~WidgetValue();
 
   void draw(Gui *gui, u16 x, u16 y);
@@ -15,5 +15,5 @@ public:
   void onTouch(touchPosition &touch);
 
 private:
-  u16 m_minValue, m_maxValue;
+  u64 m_minValue, m_maxValue;
 };

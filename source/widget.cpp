@@ -5,7 +5,7 @@
 
 u16 Widget::g_selectedWidgetIndex = 0;
 
-Widget::Widget() {
+Widget::Widget(u8 addressSize, u8 valueSize) : m_addressSize(addressSize), m_valueSize(valueSize) {
 
 }
 
@@ -40,20 +40,20 @@ void Widget::handleInput(u32 kdown, WidgetList &widgets) {
   widgets[Widget::g_selectedWidgetIndex].widget->onInput(kdown);
 }
 
-u16 Widget::getValue() {
-  return getValueFromAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address);
+u64 Widget::getValue() {
+  return getValueFromAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address, this->m_addressSize, this->m_valueSize);
 }
 
-void Widget::setValue(u16 value) {
-  setValueAtAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address, value);
+void Widget::setValue(u64 value) {
+  setValueAtAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address, value, this->m_addressSize, this->m_valueSize);
 }
 
-void Widget::setOffset(u16 offsetAddress, u16 address) {
+void Widget::setOffset(u32 offsetAddress, u32 address) {
   this->m_offsetAddress = offsetAddress;
   this->m_address = address;
 }
 
-void Widget::setOffset(u16 address) {
+void Widget::setOffset(u32 address) {
   this->m_offsetAddress = 0x0000;
   this->m_address = address;
 }

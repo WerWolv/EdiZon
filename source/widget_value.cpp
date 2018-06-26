@@ -1,6 +1,6 @@
 #include "widget_value.hpp"
 
-WidgetValue::WidgetValue(u16 minValue, u16 maxValue) : Widget(), m_minValue(minValue), m_maxValue(maxValue) {
+WidgetValue::WidgetValue(u8 addressSize, u8 valueSize, u64 minValue, u64 maxValue) : Widget(addressSize, valueSize), m_minValue(minValue), m_maxValue(maxValue) {
 }
 
 WidgetValue::~WidgetValue() {
@@ -8,13 +8,10 @@ WidgetValue::~WidgetValue() {
 }
 
 void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
-  u32 textWidth, textHeight;
   std::stringstream ss;
-  ss << std::setfill('0') << std::setw(5) << Widget::getValue() << " [0x" << std::setfill('0') << std::setw(4) << std::uppercase << std::hex << Widget::getValue() << "]";
+  ss << Widget::getValue() << " [0x" << std::setfill('0') << std::setw(Widget::m_valueSize * 2) << std::uppercase << std::hex << Widget::getValue() << "]";
 
-  gui->getTextDimensions(font20, ss.str().c_str(), &textWidth, &textHeight);
-
-  gui->drawText(font20, x + (WIDGET_WIDTH / 2.0F) - 150, y + (WIDGET_HEIGHT / 2.0F) - (textHeight / 2.0F), currTheme.selectedColor, ss.str().c_str());
+  gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), currTheme.selectedColor, ss.str().c_str(), ALIGNED_RIGHT);
 }
 
 void WidgetValue::onInput(u32 kdown) {

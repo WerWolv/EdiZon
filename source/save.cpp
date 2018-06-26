@@ -421,13 +421,43 @@ s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const ch
   return 0;
 }
 
-u16 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address) {
-  u16 offset = *(reinterpret_cast<u16*>(*buffer + offsetAddress));
 
-  return (reinterpret_cast<u16*>(*buffer))[(offset + address) / 2];
+u64 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u8 addressSize, u8 valueSize) {
+  u64 offset = 0;
+
+  for (u8 i = 0; i < addressSize; i++)
+    offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
+
+
+  switch (valueSize) {
+    case 1: return (reinterpret_cast<u8*>(*buffer))[(offset + address)];
+    case 2: return (reinterpret_cast<u16*>(*buffer))[(offset + address) / 2];
+    case 4: return (reinterpret_cast<u32*>(*buffer))[(offset + address) / 4];
+    case 8: return (reinterpret_cast<u64*>(*buffer))[(offset + address) / 8];
+    default: return 0xFFFFFFFFFFFFFFFF;
+  }
 }
 
-void setValueAtAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u16 value) {
-  u16 offset = *(reinterpret_cast<u16*>(*buffer + offsetAddress));
-  (reinterpret_cast<u16*>(*buffer))[(offset + address) / 2] = value;
+void setValueAtAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u64 value, u8 addressSize, u8 valueSize) {
+  u64 offset = 0;
+
+  for (u8 i = 0; i < addressSize; i++)
+    offset |= *(reinterpret_cast<u8*>(*buffer + offsetAddress + i)) << i * 8;
+
+
+  switch (valueSize) {
+    case 1:
+      (reinterpret_cast<u8*>(*buffer))[(offset + address)] = value;
+      break;
+    case 2:
+      (reinterpret_cast<u16*>(*buffer))[(offset + address) / 2] = value;
+      break;
+    case 4:
+      (reinterpret_cast<u32*>(*buffer))[(offset + address) / 4] = value;
+      break;
+    case 8:
+      (reinterpret_cast<u64*>(*buffer))[(offset + address) / 8] = value;
+      break;
+    default: return;
+  }
 }

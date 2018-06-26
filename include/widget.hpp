@@ -20,7 +20,7 @@ class Widget {
 public:
   static u16 g_selectedWidgetIndex;
 
-  Widget();
+  Widget(u8 addressSize, u8 valueSize);
   virtual ~Widget();
 
   static void drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 end);
@@ -30,13 +30,17 @@ public:
   virtual void onInput(u32 kdown) = 0;
   virtual void onTouch(touchPosition &touch) = 0;
 
-  u16 getValue();
-  void setValue(u16 value);
+  u64 getValue();
 
-  void setOffset(u16 offsetAddress, u16 address);
-  void setOffset(u16 address);
+  void setValue(u64 value);
+
+  void setOffset(u32 offsetAddress, u32 address);
+  void setOffset(u32 address);
 
 private:
-  u16 m_offsetAddress;
-  u16 m_address;
+  u32 m_offsetAddress;
+  u32 m_address;
+
+protected:
+  u8 m_addressSize, m_valueSize;
 };

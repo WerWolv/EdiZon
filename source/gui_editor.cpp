@@ -6,6 +6,7 @@
 
 #include "widget_switch.hpp"
 #include "widget_value.hpp"
+#include "widget_list.hpp"
 
 #include <string>
 #include <sstream>
@@ -129,12 +130,14 @@ void GuiEditor::createWidgets() {
 if (m_offsetFile == nullptr) return;
 
 for (auto item : m_offsetFile["items"]) {
-  if (item["widget"]["type"].get<std::string>().compare("int") == 0)
-    m_widgets.push_back({item["name"], new WidgetValue(item["addressSize"], item["valueSize"], item["widget"]["minValue"], item["widget"]["maxValue"])});
-  else if (item["widget"]["type"].get<std::string>().compare("bool") == 0)
-    m_widgets.push_back({item["name"], new WidgetSwitch(item["addressSize"], item["valueSize"], item["widget"]["onValue"], item["widget"]["offValue"])});
+  if (item["widget"]["type"] == "int")
+    m_widgets.push_back({ item["name"], new WidgetValue(item["addressSize"], item["valueSize"], item["widget"]["minValue"], item["widget"]["maxValue"]) });
+  else if (item["widget"]["type"] == "bool")
+    m_widgets.push_back({ item["name"], new WidgetSwitch(item["addressSize"], item["valueSize"], item["widget"]["onValue"], item["widget"]["offValue"]) });
+  else if(item["widget"]["type"] == "list")
+    m_widgets.push_back({ item["name"], new WidgetList(this, item["addressSize"], item["valueSize"], item["widget"]["listItemNames"], item["widget"]["listItemValues"]) });
 
-  m_widgets.back().widget->setOffset(strtol(item["offsetAddress"].get<std::string>().c_str(), 0, 16), strtol(item["address"].get<std::string>().c_str(), 0, 16));
+  m_widgets.back().widget->setOffset(strtol(item["indirectAddress"].get<std::string>().c_str(), 0, 16), strtol(item["address"].get<std::string>().c_str(), 0, 16));
 }
 
   widgetPageCnt = ceil(m_widgets.size() / WIDGETS_PER_PAGE);
@@ -186,8 +189,6 @@ void GuiEditor::updateSaveFileList(const char *saveFilePath) {
 }
 
 void GuiEditor::onInput(u32 kdown) {
-  Widget::handleInput(kdown, m_widgets);
-
   if (Gui::currListSelector == nullptr) {
 
     if (kdown & KEY_MINUS) {
@@ -323,7 +324,13 @@ void GuiEditor::onInput(u32 kdown) {
         })->show();
       }
     }
-  } else Gui::currListSelector->onInput(kdown);
+  } else if(kdown != 0) {
+    Gui::currListSelector->onInput(kdown);
+    return;
+  }
+
+    if(kdown != 0)
+      Widget::handleInput(kdown, m_widgets);
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {

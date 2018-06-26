@@ -21,7 +21,7 @@ public:
   static std::string g_currSaveFileName;
 
 private:
-  WidgetList m_widgets;
+  WidgetItems m_widgets;
   json m_offsetFile;
   void createWidgets();
   bool loadConfigFile(json &j);

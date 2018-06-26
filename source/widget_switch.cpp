@@ -9,10 +9,7 @@ WidgetSwitch::~WidgetSwitch() {
 }
 
 void WidgetSwitch::draw(Gui *gui, u16 x, u16 y) {
-  u32 textWidth, textHeight;
-  gui->getTextDimensions(font20, Widget::getValue() == m_onValue ? "ON" : "OFF", &textWidth, &textHeight);
-
-  gui->drawText(font20, x + ((WIDGET_WIDTH / 2.0F) - (textWidth / 2.0F)), y + ((WIDGET_HEIGHT / 2.0F) - (textHeight / 2.0F)),  Widget::getValue() ? currTheme.selectedColor : currTheme.separatorColor, Widget::getValue() == m_onValue ? "ON" : "OFF");
+  gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), Widget::getValue() == m_onValue ? currTheme.selectedColor : currTheme.separatorColor, Widget::getValue() == m_onValue ? "ON" : "OFF", ALIGNED_RIGHT);
 }
 
 void WidgetSwitch::onInput(u32 kdown) {

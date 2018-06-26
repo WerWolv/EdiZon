@@ -14,7 +14,7 @@
 
 class Widget;
 typedef struct { std::string title; Widget *widget; } WidgetPair;
-typedef std::vector<WidgetPair> WidgetList;
+typedef std::vector<WidgetPair> WidgetItems;
 
 class Widget {
 public:
@@ -23,8 +23,8 @@ public:
   Widget(u8 addressSize, u8 valueSize);
   virtual ~Widget();
 
-  static void drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 end);
-  static void handleInput(u32 kdown, WidgetList &widgets);
+  static void drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end);
+  static void handleInput(u32 kdown, WidgetItems &widgets);
 
   virtual void draw(Gui *gui, u16 x, u16 y) = 0;
   virtual void onInput(u32 kdown) = 0;

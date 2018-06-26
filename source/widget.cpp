@@ -13,7 +13,7 @@ Widget::~Widget() {
 
 }
 
-void Widget::drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 end) {
+void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end) {
   if (widgets.size() <= 0) return;
 
   for (;start < end; start++) {
@@ -35,7 +35,7 @@ void Widget::drawWidgets(Gui *gui, WidgetList &widgets, u16 y, u16 start, u16 en
   }
 }
 
-void Widget::handleInput(u32 kdown, WidgetList &widgets) {
+void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
   if (widgets.size() <= 0) return;
   widgets[Widget::g_selectedWidgetIndex].widget->onInput(kdown);
 }

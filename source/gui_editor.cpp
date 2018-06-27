@@ -8,6 +8,8 @@
 #include "widget_value.hpp"
 #include "widget_list.hpp"
 
+#include "lua_save_parser.hpp"
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -44,6 +46,8 @@ GuiEditor::GuiEditor() : Gui() {
   Widget::g_selectedWidgetIndex = 0;
 
   hasConfigFile = loadConfigFile(m_offsetFile);
+
+  LuaSaveParser parser("bin", nullptr, 0);
 }
 
 GuiEditor::~GuiEditor() {

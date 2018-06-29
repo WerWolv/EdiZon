@@ -10,24 +10,23 @@
 
 class LuaSaveParser {
 public:
-  LuaSaveParser(std::string filetype, u8 *buffer, size_t bufferSize);
+  LuaSaveParser(std::string filetype);
   ~LuaSaveParser();
 
-  void getValueFromSaveFile(u64 location, u64 &out);
-  void getValueFromSaveFile(std::string location, u64 &out);
-  void getValueFromSaveFile(u64 location, std::string &out);
-  void getValueFromSaveFile(std::string location, std::string &out);
+  void luaInit();
 
-  void setValueInSaveFile(u64 location, u64 value);
-  void setValueInSaveFile(std::string location, u64 value);
-  void setValueInSaveFile(u64 location, std::string value);
-  void setValueInSaveFile(std::string location, std::string value);
+  u64 getValueFromSaveFile();
+  std::string getStringFromSaveFile();
+  void setValueInSaveFile(u64 value);
+  void setStringInSaveFile(std::string value);
+  std::vector<u8> getModifiedSaveFile();
 
-  void setLuaArguments(std::vector<u64> intArguments, std::vector<std::string> strArguments);
+  void setLuaArgs(std::vector<u64> intArgs, std::vector<std::string> strArgs);
+  void setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize);
 
   int lua_getSaveFileBuffer(lua_State *state);
-  int lua_getStrArguments(lua_State *state);
-  int lua_getIntArguments(lua_State *state);
+  int lua_getStrArgs(lua_State *state);
+  int lua_getIntArgs(lua_State *state);
 
 private:
   std::string m_filetype;
@@ -35,6 +34,6 @@ private:
   size_t m_bufferSize;
 
   lua_State *m_luaState;
-  std::vector<u64> m_intArguments;
-  std::vector<std::string> m_strArguments;
+  std::vector<u64> m_intArgs;
+  std::vector<std::string> m_strArgs;
 };

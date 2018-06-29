@@ -34,6 +34,8 @@ u16 widgetPageCnt;
 
 bool hasConfigFile;
 
+LuaSaveParser luaParser("bin");
+
 void updateSaveFileList(const char *path);
 
 GuiEditor::GuiEditor() : Gui() {
@@ -47,7 +49,6 @@ GuiEditor::GuiEditor() : Gui() {
 
   hasConfigFile = loadConfigFile(m_offsetFile);
 
-  LuaSaveParser parser("bin", nullptr, 0);
 }
 
 GuiEditor::~GuiEditor() {
@@ -134,17 +135,28 @@ void GuiEditor::createWidgets() {
 if (m_offsetFile == nullptr) return;
 
 for (auto item : m_offsetFile["items"]) {
-  if (item["widget"]["type"] == "int")
-    m_widgets.push_back({ item["name"], new WidgetValue(item["addressSize"], item["valueSize"], item["widget"]["minValue"], item["widget"]["maxValue"]) });
-  else if (item["widget"]["type"] == "bool")
-    m_widgets.push_back({ item["name"], new WidgetSwitch(item["addressSize"], item["valueSize"], item["widget"]["onValue"], item["widget"]["offValue"]) });
-  else if(item["widget"]["type"] == "list")
-    m_widgets.push_back({ item["name"], new WidgetList(this, item["addressSize"], item["valueSize"], item["widget"]["listItemNames"], item["widget"]["listItemValues"]) });
+  auto itemWidget = item["widget"];
 
-  m_widgets.back().widget->setOffset(strtol(item["indirectAddress"].get<std::string>().c_str(), 0, 16), strtol(item["address"].get<std::string>().c_str(), 0, 16));
+  if (itemWidget["type"] == "int")
+    m_widgets.push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"]) });
+  else if (itemWidget["type"] == "bool") {
+    if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number())
+      m_widgets.push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<u64>(), itemWidget["offValue"].get<u64>()) });
+    else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
+      m_widgets.push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
+  }
+  else if(itemWidget["type"] == "list") {
+    if(itemWidget["listItemValues"][0].is_number())
+      m_widgets.push_back({ item["name"], new WidgetList(this, &luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<u64>>()) });
+    else if(itemWidget["listItemValues"][0].is_string())
+      m_widgets.push_back({ item["name"], new WidgetList(this, &luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
+  }
+
+  m_widgets.back().widget->setLuaArgs(item["intArgs"], item["strArgs"]);
 }
 
   widgetPageCnt = ceil(m_widgets.size() / WIDGETS_PER_PAGE);
+
 }
 
 void updateBackupList() {
@@ -213,8 +225,11 @@ void GuiEditor::onInput(u32 kdown) {
 
             GuiEditor::g_currSaveFileName = saveFiles[Gui::currListSelector->selectedItem].c_str();
 
-            if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0)
+            if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
+              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
               createWidgets();
+              luaParser.luaInit();
+            }
             else {
               (new Snackbar(this, "Failed to load save file! Is it empty?"))->show();
               delete[] GuiEditor::g_currSaveFile;
@@ -247,7 +262,10 @@ void GuiEditor::onInput(u32 kdown) {
 
       if (kdown & KEY_X) {
         size_t length;
-        if(!storeSaveFile(GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
+
+        u8 *buffer = &luaParser.getModifiedSaveFile()[0];
+
+        if(!storeSaveFile(buffer, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
           (new Snackbar(this, "Sucessfully injected modified values!"))->show();
         else
           (new Snackbar(this, "Injection of modified values failed!"))->show();

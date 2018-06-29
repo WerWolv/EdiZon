@@ -5,7 +5,7 @@
 
 u16 Widget::g_selectedWidgetIndex = 0;
 
-Widget::Widget(u8 addressSize, u8 valueSize) : m_addressSize(addressSize), m_valueSize(valueSize) {
+Widget::Widget(LuaSaveParser *saveParser) : m_saveParser(saveParser) {
 
 }
 
@@ -36,24 +36,31 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
 }
 
 void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
-  if (widgets.size() <= 0) return;
-  widgets[Widget::g_selectedWidgetIndex].widget->onInput(kdown);
+  if (widgets.size() > 0)
+    widgets[Widget::g_selectedWidgetIndex].widget->onInput(kdown);
 }
 
-u64 Widget::getValue() {
-  return getValueFromAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address, this->m_addressSize, this->m_valueSize);
+u64 Widget::getIntegerValue() {
+  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  return m_saveParser->getValueFromSaveFile();
 }
 
-void Widget::setValue(u64 value) {
-  setValueAtAddressAtOffset(&GuiEditor::g_currSaveFile, this->m_offsetAddress, this->m_address, value, this->m_addressSize, this->m_valueSize);
+std::string Widget::getStringValue() {
+  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  return m_saveParser->getStringFromSaveFile();
 }
 
-void Widget::setOffset(u32 offsetAddress, u32 address) {
-  this->m_offsetAddress = offsetAddress;
-  this->m_address = address;
+void Widget::setIntegerValue(u64 value) {
+  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  m_saveParser->setValueInSaveFile(value);
 }
 
-void Widget::setOffset(u32 address) {
-  this->m_offsetAddress = 0x0000;
-  this->m_address = address;
+void Widget::setStringValue(std::string value) {
+  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  m_saveParser->setStringInSaveFile(value);
+}
+
+void Widget::setLuaArgs(std::vector<u64> intArgs, std::vector<std::string> strArgs) {
+  this->m_intArgs = intArgs;
+  this->m_strArgs = strArgs;
 }

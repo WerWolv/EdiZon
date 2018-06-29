@@ -10,10 +10,10 @@
 
 class LuaSaveParser {
 public:
-  LuaSaveParser(std::string filetype);
+  LuaSaveParser();
   ~LuaSaveParser();
 
-  void luaInit();
+  void luaInit(std::string filetype);
 
   u64 getValueFromSaveFile();
   std::string getStringFromSaveFile();

@@ -34,7 +34,7 @@ u16 widgetPageCnt;
 
 bool hasConfigFile;
 
-LuaSaveParser luaParser("bin");
+LuaSaveParser luaParser;
 
 void updateSaveFileList(const char *path);
 
@@ -228,7 +228,7 @@ void GuiEditor::onInput(u32 kdown) {
             if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
               luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
               createWidgets();
-              luaParser.luaInit();
+              luaParser.luaInit(m_offsetFile["filetype"]);
             }
             else {
               (new Snackbar(this, "Failed to load save file! Is it empty?"))->show();

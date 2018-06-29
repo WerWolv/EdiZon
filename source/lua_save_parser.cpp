@@ -14,7 +14,7 @@ int dispatch(lua_State *s) {
     return ((*ptr).*func)(s);
 }
 
-LuaSaveParser::LuaSaveParser(std::string filetype) : m_filetype(filetype) {
+LuaSaveParser::LuaSaveParser() {
 
 }
 
@@ -22,7 +22,7 @@ LuaSaveParser::~LuaSaveParser() {
   lua_close(m_luaState);
 }
 
-void LuaSaveParser::luaInit() {
+void LuaSaveParser::luaInit(std::string filetype) {
   m_luaState = luaL_newstate();
 
   luaL_openlibs(m_luaState);
@@ -39,7 +39,11 @@ void LuaSaveParser::luaInit() {
   luaL_newlib(m_luaState, regs);
   lua_setglobal(m_luaState, "edizon");
 
-  luaL_loadfile(m_luaState, "/EdiZon/editor/scripts/bin.lua");
+  std::string path = "/EdiZon/editor/scripts/";
+  path += filetype;
+  path += ".lua";
+
+  luaL_loadfile(m_luaState, path.c_str());
 
   lua_call(m_luaState, 0, 0);
 

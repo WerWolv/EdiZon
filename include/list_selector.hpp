@@ -32,4 +32,6 @@ private:
 
   u32 m_optionsWidth, m_optionsHeight;
   bool m_isShown;
+  s16 yOffset, yOffsetNext;
+  s16 startYOffset;
 };

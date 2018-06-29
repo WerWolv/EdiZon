@@ -411,5 +411,5 @@ void GuiEditor::onTouch(touchPosition &touch) {
         Widget::g_selectedWidgetIndex = widgetTouchPos;
       }
     }
-  }
+  } else Gui::currListSelector->onTouch(touch);
 }

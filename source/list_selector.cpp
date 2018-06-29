@@ -1,11 +1,18 @@
 #include "list_selector.hpp"
 
+#include <cmath>
+
 #include "gui.hpp"
 
 ListSelector::ListSelector(Gui *m_gui, std::string title, std::string options, std::vector<std::string> &listItems) : m_gui(m_gui), m_title(title), m_options(options), m_listItems(listItems) {
   m_optionsWidth = 0;
   m_optionsHeight = 0;
   selectedItem = 0;
+
+  yOffsetNext = 0;
+  yOffset = 0;
+
+  startYOffset = 500;
 }
 
 ListSelector::~ListSelector() {
@@ -13,30 +20,43 @@ ListSelector::~ListSelector() {
 }
 
 void ListSelector::draw() {
-  m_gui->drawRectangled(0, 0, m_gui->framebuffer_width, 220, m_gui->makeColor(0x00, 0x00, 0x00, 0x80));
-  m_gui->drawRectangle(0, 220, m_gui->framebuffer_width, m_gui->framebuffer_height - 120, currTheme.backgroundColor);
-  m_gui->drawRectangle(50, 300, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
-  m_gui->drawText(font24, 100, 240, currTheme.textColor, m_title.c_str());
+  float deltaOffset = yOffsetNext - yOffset;
+  float scrollSpeed = deltaOffset / 4.0F;
 
+  m_gui->drawRectangled(0, 0, m_gui->framebuffer_width, 220 + startYOffset, m_gui->makeColor(0x00, 0x00, 0x00, 0x80 * (1 - (startYOffset / 500.0F))));
+  m_gui->drawRectangle(0, 220 + startYOffset, m_gui->framebuffer_width, m_gui->framebuffer_height - 120, currTheme.backgroundColor);
+
+  m_gui->drawRectangled(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, m_gui->framebuffer_width - 477, 71, currTheme.highlightColor);
+  m_gui->drawRectangle(225, 305 + 60 * 2 + deltaOffset + startYOffset, m_gui->framebuffer_width - 490, 61, currTheme.selectedButtonColor);
+
+  yOffsetNext = 60 * selectedItem;
   if (m_listItems.size() != 0) {
-    for (s16 currItem = -2; currItem < 3; currItem++) {
-       if ((currItem + selectedItem) >= 0 && (currItem + selectedItem) < static_cast<s16>(m_listItems.size())) {
-         m_gui->drawText(font20, 300, 340 + 60 * (currItem + 2), currTheme.textColor, m_listItems[(currItem + selectedItem)].c_str());
-         m_gui->drawRectangle(250, 325 + 60 * (currItem + 2), m_gui->framebuffer_width - 500, 1, currTheme.separatorColor);
-         m_gui->drawRectangle(250, 325 + 60 * (currItem + 3), m_gui->framebuffer_width - 500, 1, currTheme.separatorColor);
-       }
+    for (s8 currItem = 0; currItem < m_listItems.size(); currItem++) {
+      m_gui->drawText(font20, 270, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset, currTheme.textColor, m_listItems[currItem].c_str());
     }
 
-    m_gui->drawRectangled(245, 320 + 60 * 2, m_gui->framebuffer_width - 490, 71, currTheme.highlightColor);
-    m_gui->drawRectangle(250, 325 + 60 * 2, m_gui->framebuffer_width - 500, 61, currTheme.selectedButtonColor);
-    m_gui->drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, m_listItems[selectedItem].c_str());
-    m_gui->drawShadow(245, 320 + 60 * 2, m_gui->framebuffer_width - 491, 71);
+    m_gui->drawRectangle(0, 220 + startYOffset, m_gui->framebuffer_width, 80, currTheme.backgroundColor);
+    m_gui->drawRectangle(0, m_gui->framebuffer_height - 70 + startYOffset, m_gui->framebuffer_width, 70, currTheme.backgroundColor);
+    m_gui->drawRectangle(50, 300 + startYOffset, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
+    m_gui->drawText(font24, 100, 240 + startYOffset, currTheme.textColor, m_title.c_str());
+
   }
   else
-    m_gui->drawText(font20, 300, 340 + 60 * 2, currTheme.textColor, "No items present!");
+    m_gui->drawText(font20, 300 + startYOffset, 340 + 60 * 2, currTheme.textColor, "No items present!");
 
-  m_gui->drawRectangle(50, m_gui->framebuffer_height - 70, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
-  m_gui->drawTextAligned(font20, m_gui->framebuffer_width - 100, m_gui->framebuffer_height - 50, currTheme.textColor, m_options.c_str(), ALIGNED_RIGHT);
+  m_gui->drawRectangle(50, m_gui->framebuffer_height - 70 + startYOffset, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
+  m_gui->drawTextAligned(font20, m_gui->framebuffer_width - 100, m_gui->framebuffer_height - 50 + startYOffset, currTheme.textColor, m_options.c_str(), ALIGNED_RIGHT);
+
+  if (yOffset != yOffsetNext) {
+    if (yOffsetNext > yOffset)
+      yOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+    else
+      yOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+  }
+
+  if(startYOffset != 0)
+    startYOffset -= ceil((startYOffset > scrollSpeed) ? startYOffset / 4.0F : startYOffset);
+
 }
 
 ListSelector* ListSelector::setInputAction(std::function<void(u32, u16)> inputActions) {
@@ -62,7 +82,14 @@ void ListSelector::onInput(u32 kdown) {
 }
 
 void ListSelector::onTouch(touchPosition &touch) {
+  if(touch.px > 250 && touch.px < m_gui->framebuffer_width - 250) {
+    if(touch.py > 325 && touch.py < (325 + 60 * 5)) {
+      s8 touchPos = ((touch.py - 325) / 60.0F); //325 + 60 * (currItem + 2)
 
+      if((selectedItem + touchPos - 2) >= 0 && (selectedItem + touchPos - 2) <= (static_cast<s16>(m_listItems.size() - 1)))
+        selectedItem += (touchPos - 2);
+    }
+  }
 }
 
 void ListSelector::show() {

@@ -41,9 +41,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	$(subst $e ,_,$(notdir $(APP_TITLE)))
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source
+SOURCES		:=	source source/lua
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	include include/lua
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 

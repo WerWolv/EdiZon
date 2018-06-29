@@ -6,7 +6,7 @@
 
 class WidgetValue : public Widget {
 public:
-  WidgetValue(u8 addressSize, u8 valueSize, u64 minValue, u64 maxValue);
+  WidgetValue(LuaSaveParser *saveParser, u64 minValue, u64 maxValue);
   ~WidgetValue();
 
   void draw(Gui *gui, u16 x, u16 y);

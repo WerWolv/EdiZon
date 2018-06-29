@@ -6,7 +6,9 @@
 
 class WidgetSwitch : public Widget {
 public:
-  WidgetSwitch(u8 addressSize, u8 valueSize, u64 onValue, u64 offValue);
+  WidgetSwitch(LuaSaveParser *saveParser, u64 onValue, u64 offValue);
+  WidgetSwitch(LuaSaveParser *saveParser, std::string onValue, std::string offValue);
+
   ~WidgetSwitch();
 
   void draw(Gui *gui, u16 x, u16 y);
@@ -15,6 +17,7 @@ public:
   void onTouch(touchPosition &touch);
 
 private:
-  u64 m_onValue, m_offValue;
+  u64 m_intOnValue, m_intOffValue;
+  std::string m_strOnValue, m_strOffValue;
 
 };

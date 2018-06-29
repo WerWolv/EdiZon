@@ -14,6 +14,7 @@ public:
   ~LuaSaveParser();
 
   void luaInit(std::string filetype);
+  void luaDeinit();
 
   u64 getValueFromSaveFile();
   std::string getStringFromSaveFile();

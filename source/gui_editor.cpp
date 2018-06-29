@@ -207,7 +207,7 @@ void GuiEditor::updateSaveFileList(const char *saveFilePath) {
 void GuiEditor::onInput(u32 kdown) {
   if (Gui::currListSelector == nullptr) {
 
-    if (kdown & KEY_MINUS) {
+    if (kdown & KEY_MINUS && GuiEditor::g_currSaveFileName == "") {
       if (!hasConfigFile) return;
       saveFiles.clear();
 
@@ -249,6 +249,8 @@ void GuiEditor::onInput(u32 kdown) {
 
     if (GuiEditor::g_currSaveFileName != "") {
       if (kdown & KEY_B) {
+        luaParser.luaDeinit();
+
         delete[] GuiEditor::g_currSaveFile;
         GuiEditor::g_currSaveFileName = "";
         GuiEditor::g_currSaveFile = nullptr;

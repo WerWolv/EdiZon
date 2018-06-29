@@ -13,6 +13,7 @@ ListSelector::ListSelector(Gui *m_gui, std::string title, std::string options, s
   yOffset = 0;
 
   startYOffset = 500;
+  startYOffsetNext = 0;
 }
 
 ListSelector::~ListSelector() {
@@ -22,6 +23,8 @@ ListSelector::~ListSelector() {
 void ListSelector::draw() {
   float deltaOffset = yOffsetNext - yOffset;
   float scrollSpeed = deltaOffset / 4.0F;
+  float deltaOffsetStart = startYOffsetNext - startYOffset;
+  float scrollSpeedStart = deltaOffsetStart / 4.0F;
 
   m_gui->drawRectangled(0, 0, m_gui->framebuffer_width, 220 + startYOffset, m_gui->makeColor(0x00, 0x00, 0x00, 0x80 * (1 - (startYOffset / 500.0F))));
   m_gui->drawRectangle(0, 220 + startYOffset, m_gui->framebuffer_width, m_gui->framebuffer_height - 120, currTheme.backgroundColor);
@@ -54,8 +57,15 @@ void ListSelector::draw() {
       yOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
   }
 
-  if(startYOffset != 0)
-    startYOffset -= ceil((startYOffset > scrollSpeed) ? startYOffset / 4.0F : startYOffset);
+  if (startYOffset != startYOffsetNext) {
+    if (startYOffsetNext > startYOffset)
+      startYOffset += ceil((abs(deltaOffsetStart) > scrollSpeedStart) ? scrollSpeedStart : deltaOffsetStart);
+    else
+      startYOffset += floor((abs(deltaOffsetStart) > scrollSpeedStart) ? scrollSpeedStart : deltaOffsetStart);
+  }
+
+  if(startYOffset == startYOffsetNext && startYOffset == 500)
+    hide();
 
 }
 
@@ -67,7 +77,7 @@ ListSelector* ListSelector::setInputAction(std::function<void(u32, u16)> inputAc
 
 void ListSelector::onInput(u32 kdown) {
  if (kdown & KEY_B)
-   hide();
+   startYOffsetNext = 500;
 
  if (kdown & KEY_UP)
    if (selectedItem > 0)

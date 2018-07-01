@@ -20,7 +20,7 @@ public:
   std::string getStringFromSaveFile();
   void setValueInSaveFile(u64 value);
   void setStringInSaveFile(std::string value);
-  std::vector<u8> getModifiedSaveFile();
+  void getModifiedSaveFile(std::vector<u8> &buffer, size_t *outSize);
 
   void setLuaArgs(std::vector<u64> intArgs, std::vector<std::string> strArgs);
   void setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize);

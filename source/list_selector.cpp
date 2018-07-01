@@ -40,14 +40,14 @@ void ListSelector::draw() {
 
     m_gui->drawRectangle(0, 220 + startYOffset, m_gui->framebuffer_width, 80, currTheme.backgroundColor);
     m_gui->drawRectangle(0, m_gui->framebuffer_height - 70 + startYOffset, m_gui->framebuffer_width, 70, currTheme.backgroundColor);
-    m_gui->drawRectangle(50, 300 + startYOffset, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
+    m_gui->drawRectangle((u32)((m_gui->framebuffer_width - 1220) / 2), 300 + startYOffset, 1220, 1, currTheme.textColor);
     m_gui->drawText(font24, 100, 240 + startYOffset, currTheme.textColor, m_title.c_str());
 
   }
   else
-    m_gui->drawText(font20, 300 + startYOffset, 340 + 60 * 2, currTheme.textColor, "No items present!");
+    m_gui->drawText(font20, 300, 340 + 60 * 2 + startYOffset, currTheme.textColor, "No items present!");
 
-  m_gui->drawRectangle(50, m_gui->framebuffer_height - 70 + startYOffset, m_gui->framebuffer_width - 100, 2, currTheme.textColor);
+  m_gui->drawRectangle((u32)((m_gui->framebuffer_width - 1220) / 2), m_gui->framebuffer_height - 73 + startYOffset, 1220, 1, currTheme.textColor);
   m_gui->drawTextAligned(font20, m_gui->framebuffer_width - 100, m_gui->framebuffer_height - 50 + startYOffset, currTheme.textColor, m_options.c_str(), ALIGNED_RIGHT);
 
   if (yOffset != yOffsetNext) {

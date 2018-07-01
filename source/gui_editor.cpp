@@ -81,7 +81,7 @@ void GuiEditor::draw() {
 
   Widget::drawWidgets(this, m_widgets, 150, widgetPage * WIDGETS_PER_PAGE, (widgetPage + 1) * WIDGETS_PER_PAGE);
 
-  Gui::drawRectangle(50, Gui::framebuffer_height - 70, Gui::framebuffer_width - 100, 2, currTheme.textColor);
+  Gui::drawRectangle((u32)((Gui::framebuffer_width - 1220) / 2), Gui::framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
   if (GuiEditor::g_currSaveFileName == "") {
     Gui::drawTextAligned(font20, Gui::framebuffer_width - 100, Gui::framebuffer_height - 50, currTheme.textColor, "\x03 - Backup     \x04 - Restore     \x02 - Back", ALIGNED_RIGHT);
@@ -219,13 +219,9 @@ void GuiEditor::onInput(u32 kdown) {
           if (saveFiles.size() != 0) {
             size_t length;
 
-            delete[] GuiEditor::g_currSaveFile;
-            GuiEditor::g_currSaveFile = nullptr;
-            GuiEditor::g_currSaveFileName = "";
-
             GuiEditor::g_currSaveFileName = saveFiles[Gui::currListSelector->selectedItem].c_str();
 
-            if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
+          if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
               luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
               createWidgets();
               luaParser.luaInit(m_offsetFile["filetype"]);
@@ -263,11 +259,12 @@ void GuiEditor::onInput(u32 kdown) {
       }
 
       if (kdown & KEY_X) {
-        size_t length;
+        size_t size = 0;
+        std::vector<u8> buffer;
 
-        u8 *buffer = &luaParser.getModifiedSaveFile()[0];
+        luaParser.getModifiedSaveFile(buffer, &size);
 
-        if(!storeSaveFile(buffer, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
+        if(!storeSaveFile(&buffer[0], size, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
           (new Snackbar(this, "Sucessfully injected modified values!"))->show();
         else
           (new Snackbar(this, "Injection of modified values failed!"))->show();

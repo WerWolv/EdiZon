@@ -375,9 +375,8 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
   return 0;
 }
 
-s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const char *path) {
+s32 storeSaveFile(u8 *buffer, size_t length, u64 titleID, u128 userID, const char *path) {
   FsFileSystem fs;
-  size_t size;
 
   if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
     printf("Failed to mount save.\n");
@@ -401,19 +400,13 @@ s32 storeSaveFile(u8 *buffer, size_t *length, u64 titleID, u128 userID, const ch
     return -2;
   }
 
-  fseek(file, 0, SEEK_END);
-  size = ftell(file);
-  rewind(file);
-
-  fwrite(buffer, size, 1, file);
+  fwrite(buffer, length, 1, file);
   fclose(file);
 
   if (R_FAILED(fsdevCommitDevice(SAVE_DEV))) {
     printf("Committing failed.\n");
     return -3;
   }
-
-  *length = size;
 
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);

@@ -391,7 +391,7 @@ s32 storeSaveFile(u8 *buffer, size_t length, u64 titleID, u128 userID, const cha
   strcat(filePath, path);
 
 
-  FILE *file = fopen(filePath, "rwb+");
+  FILE *file = fopen(filePath, "wb");
 
   if (file == nullptr) {
     printf("Failed to open file.\n");

@@ -4,8 +4,10 @@
 #include <cstring>
 
 #include "title.hpp"
+
 #include "snackbar.hpp"
 #include "list_selector.hpp"
+#include "message_box.hpp"
 
 extern "C" {
   #include "theme.h"
@@ -30,11 +32,12 @@ public:
   static enum gui_t g_nextGui;
 
   u8 *framebuffer;
-  u32 framebuffer_width;
-  u32 framebuffer_height;
+  static u32 g_framebuffer_width;
+  static u32 g_framebuffer_height;
 
-  Snackbar *currSnackbar;
-  ListSelector *currListSelector;
+  static Snackbar *g_currSnackbar;
+  static ListSelector *g_currListSelector;
+  static MessageBox *g_currMessageBox;
 
   Gui();
   virtual ~Gui();

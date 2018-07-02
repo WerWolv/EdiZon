@@ -2,11 +2,11 @@
 
 #include "list_selector.hpp"
 
-WidgetList::WidgetList(Gui *gui, LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<u64> listItemValues) : Widget(saveParser), m_gui(gui), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
+WidgetList::WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<u64> listItemValues) : Widget(saveParser), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
   m_widgetDataType = INT;
 }
 
-WidgetList::WidgetList(Gui *gui, LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) : Widget(saveParser), m_gui(gui), m_listItemNames(listItemNames), m_strListItemValues(listItemValues) {
+WidgetList::WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) : Widget(saveParser), m_listItemNames(listItemNames), m_strListItemValues(listItemValues) {
   m_widgetDataType = STRING;
 }
 
@@ -36,27 +36,27 @@ void WidgetList::draw(Gui *gui, u16 x, u16 y) {
 }
 
 void WidgetList::onInput(u32 kdown) {
-  if (kdown & KEY_A && m_gui->currListSelector == nullptr) {
-    (new ListSelector(m_gui, "Choose item", "\x01 - Select      \x02 - Back", m_listItemNames))->setInputAction([&](u32 k, u16 selectedItem){
+  if (kdown & KEY_A && Gui::g_currListSelector == nullptr) {
+    (new ListSelector("Choose item", "\x01 - Select      \x02 - Back", m_listItemNames))->setInputAction([&](u32 k, u16 selectedItem){
       if(k & KEY_A) {
         if (m_widgetDataType == INT)
           Widget::setIntegerValue(m_intListItemValues[selectedItem]);
         else if (m_widgetDataType == STRING)
           Widget::setStringValue(m_strListItemValues[selectedItem]);
-        m_gui->currListSelector->hide();
+        Gui::g_currListSelector->hide();
       }
     })->show();
   }
 }
 
 void WidgetList::onTouch(touchPosition &touch) {
-  (new ListSelector(m_gui, "Choose item", "\x01 - Select      \x02 - Back", m_listItemNames))->setInputAction([&](u32 k, u16 selectedItem){
+  (new ListSelector("Choose item", "\x01 - Select      \x02 - Back", m_listItemNames))->setInputAction([&](u32 k, u16 selectedItem){
     if(k & KEY_A) {
       if (m_widgetDataType == INT)
         Widget::setIntegerValue(m_intListItemValues[selectedItem]);
       else if (m_widgetDataType == STRING)
         Widget::setStringValue(m_strListItemValues[selectedItem]);
-      m_gui->currListSelector->hide();
+      Gui::g_currListSelector->hide();
     }
   })->show();
 }

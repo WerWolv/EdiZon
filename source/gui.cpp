@@ -4,18 +4,27 @@
 
 gui_t Gui::g_nextGui = GUI_INVALID;
 
+u32 Gui::g_framebuffer_width = 0;
+u32 Gui::g_framebuffer_height = 0;
+
+Snackbar *Gui::g_currSnackbar = nullptr;
+ListSelector *Gui::g_currListSelector = nullptr;
+MessageBox *Gui::g_currMessageBox = nullptr;
+
 static float menuTimer = 0.0F;
 
 Gui::Gui() {
-  this->framebuffer = gfxGetFramebuffer(&this->framebuffer_width, &this->framebuffer_height);
+  this->framebuffer = gfxGetFramebuffer(&Gui::g_framebuffer_width, &Gui::g_framebuffer_height);
 
-  currSnackbar = nullptr;
-  currListSelector = nullptr;
+  Gui::g_currSnackbar = nullptr;
+  Gui::g_currListSelector = nullptr;
+  Gui::g_currMessageBox = nullptr;
 }
 
 Gui::~Gui() {
-  currSnackbar = nullptr;
-  currListSelector = nullptr;
+  Gui::g_currSnackbar = nullptr;
+  Gui::g_currListSelector = nullptr;
+  Gui::g_currMessageBox = nullptr;
 }
 
 inline u8 Gui::blendColor(u32 src, u32 dst, u8 alpha) {
@@ -37,7 +46,7 @@ inline void Gui::drawPixel(s16 x, s16 y, color_t clr) {
     if (x >= 1280 || y >= 720 || x < 0 || y < 0)
         return;
 
-    u32 off = (y * this->framebuffer_width + x)*4;
+    u32 off = (y * this->g_framebuffer_width + x)*4;
     this->framebuffer[off] = blendColor(this->framebuffer[off], clr.r, clr.a); off++;
     this->framebuffer[off] = blendColor(this->framebuffer[off], clr.g, clr.a); off++;
     this->framebuffer[off] = blendColor(this->framebuffer[off], clr.b, clr.a); off++;
@@ -50,7 +59,7 @@ inline void Gui::draw4PixelsRaw(s16 x, s16 y, color_t clr) {
 
     u32 color = clr.r | (clr.g << 8) | (clr.b << 16) | (0xFF << 24);
     u128 val = color | (static_cast<u128>(color) << 0x20) | (static_cast<u128>(color) << 0x40) | (static_cast<u128>(color) << 0x60);
-    u32 off = (y * this->framebuffer_width + x) * 4;
+    u32 off = (y * this->g_framebuffer_width + x) * 4;
     *(reinterpret_cast<u128*>(&this->framebuffer[off])) = val;
 }
 
@@ -280,7 +289,7 @@ void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* wi
 
           if (x > width)
               width = x;
-              
+
           continue;
         }
 
@@ -427,18 +436,20 @@ void Gui::beginDraw() {
 }
 
 void Gui::endDraw() {
-  if (currListSelector != nullptr) {
-    currListSelector->draw();
-  }
+  if (Gui::g_currListSelector != nullptr)
+    Gui::g_currListSelector->draw(this);
 
-  if (currSnackbar != nullptr) {
-    currSnackbar->draw();
+  if (Gui::g_currSnackbar != nullptr) {
+    Gui::g_currSnackbar->draw(this);
 
-    if (currSnackbar->isDead()) {
-        delete currSnackbar;
-        currSnackbar = nullptr;
+    if (Gui::g_currSnackbar->isDead()) {
+        delete Gui::g_currSnackbar;
+        Gui::g_currSnackbar = nullptr;
     }
   }
+
+  if (Gui::g_currMessageBox != nullptr)
+    Gui::g_currMessageBox->draw(this);
 
   menuTimer += 0.2;
 

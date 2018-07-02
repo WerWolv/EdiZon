@@ -10,12 +10,12 @@ class Gui;
 
 class ListSelector {
 public:
-  ListSelector(Gui *gui, std::string title, std::string options, std::vector<std::string> &listItems);
+  ListSelector(std::string title, std::string options, std::vector<std::string> &listItems);
   ~ListSelector();
 
   ListSelector* setInputAction(std::function<void(u32, u16)> inputActions);
 
-  void draw();
+  void draw(Gui *gui);
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
 
@@ -25,7 +25,6 @@ public:
   u16 selectedItem;
 
 private:
-  Gui *m_gui;
   std::string m_title, m_options;
   std::vector<std::string> &m_listItems;
   std::function<void(u32, u16)> m_inputActions;

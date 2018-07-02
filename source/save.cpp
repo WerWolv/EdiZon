@@ -80,7 +80,7 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
   if (isInject)
     ss << injectFolder << "/";
   else
-    ss << std::put_time(std::gmtime(&t), "%Y%m%d%H%M%S") << "/";
+    ss << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S") << "/";
 
   strcpy(ptr, ss.str().c_str());
   mkdir(ptr, 0700);
@@ -119,7 +119,7 @@ Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
 Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs) {
   Result rc = 0;
 
-  printf("Using titleID=0x%016lx userID: 0x%lx 0x%lx\n", titleID, (u64)(userID>>64), (u64)userID);
+  printf("Using titleID=0x%016lx userID: 0x%lx %lx\n", titleID, (u64)(userID>>64), (u64)userID);
 
   rc = fsMount_SaveData(&tmpfs, titleID, userID);//See also libnx fs.h.
   if (R_FAILED(rc)) {

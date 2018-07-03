@@ -176,18 +176,14 @@ void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const 
     s32 origX = x;
 
     while (*text) {
-        if (max_width && x-origX >= max_width) {
-            break;
-        }
-
         glyph_t glyph;
         u32 codepoint = decodeUTF8(&text);
 
-        if (codepoint == '\n') {
-            if (max_width) {
-                break;
-            }
+        if (max_width && x-origX >= max_width && (codepoint == ' ')) {
+            break;
+        }
 
+        if (codepoint == '\n') {
             x = origX;
             y += font->height;
             continue;

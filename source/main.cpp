@@ -83,7 +83,9 @@ int main(int argc, char** argv) {
     currGui->draw();
 
     if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
-      if (Gui::g_currListSelector != nullptr)
+      if (Gui::g_currMessageBox != nullptr)
+        Gui::g_currMessageBox->onInput(kdown);
+      else if (Gui::g_currListSelector != nullptr)
         Gui::g_currListSelector->onInput(kdown);
       else
         currGui->onInput(kdown);
@@ -103,7 +105,13 @@ int main(int argc, char** argv) {
     if (touchCnt > touchCntOld) {
       touchPosition touch;
       hidTouchRead(&touch, 0);
-      currGui->onTouch(touch);
+
+      if (Gui::g_currMessageBox != nullptr)
+        Gui::g_currMessageBox->onTouch(touch);
+      else if (Gui::g_currListSelector != nullptr)
+        Gui::g_currListSelector->onTouch(touch);
+      else
+        currGui->onTouch(touch);
     }
 
     touchCntOld = touchCnt;

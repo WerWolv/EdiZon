@@ -2,27 +2,23 @@
 
 #include <switch.h>
 #include <string>
+#include <functional>
 
 class Gui;
 
 typedef enum {
-  OKAY,
-  YES_NO
+  OKAY = 1,
+  YES_NO = 2
 } MessageBoxOptions;
-
-typedef enum {
-  INFORMATION,
-  WARNING,
-  ERROR
-} MessageBoxStyle;
 
 class MessageBox {
 public:
-  MessageBox(std::string title, std::string message, MessageBoxOptions options, MessageBoxStyle style);
+  MessageBox(std::string message, MessageBoxOptions options);
   ~MessageBox();
 
-  void draw(Gui *gui);
+  MessageBox* setSelectionAction(std::function<void(s8)> selectionAction);
 
+  void draw(Gui *gui);
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
 
@@ -30,9 +26,9 @@ public:
   void hide();
 
 private:
-  std::string m_title, m_message;
+  std::string m_message;
   MessageBoxOptions m_options;
-  MessageBoxStyle m_style;
 
   u8 m_selectedOption;
+  std::function<void(s8)> m_selectionAction;
 };

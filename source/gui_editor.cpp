@@ -352,58 +352,56 @@ void GuiEditor::onInput(u32 kdown) {
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
-  if (Gui::Gui::g_currListSelector == nullptr) {
-    s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
+  s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
 
-    if (touch.px < 128 && touch.py < 128) {
-      Title *nextTitle = nullptr;
-      bool isCurrTitle = false;
+  if (touch.px < 128 && touch.py < 128) {
+    Title *nextTitle = nullptr;
+    bool isCurrTitle = false;
 
-      for (auto title : Title::g_titles) {
-        if (isCurrTitle) {
-          nextTitle = title.second;
-          break;
-        }
-
-        isCurrTitle = title.second == Title::g_currTitle;
+    for (auto title : Title::g_titles) {
+      if (isCurrTitle) {
+        nextTitle = title.second;
+        break;
       }
 
-      if (nextTitle == nullptr)
-        nextTitle = Title::g_titles.begin()->second;
+      isCurrTitle = title.second == Title::g_currTitle;
+    }
 
-      Title::g_currTitle = nextTitle;
-      Account::g_currAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
+    if (nextTitle == nullptr)
+      nextTitle = Title::g_titles.begin()->second;
+
+    Title::g_currTitle = nextTitle;
+    Account::g_currAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
+    Gui::g_nextGui = GUI_EDITOR;
+
+  }
+
+  if (touch.px > Gui::g_framebuffer_width - 128 && touch.py < 128) {
+    Account *nextAccount = nullptr;
+    bool isCurrAccount = false;
+
+    for (auto userID : Title::g_currTitle->getUserIDs()) {
+      if (isCurrAccount) {
+        nextAccount = Account::g_accounts[userID];
+        break;
+      }
+      isCurrAccount = userID == Account::g_currAccount->getUserID();
+    }
+
+    if (nextAccount == nullptr)
+      nextAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
+
+    if (Title::g_currTitle->getUserIDs().size() != 1) {
+      Account::g_currAccount = nextAccount;
       Gui::g_nextGui = GUI_EDITOR;
+    } else nextAccount = nullptr;
+  }
 
+  if (touch.px > 100 && touch.px < Gui::g_framebuffer_width - 100 && m_widgets.size() > 0) {
+    if (widgetTouchPos >= 0 && widgetTouchPos < static_cast<u16>(m_widgets.size()) && widgetTouchPos < (WIDGETS_PER_PAGE * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? static_cast<u16>(m_widgets.size()) % static_cast<u16>(WIDGETS_PER_PAGE + 1) : 0)) {
+      if (Widget::g_selectedWidgetIndex == widgetTouchPos)
+        m_widgets[widgetTouchPos].widget->onTouch(touch);
+      Widget::g_selectedWidgetIndex = widgetTouchPos;
     }
-
-    if (touch.px > Gui::g_framebuffer_width - 128 && touch.py < 128) {
-      Account *nextAccount = nullptr;
-      bool isCurrAccount = false;
-
-      for (auto userID : Title::g_currTitle->getUserIDs()) {
-        if (isCurrAccount) {
-          nextAccount = Account::g_accounts[userID];
-          break;
-        }
-        isCurrAccount = userID == Account::g_currAccount->getUserID();
-      }
-
-      if (nextAccount == nullptr)
-        nextAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
-
-      if (Title::g_currTitle->getUserIDs().size() != 1) {
-        Account::g_currAccount = nextAccount;
-        Gui::g_nextGui = GUI_EDITOR;
-      } else nextAccount = nullptr;
-    }
-
-    if (touch.px > 100 && touch.px < Gui::g_framebuffer_width - 100 && m_widgets.size() > 0) {
-      if (widgetTouchPos >= 0 && widgetTouchPos < static_cast<u16>(m_widgets.size()) && widgetTouchPos < (WIDGETS_PER_PAGE * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? static_cast<u16>(m_widgets.size()) % static_cast<u16>(WIDGETS_PER_PAGE + 1) : 0)) {
-        if (Widget::g_selectedWidgetIndex == widgetTouchPos)
-          m_widgets[widgetTouchPos].widget->onTouch(touch);
-        Widget::g_selectedWidgetIndex = widgetTouchPos;
-      }
-    }
-  } else Gui::Gui::g_currListSelector->onTouch(touch);
+  }
 }

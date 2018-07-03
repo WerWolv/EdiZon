@@ -82,8 +82,12 @@ int main(int argc, char** argv) {
 
     currGui->draw();
 
-    if (kdown || hidKeysUp(CONTROLLER_P1_AUTO))
-      currGui->onInput(kdown);
+    if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
+      if (Gui::g_currListSelector != nullptr)
+        Gui::g_currListSelector->onInput(kdown);
+      else
+        currGui->onInput(kdown);
+    }
 
     if (kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;
     else inputTicker = 0;
@@ -93,8 +97,6 @@ int main(int argc, char** argv) {
 
     if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0)
       currGui->onInput(kheld);
-
-
 
     touchCnt = hidTouchCount();
 

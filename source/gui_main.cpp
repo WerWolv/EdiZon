@@ -140,6 +140,9 @@ void GuiMain::onInput(u32 kdown) {
         m_selected.accountIndex = 0;
     }
   }
+
+  if(kdown & KEY_ZL)
+    (new MessageBox("TEST TITLE", "TEST MESSAGE", OKAY, INFORMATION))->show();
 }
 
 void GuiMain::onTouch(touchPosition &touch) {

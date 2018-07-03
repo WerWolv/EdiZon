@@ -31,6 +31,8 @@ std::vector<std::string> saveFiles;
 
 u16 widgetPage;
 u16 widgetPageCnt;
+u8 *dominantColor;
+color_t textColor;
 
 bool hasConfigFile;
 
@@ -40,8 +42,12 @@ void updateSaveFileList(const char *path);
 
 GuiEditor::GuiEditor() : Gui() {
   titleIcon = new u8[128*128*3];
+  dominantColor = new u8[1 * 1 * 3];
 
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
+  Gui::resizeImage(Title::g_currTitle->getTitleIcon(), dominantColor, 256, 256, 1, 1);
+
+  textColor = dominantColor[0] > 0x80 || dominantColor[1] > 0x80 || dominantColor[2] > 0x80 ? COLOR_BLACK : COLOR_WHITE;
 
   widgetPage = 0;
   widgetPageCnt = 0;
@@ -71,13 +77,15 @@ void GuiEditor::draw() {
   ss << "0x" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
+  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, Gui::makeColor(dominantColor[0], dominantColor[1], dominantColor[2], 0xFF));
   Gui::drawImage(0, 0, 128, 128, titleIcon, IMAGE_MODE_RGB24);
   Gui::drawImage(Gui::g_framebuffer_width - 128, 0, 128, 128, Account::g_currAccount->getProfileImage(), IMAGE_MODE_RGB24);
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 128);
 
-  Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, currTheme.textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 45, currTheme.textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
+
+  Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 45, textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, textColor, ss.str().c_str(), ALIGNED_CENTER);
 
   Widget::drawWidgets(this, m_widgets, 150, widgetPage * WIDGETS_PER_PAGE, (widgetPage + 1) * WIDGETS_PER_PAGE);
 
@@ -113,7 +121,6 @@ bool GuiEditor::loadConfigFile(json &j) {
   m_widgets.clear();
 
   if (file.fail()) {
-    printf("Opening editor JSON file failed!\n");
     return false;
   }
 
@@ -202,153 +209,146 @@ void GuiEditor::updateSaveFileList(const char *saveFilePath) {
 }
 
 void GuiEditor::onInput(u32 kdown) {
-  if (Gui::Gui::g_currListSelector == nullptr) {
+  if (kdown & KEY_MINUS && GuiEditor::g_currSaveFileName == "") {
+    if (!hasConfigFile) return;
+    saveFiles.clear();
 
-    if (kdown & KEY_MINUS && GuiEditor::g_currSaveFileName == "") {
-      if (!hasConfigFile) return;
-      saveFiles.clear();
+    for (auto saveFilePath : m_offsetFile["saveFilePaths"])
+      updateSaveFileList(saveFilePath.get<std::string>().c_str());
 
-      for (auto saveFilePath : m_offsetFile["saveFilePaths"])
-        updateSaveFileList(saveFilePath.get<std::string>().c_str());
+    (new ListSelector("Edit save file", "\x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
+      if (k & KEY_A) {
+        if (saveFiles.size() != 0) {
+          size_t length;
 
-      (new ListSelector("Edit save file", "\x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
-        if (k & KEY_A) {
-          if (saveFiles.size() != 0) {
-            size_t length;
+          GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
 
-            GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
-
-          if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
-              createWidgets();
-              luaParser.luaInit(m_offsetFile["filetype"]);
-            }
-            else {
-              (new Snackbar("Failed to load save file! Is it empty?"))->show();
-              delete[] GuiEditor::g_currSaveFile;
-              GuiEditor::g_currSaveFile = nullptr;
-              GuiEditor::g_currSaveFileName = "";
-
-              for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
-                delete it->widget;
-
-              m_widgets.clear();
-            }
-            Gui::Gui::g_currListSelector->hide();
+        if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
+            luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
+            createWidgets();
+            luaParser.luaInit(m_offsetFile["filetype"]);
           }
+          else {
+            (new Snackbar("Failed to load save file! Is it empty?"))->show();
+            delete[] GuiEditor::g_currSaveFile;
+            GuiEditor::g_currSaveFile = nullptr;
+            GuiEditor::g_currSaveFileName = "";
+
+            for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
+              delete it->widget;
+
+            m_widgets.clear();
+          }
+          Gui::Gui::g_currListSelector->hide();
+        }
+      }
+    })->show();
+  }
+
+  if (GuiEditor::g_currSaveFileName != "") {
+    if (kdown & KEY_B) {
+      luaParser.luaDeinit();
+
+      delete[] GuiEditor::g_currSaveFile;
+      GuiEditor::g_currSaveFileName = "";
+      GuiEditor::g_currSaveFile = nullptr;
+
+      for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
+        delete it->widget;
+
+      m_widgets.clear();
+      return;
+    }
+
+    if (kdown & KEY_X) {
+      size_t size = 0;
+      std::vector<u8> buffer;
+
+      luaParser.getModifiedSaveFile(buffer, &size);
+
+      if(!storeSaveFile(&buffer[0], size, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
+        (new Snackbar("Sucessfully injected modified values!"))->show();
+      else
+        (new Snackbar("Injection of modified values failed!"))->show();
+
+      delete[] GuiEditor::g_currSaveFile;
+      GuiEditor::g_currSaveFile = nullptr;
+      GuiEditor::g_currSaveFileName = "";
+
+      for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
+        delete it->widget;
+
+      m_widgets.clear();
+      return;
+    }
+
+    if (kdown & KEY_L) {
+      if (widgetPage > 0)
+        widgetPage--;
+      Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage;
+    }
+
+    if (kdown & KEY_R) {
+      if (widgetPage < widgetPageCnt - 1)
+        widgetPage++;
+      Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage ;
+    }
+
+    if (kdown & KEY_UP) {
+      if (Widget::g_selectedWidgetIndex > 0)
+        Widget::g_selectedWidgetIndex--;
+      widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
+    }
+
+    if (kdown & KEY_DOWN) {
+      if (Widget::g_selectedWidgetIndex < m_widgets.size() - 1)
+        Widget::g_selectedWidgetIndex++;
+      widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
+    }
+  } else {
+    if (kdown & KEY_B) {
+      Gui::g_nextGui = GUI_MAIN;
+    }
+
+    if (kdown & KEY_X) {
+      s16 res;
+
+      if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID())))
+        (new Snackbar("Sucessfully created backup!"))->show();
+      else (new Snackbar("An error occured while creating the backup! Error " + std::to_string(res)))->show();
+    }
+
+    if (kdown & KEY_Y) {
+      updateBackupList();
+
+      (new ListSelector("Restore Backup", "\x01 - Restore     \x03 - Delete      \x02 - Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
+        if (k & KEY_A) {
+            if (backupNames.size() != 0) {
+              s16 res;
+
+              if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[Gui::Gui::g_currListSelector->selectedItem].c_str())))
+                (new Snackbar("Sucessfully loaded backup!"))->show();
+              else (new Snackbar("An error occured while restoring the backup! Error " + std::to_string(res)))->show();
+
+              Gui::Gui::g_currListSelector->hide();
+          }
+        }
+
+        if (k & KEY_X) {
+          std::stringstream path;
+          path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+          path << "/" << backupNames[Gui::Gui::g_currListSelector->selectedItem];
+          deleteDirRecursively(path.str().c_str(), false);
+          updateBackupList();
+
+          if (Gui::Gui::g_currListSelector->selectedItem == backupNames.size() && Gui::Gui::g_currListSelector->selectedItem > 0)
+            Gui::Gui::g_currListSelector->selectedItem--;
         }
       })->show();
     }
-
-    if (GuiEditor::g_currSaveFileName != "") {
-      if (kdown & KEY_B) {
-        luaParser.luaDeinit();
-
-        delete[] GuiEditor::g_currSaveFile;
-        GuiEditor::g_currSaveFileName = "";
-        GuiEditor::g_currSaveFile = nullptr;
-
-        for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
-          delete it->widget;
-
-        m_widgets.clear();
-        return;
-      }
-
-      if (kdown & KEY_X) {
-        size_t size = 0;
-        std::vector<u8> buffer;
-
-        luaParser.getModifiedSaveFile(buffer, &size);
-
-        if(!storeSaveFile(&buffer[0], size, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
-          (new Snackbar("Sucessfully injected modified values!"))->show();
-        else
-          (new Snackbar("Injection of modified values failed!"))->show();
-
-        delete[] GuiEditor::g_currSaveFile;
-        GuiEditor::g_currSaveFile = nullptr;
-        GuiEditor::g_currSaveFileName = "";
-
-        for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
-          delete it->widget;
-
-        m_widgets.clear();
-        return;
-      }
-
-      if (kdown & KEY_L) {
-        if (widgetPage > 0)
-          widgetPage--;
-        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage;
-      }
-
-      if (kdown & KEY_R) {
-        if (widgetPage < widgetPageCnt - 1)
-          widgetPage++;
-        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage ;
-      }
-
-      if (kdown & KEY_UP) {
-        if (Widget::g_selectedWidgetIndex > 0)
-          Widget::g_selectedWidgetIndex--;
-        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
-      }
-
-      if (kdown & KEY_DOWN) {
-        if (Widget::g_selectedWidgetIndex < m_widgets.size() - 1)
-          Widget::g_selectedWidgetIndex++;
-        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
-      }
-    } else {
-      if (kdown & KEY_B) {
-        Gui::g_nextGui = GUI_MAIN;
-      }
-
-      if (kdown & KEY_X) {
-        s16 res;
-
-        if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID())))
-          (new Snackbar("Sucessfully created backup!"))->show();
-        else (new Snackbar("An error occured while creating the backup! Error " + std::to_string(res)))->show();
-      }
-
-      if (kdown & KEY_Y) {
-        updateBackupList();
-
-        (new ListSelector("Restore Backup", "\x01 - Restore     \x03 - Delete      \x02 - Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
-          if (k & KEY_A) {
-              if (backupNames.size() != 0) {
-                s16 res;
-
-                if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[Gui::Gui::g_currListSelector->selectedItem].c_str())))
-                  (new Snackbar("Sucessfully loaded backup!"))->show();
-                else (new Snackbar("An error occured while restoring the backup! Error " + std::to_string(res)))->show();
-
-                Gui::Gui::g_currListSelector->hide();
-            }
-          }
-
-          if (k & KEY_X) {
-            std::stringstream path;
-            path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
-            path << "/" << backupNames[Gui::Gui::g_currListSelector->selectedItem];
-            deleteDirRecursively(path.str().c_str(), false);
-            updateBackupList();
-
-            if (Gui::Gui::g_currListSelector->selectedItem == backupNames.size() && Gui::Gui::g_currListSelector->selectedItem > 0)
-              Gui::Gui::g_currListSelector->selectedItem--;
-          }
-        })->show();
-      }
-    }
-  } else if(kdown != 0) {
-    Gui::Gui::g_currListSelector->onInput(kdown);
-    return;
   }
 
-    if(kdown != 0)
-      Widget::handleInput(kdown, m_widgets);
+  Widget::handleInput(kdown, m_widgets);
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {

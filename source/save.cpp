@@ -73,7 +73,7 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
 
   mkdir(ROOT_DIR, 0700);
 
-  ss << ROOT_DIR << std::setfill('0') << std::setw(sizeof(titleID)*2)
+  ss << ROOT_DIR << std::uppercase << std::setfill('0') << std::setw(sizeof(titleID)*2)
      << std::hex << titleID << "/";
   mkdir(ss.str().c_str(), 0700);
 
@@ -135,30 +135,6 @@ Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSy
     rc = ret;
   }
   return rc;
-}
-
-bool getSavefilesForGame(std::vector<s32>& vec, u64 titleID, u128 userID) {
-  FsFileSystem tmpfs;
-  Result rc = 0;
-  if (titleID != 0x0100000000010000)
-    return false;
-
-  rc = mountSaveByTitleAccountIDs(titleID, userID, tmpfs);
-  if (R_FAILED(rc))
-    return false;
-
-  char fname[0x10];
-  struct stat statbuf;
-  s32 i;
-
-  for (i=0; i != 7; i++) {
-    sprintf(fname, "File%d.bin", i);
-    if (stat(fname, &statbuf) != 0)
-      break;
-    vec.push_back(i);
-  }
-
-  return i != 0;
 }
 
 s32 isDirectory(const char *path) {

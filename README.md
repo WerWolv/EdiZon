@@ -15,4 +15,4 @@ A save dumper (future editor) for Horizon by thomasnet and WerWolv
 
 # Save editor config format
 
-Check out our ![Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more informations on how to build your own Editor-Configs and Editor-Scripts.
+Check out our [Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more informations on how to build your own Editor-Configs and Editor-Scripts.

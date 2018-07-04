@@ -29,28 +29,24 @@ void ListSelector::draw(Gui *gui) {
   gui->drawRectangled(0, 0, Gui::g_framebuffer_width, 220 + startYOffset, gui->makeColor(0x00, 0x00, 0x00, 0x80 * (1 - (startYOffset / 500.0F))));
   gui->drawRectangle(0, 220 + startYOffset, Gui::g_framebuffer_width, Gui::g_framebuffer_height - 120, currTheme.backgroundColor);
 
-  if (m_listItems.size() != 0)
-    for (s8 currItem = -1; currItem < (s8) m_listItems.size(); currItem++)
-        gui->drawRectangle(200, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 45, Gui::g_framebuffer_width - 400, 1, currTheme.separatorColor);
-
-
-  gui->drawRectangled(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, Gui::g_framebuffer_width - 440, 71, currTheme.highlightColor);
-  gui->drawRectangle(226, 305 + 60 * 2 + deltaOffset + startYOffset, Gui::g_framebuffer_width - 455, 61, currTheme.selectedButtonColor);
-  gui->drawShadow(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, Gui::g_framebuffer_width - 440, 71);
-
   yOffsetNext = 60 * selectedItem;
   if (m_listItems.size() != 0) {
+    for (s8 currItem = -1; currItem < (s8) m_listItems.size(); currItem++)
+        gui->drawRectangle(250, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 45, Gui::g_framebuffer_width - 500, 1, currTheme.separatorColor);
+
+    gui->drawRectangled(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, Gui::g_framebuffer_width - 440, 71, currTheme.highlightColor);
+    gui->drawRectangle(226, 305 + 60 * 2 + deltaOffset + startYOffset, Gui::g_framebuffer_width - 455, 61, currTheme.selectedButtonColor);
+    gui->drawShadow(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, Gui::g_framebuffer_width - 440, 71);
+
     for (u8 currItem = 0; currItem < m_listItems.size(); currItem++)
       gui->drawText(font20, 270, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset, currTheme.textColor, m_listItems[currItem].c_str());
 
-    gui->drawRectangle(0, 220 + startYOffset, Gui::g_framebuffer_width, 80, currTheme.backgroundColor);
-    gui->drawRectangle(0, Gui::g_framebuffer_height - 70 + startYOffset, Gui::g_framebuffer_width, 70, currTheme.backgroundColor);
-    gui->drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 300 + startYOffset, 1220, 1, currTheme.textColor);
-    gui->drawText(font24, 100, 240 + startYOffset, currTheme.textColor, m_title.c_str());
+  } else gui->drawText(font20, 300, 340 + 60 * 2 + startYOffset, currTheme.textColor, "No items present!");
 
-  }
-  else
-    gui->drawText(font20, 300, 340 + 60 * 2 + startYOffset, currTheme.textColor, "No items present!");
+  gui->drawRectangle(0, 220 + startYOffset, Gui::g_framebuffer_width, 80, currTheme.backgroundColor);
+  gui->drawRectangle(0, Gui::g_framebuffer_height - 70 + startYOffset, Gui::g_framebuffer_width, 70, currTheme.backgroundColor);
+  gui->drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 300 + startYOffset, 1220, 1, currTheme.textColor);
+  gui->drawText(font24, 100, 240 + startYOffset, currTheme.textColor, m_title.c_str());
 
   gui->drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73 + startYOffset, 1220, 1, currTheme.textColor);
   gui->drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50 + startYOffset, currTheme.textColor, m_options.c_str(), ALIGNED_RIGHT);

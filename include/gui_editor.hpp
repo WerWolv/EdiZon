@@ -2,6 +2,7 @@
 
 #include "gui.hpp"
 #include "widget.hpp"
+
 #include "json.hpp"
 
 using json = nlohmann::json;

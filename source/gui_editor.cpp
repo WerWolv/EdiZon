@@ -91,7 +91,7 @@ void GuiEditor::draw() {
 
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
-  if (GuiEditor::g_currSaveFileName == "") {
+  if (GuiEditor::g_currSaveFile == nullptr) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Backup     \x04 - Restore     \x02 - Back", ALIGNED_RIGHT);
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, hasConfigFile ? "No save file loaded. Press \x08 to select one." : "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
   } else
@@ -135,23 +135,33 @@ bool GuiEditor::loadConfigFile(json &j) {
 
 void GuiEditor::createWidgets() {
 
-if (m_offsetFile == nullptr) return;
-
 for (auto item : m_offsetFile["items"]) {
   auto itemWidget = item["widget"];
 
-  if (itemWidget["type"] == "int")
+  if (itemWidget == nullptr) return;
+  if (item["name"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr || itemWidget["type"] == nullptr) return;
+
+  if (itemWidget["type"] == "int") {
+    if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) return;
+    if (itemWidget["minValue"] >= itemWidget["maxValue"]) return;
+
     m_widgets.push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"]) });
+  }
   else if (itemWidget["type"] == "bool") {
+    if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) return;
+    if (itemWidget["onValue"] == itemWidget["offValue"]) return;
+
     if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number())
       m_widgets.push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<u64>(), itemWidget["offValue"].get<u64>()) });
     else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
       m_widgets.push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
   }
-  else if(itemWidget["type"] == "list") {
-    if(itemWidget["listItemValues"][0].is_number())
+  else if (itemWidget["type"] == "list") {
+    if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) return;
+
+    if (itemWidget["listItemValues"][0].is_number())
       m_widgets.push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<u64>>()) });
-    else if(itemWidget["listItemValues"][0].is_string())
+    else if (itemWidget["listItemValues"][0].is_string())
       m_widgets.push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
   }
 
@@ -213,6 +223,9 @@ if (GuiEditor::g_currSaveFile == nullptr) {
   if (kdown & KEY_MINUS) {
     if (!hasConfigFile) return;
     saveFiles.clear();
+
+    if (m_offsetFile == nullptr) return;
+    if (m_offsetFile["saveFilePaths"] == nullptr || m_offsetFile["files"] == nullptr || m_offsetFile["filetype"] == nullptr || m_offsetFile["items"] == nullptr) return;
 
     for (auto saveFilePath : m_offsetFile["saveFilePaths"])
       updateSaveFileList(saveFilePath.get<std::string>().c_str());

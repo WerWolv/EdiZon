@@ -43,7 +43,6 @@ int main(int argc, char** argv) {
   touchPosition touch;
   touchPosition touchEnd;
 
-
   s32 inputTicker = 0;
 
 #ifdef NXLINK
@@ -121,7 +120,7 @@ int main(int argc, char** argv) {
     }
 
     hidTouchRead(&touchEnd, 0);
-    
+
     touchCntOld = touchCnt;
     kheldOld = kheld;
   }

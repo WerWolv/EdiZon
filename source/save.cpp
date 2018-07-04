@@ -3,11 +3,10 @@
 #include <unistd.h>
 
 #include "account.hpp"
+
 extern "C" {
-#include "nanojpeg.h"
+  #include "nanojpeg.h"
 }
-
-
 
 const char* ROOT_DIR = "/EdiZon/";
 

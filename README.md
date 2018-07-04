@@ -13,6 +13,8 @@ A save dumper (future editor) for Horizon by thomasnet and WerWolv
 # Images
 ![Capture of main screen](https://cdn.discordapp.com/attachments/445187205372313601/452783262868307979/2018060302561900-DB1426D1DFD034027CECDE9C2DD914B8.jpg)
 
+![Capture of editor screen](https://i.imgur.com/0ol4ECc.jpg)
+
 # Save editor config format
 
 Check out our [Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more informations on how to build your own Editor-Configs and Editor-Scripts.

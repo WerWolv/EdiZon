@@ -44,6 +44,7 @@ public:
   virtual void draw() = 0;
   virtual void onInput(u32 kdown) = 0;
   virtual void onTouch(touchPosition &touch) = 0;
+  virtual void onGesture(touchPosition &startPosition, touchPosition &endPosition) = 0;
 
   static void resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
   inline u8 blendColor(u32 src, u32 dst, u8 alpha);

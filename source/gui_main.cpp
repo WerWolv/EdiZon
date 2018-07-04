@@ -140,6 +140,11 @@ void GuiMain::onInput(u32 kdown) {
         m_selected.accountIndex = 0;
     }
   }
+
+  if(kdown & KEY_ZL)
+    (new MessageBox("TEST MESSAGE", YES_NO))->setSelectionAction([&](s8 selection){
+      printf("Selection: %d\n", selection);
+    })->show();
 }
 
 void GuiMain::onTouch(touchPosition &touch) {
@@ -177,4 +182,8 @@ void GuiMain::onTouch(touchPosition &touch) {
       break;
     }
   }
+}
+
+void GuiMain::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
+  printf("Start: %d %d, End: %d %d\n", startPosition.px, startPosition.py, endPosition.px, endPosition.py);
 }

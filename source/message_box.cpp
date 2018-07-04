@@ -23,10 +23,10 @@ void MessageBox::draw(Gui *gui) {
   gui->drawRectangle(250, 180, Gui::g_framebuffer_width - 500, Gui::g_framebuffer_height - 360, currTheme.backgroundColor);
 
   gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 75, currTheme.textColor, m_message.c_str(), ALIGNED_CENTER);
+  gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);
 
   if (m_options == OKAY) {
     gui->drawRectangled(245, Gui::g_framebuffer_height - 265, Gui::g_framebuffer_width - 490, 90, currTheme.highlightColor);
-    gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);
     gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 237, currTheme.selectedColor, "Back", ALIGNED_CENTER);
   }
   else if (m_options == YES_NO) {
@@ -63,7 +63,12 @@ void MessageBox::onInput(u32 kdown) {
 }
 
 void MessageBox::onTouch(touchPosition &touch) {
+  if (m_options == OKAY) {
+    if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180)
+      m_selectionAction(0);
+  } else if (m_options == YES_NO) {
 
+  }
 }
 
 void MessageBox::show() {

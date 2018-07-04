@@ -16,7 +16,7 @@ public:
   void draw();
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
-
+  void onGesture(touchPosition &startPosition, touchPosition &endPosition);
   static u8 *g_currSaveFile;
   static std::string g_currSaveFileName;
 

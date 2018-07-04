@@ -40,6 +40,10 @@ int main(int argc, char** argv) {
   u8 touchCntOld, touchCnt;
   u32 kheld = 0, kheldOld = 0;
   u32 kdown = 0;
+  touchPosition touch;
+  touchPosition touchEnd;
+
+
   s32 inputTicker = 0;
 
 #ifdef NXLINK
@@ -102,18 +106,22 @@ int main(int argc, char** argv) {
 
     touchCnt = hidTouchCount();
 
-    if (touchCnt > touchCntOld) {
-      touchPosition touch;
+    if (touchCnt > touchCntOld)
       hidTouchRead(&touch, 0);
 
+    if (touchCnt < touchCntOld) {
       if (Gui::g_currMessageBox != nullptr)
         Gui::g_currMessageBox->onTouch(touch);
       else if (Gui::g_currListSelector != nullptr)
         Gui::g_currListSelector->onTouch(touch);
-      else
+      else {
         currGui->onTouch(touch);
+        currGui->onGesture(touch, touchEnd);
+      }
     }
 
+    hidTouchRead(&touchEnd, 0);
+    
     touchCntOld = touchCnt;
     kheldOld = kheld;
   }

@@ -10,8 +10,8 @@
 
 class Title {
 public:
-  static Title *g_currTitle;
-  static std::unordered_map<u64, Title*> g_titles;
+  static inline Title *g_currTitle = nullptr;
+  static inline std::unordered_map<u64, Title*> g_titles;
 
   Title(FsSaveDataInfo& saveInfo);
   ~Title();

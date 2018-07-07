@@ -29,15 +29,15 @@ enum gui_t {
 
 class Gui {
 public:
-  static enum gui_t g_nextGui;
+  static inline enum gui_t g_nextGui = GUI_INVALID;
 
   u8 *framebuffer;
-  static u32 g_framebuffer_width;
-  static u32 g_framebuffer_height;
+  static inline u32 g_framebuffer_width = 0;
+  static inline u32 g_framebuffer_height = 0;
 
-  static Snackbar *g_currSnackbar;
-  static ListSelector *g_currListSelector;
-  static MessageBox *g_currMessageBox;
+  static inline Snackbar *g_currSnackbar = nullptr;
+  static inline ListSelector *g_currListSelector = nullptr;
+  static inline MessageBox *g_currMessageBox = nullptr;
 
   Gui();
   virtual ~Gui();

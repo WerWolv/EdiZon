@@ -8,9 +8,6 @@ extern "C" {
   #include "nanojpeg.h"
 }
 
-Account *Account::g_currAccount = nullptr;
-std::unordered_map<u128, Account*> Account::g_accounts;
-
 Account::Account(u128 userID) : m_userID(userID) {
   accountInitialize();
 

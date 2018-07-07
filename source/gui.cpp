@@ -2,15 +2,6 @@
 
 #include <math.h>
 
-gui_t Gui::g_nextGui = GUI_INVALID;
-
-u32 Gui::g_framebuffer_width = 0;
-u32 Gui::g_framebuffer_height = 0;
-
-Snackbar *Gui::g_currSnackbar = nullptr;
-ListSelector *Gui::g_currListSelector = nullptr;
-MessageBox *Gui::g_currMessageBox = nullptr;
-
 static float menuTimer = 0.0F;
 
 Gui::Gui() {

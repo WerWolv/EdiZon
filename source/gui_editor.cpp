@@ -22,6 +22,8 @@
 #include <regex>
 #include <iterator>
 
+#define COLOR_THRESHOLD 35
+
 u8 *GuiEditor::g_currSaveFile = nullptr;
 std::string GuiEditor::g_currSaveFileName = "";
 
@@ -46,6 +48,8 @@ GuiEditor::GuiEditor() : Gui() {
   u8 *smallTitleIcon = new u8[32*32*3];
   std::map<u32, u16> colors;
 
+  dominantColor = Gui::makeColor(0xA0, 0xA0, 0xA0, 0xFF);
+
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), smallTitleIcon, 256, 256, 32, 32);
 
@@ -56,13 +60,18 @@ GuiEditor::GuiEditor() : Gui() {
 
   u32 dominantUseCnt = 0;
   for (auto [color, count] : colors) {
-    if (count > dominantUseCnt){
+    if (count > dominantUseCnt) {
+      color_t colorCandidate = Gui::makeColor((color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, (color & 0x0000FF), 0xFF);
+
+      if(!(abs(static_cast<s16>(colorCandidate.r) - colorCandidate.g) > COLOR_THRESHOLD || abs(static_cast<s16>(colorCandidate.r) - colorCandidate.b) > COLOR_THRESHOLD))
+        continue;
+
       dominantUseCnt = count;
-      dominantColor = Gui::makeColor((color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, (color & 0x0000FF), 0xFF);
+      dominantColor = colorCandidate;
     }
   }
 
-  textColor = (dominantColor.r > 0x80 || dominantColor.g > 0x80 || dominantColor.b > 0x80) ? COLOR_BLACK : COLOR_WHITE;
+  textColor = (dominantColor.r > 0x80 && dominantColor.g > 0x80 && dominantColor.b > 0x80) ? COLOR_BLACK : COLOR_WHITE;
 
   widgetPage = 0;
   Widget::g_selectedWidgetIndex = 0;

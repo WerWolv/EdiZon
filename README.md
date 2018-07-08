@@ -15,6 +15,8 @@ A save dumper (future editor) for Horizon by thomasnet and WerWolv
 
 ![Capture of editor screen](https://i.imgur.com/0ol4ECc.jpg)
 
-# Save editor config format
+# EdiZon Editor Config and Script files
 
-Check out our [Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more informations on how to build your own Editor-Configs and Editor-Scripts.
+To download working Editor Config and Editor Script files, visit [this repository](https://github.com/WerWolv98/EdiZon_ConfigsAndScripts/tree/master)
+
+Check out our [Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more information on how to build your own Editor Config and Editor Script files.

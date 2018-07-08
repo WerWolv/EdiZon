@@ -29,10 +29,10 @@ u8* titleIcon;
 
 std::vector<std::string> backupNames;
 std::vector<std::string> saveFiles;
-
 u16 widgetPage;
 std::map<std::string, u16> widgetPageCnt;
-u8 *dominantColor;
+
+color_t dominantColor;
 color_t textColor;
 
 bool hasConfigFile;
@@ -43,12 +43,26 @@ void updateSaveFileList(const char *path);
 
 GuiEditor::GuiEditor() : Gui() {
   titleIcon = new u8[128*128*3];
-  dominantColor = new u8[3*3*3];
+  u8 *smallTitleIcon = new u8[32*32*3];
+  std::map<u32, u16> colors;
 
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
-  Gui::resizeImage(Title::g_currTitle->getTitleIcon(), dominantColor, 256, 256, 3, 3);
+  Gui::resizeImage(Title::g_currTitle->getTitleIcon(), smallTitleIcon, 256, 256, 32, 32);
 
-  textColor = dominantColor[1 * 3 + 0] > 0x80 || dominantColor[1 * 3 + 1] > 0x80 || dominantColor[1 * 3 + 2] > 0x80 ? COLOR_BLACK : COLOR_WHITE;
+  for (u16 i = 0; i < 32 * 32 * 3; i += 3) {
+    u32 currColor = smallTitleIcon[i + 0] << 16 | smallTitleIcon[i + 1] << 8 | smallTitleIcon[i + 2];
+    colors[currColor]++;
+  }
+
+  u32 dominantUseCnt = 0;
+  for (auto [color, count] : colors) {
+    if (count > dominantUseCnt){
+      dominantUseCnt = count;
+      dominantColor = Gui::makeColor((color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, (color & 0x0000FF), 0xFF);
+    }
+  }
+
+  textColor = (dominantColor.r > 0x80 || dominantColor.g > 0x80 || dominantColor.b > 0x80) ? COLOR_BLACK : COLOR_WHITE;
 
   widgetPage = 0;
   Widget::g_selectedWidgetIndex = 0;
@@ -80,7 +94,7 @@ void GuiEditor::draw() {
   ss << "0x" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
-  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, Gui::makeColor(dominantColor[1 * 3 + 0], dominantColor[1 * 3 + 1], dominantColor[1 * 3 + 2], 0xFF));
+  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, dominantColor);
   Gui::drawImage(0, 0, 128, 128, titleIcon, IMAGE_MODE_RGB24);
   Gui::drawImage(Gui::g_framebuffer_width - 128, 0, 128, 128, Account::g_currAccount->getProfileImage(), IMAGE_MODE_RGB24);
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 128);

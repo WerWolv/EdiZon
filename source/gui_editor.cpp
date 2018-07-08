@@ -473,6 +473,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
             for(auto widget : widgets)
               delete widget.widget;
 
+          Widget::g_categories.clear();
           m_widgets.clear();
         }
       })->show();

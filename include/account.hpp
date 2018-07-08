@@ -7,8 +7,8 @@
 
 class Account {
 public:
-  static Account *g_currAccount;
-  static std::unordered_map<u128, Account*> g_accounts;
+  static inline Account *g_currAccount = nullptr;
+  static inline std::unordered_map<u128, Account*> g_accounts;
 
   Account(u128 userID);
   ~Account();

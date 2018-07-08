@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <iostream>
 #include <regex>
+#include <iterator>
 
 u8 *GuiEditor::g_currSaveFile = nullptr;
 std::string GuiEditor::g_currSaveFileName = "";
@@ -30,7 +31,7 @@ std::vector<std::string> backupNames;
 std::vector<std::string> saveFiles;
 
 u16 widgetPage;
-u16 widgetPageCnt;
+std::map<std::string, u16> widgetPageCnt;
 u8 *dominantColor;
 color_t textColor;
 
@@ -47,24 +48,26 @@ GuiEditor::GuiEditor() : Gui() {
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), dominantColor, 256, 256, 3, 3);
 
-  textColor = dominantColor[3] > 0x80 || dominantColor[4] > 0x80 || dominantColor[5] > 0x80 ? COLOR_BLACK : COLOR_WHITE;
+  textColor = dominantColor[1 * 3 + 0] > 0x80 || dominantColor[1 * 3 + 1] > 0x80 || dominantColor[1 * 3 + 2] > 0x80 ? COLOR_BLACK : COLOR_WHITE;
 
   widgetPage = 0;
-  widgetPageCnt = 0;
   Widget::g_selectedWidgetIndex = 0;
+  Widget::g_selectedCategory = "";
 
   hasConfigFile = loadConfigFile(m_offsetFile);
 
 }
 
 GuiEditor::~GuiEditor() {
-  for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
-    delete it->widget;
+  for (auto const& [category, widgets] : m_widgets)
+    for(auto widget : widgets)
+      delete widget.widget;
 
   delete titleIcon;
   delete[] GuiEditor::g_currSaveFile;
   GuiEditor::g_currSaveFile = nullptr;
   GuiEditor::g_currSaveFileName = "";
+  Widget::g_selectedCategory = "";
 
   backupNames.clear();
   saveFiles.clear();
@@ -77,7 +80,7 @@ void GuiEditor::draw() {
   ss << "0x" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
-  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, Gui::makeColor(dominantColor[3], dominantColor[4], dominantColor[5], 0xFF));
+  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, Gui::makeColor(dominantColor[1 * 3 + 0], dominantColor[1 * 3 + 1], dominantColor[1 * 3 + 2], 0xFF));
   Gui::drawImage(0, 0, 128, 128, titleIcon, IMAGE_MODE_RGB24);
   Gui::drawImage(Gui::g_framebuffer_width - 128, 0, 128, 128, Account::g_currAccount->getProfileImage(), IMAGE_MODE_RGB24);
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 128);
@@ -95,17 +98,17 @@ void GuiEditor::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Backup     \x04 - Restore     \x02 - Back", ALIGNED_RIGHT);
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, hasConfigFile ? "No save file loaded. Press \x08 to select one." : "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
   } else
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel     \x01 - OK", ALIGNED_RIGHT);
 
-  if (m_widgets.size() > WIDGETS_PER_PAGE) {
-    for (u8 page = 0; page < widgetPageCnt; page++) {
-      Gui::drawRectangle((Gui::g_framebuffer_width / 2) - widgetPageCnt * 15 + page * 30 , 615, 20, 20, currTheme.separatorColor);
+  if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
+    for (u8 page = 0; page < widgetPageCnt[Widget::g_selectedCategory]; page++) {
+      Gui::drawRectangle((Gui::g_framebuffer_width / 2) - widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 , 615, 20, 20, currTheme.separatorColor);
       if (page == widgetPage)
-        Gui::drawRectangled((Gui::g_framebuffer_width / 2) - widgetPageCnt * 15 + page * 30 + 4, 619, 12, 12, currTheme.highlightColor);
+        Gui::drawRectangled((Gui::g_framebuffer_width / 2) - widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 619, 12, 12, currTheme.highlightColor);
     }
 
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) - widgetPageCnt * 15 - 30, 598, currTheme.textColor, "\x05", ALIGNED_CENTER);
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) + widgetPageCnt * 15 + 18, 598, currTheme.textColor, "\x06", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) - widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 598, currTheme.textColor, "\x05", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) + widgetPageCnt[Widget::g_selectedCategory] * 15 + 18, 598, currTheme.textColor, "\x06", ALIGNED_CENTER);
 
   }
 
@@ -134,42 +137,55 @@ bool GuiEditor::loadConfigFile(json &j) {
 }
 
 void GuiEditor::createWidgets() {
+  std::set<std::string> tempCategories;
 
-for (auto item : m_offsetFile["items"]) {
-  auto itemWidget = item["widget"];
+  Widget::g_selectedRow = CATEGORIES;
 
-  if (itemWidget == nullptr) return;
-  if (item["name"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr || itemWidget["type"] == nullptr) return;
+  for (auto item : m_offsetFile["items"]) {
+    if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) return;
 
-  if (itemWidget["type"] == "int") {
-    if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) return;
-    if (itemWidget["minValue"] >= itemWidget["maxValue"]) return;
+    auto itemWidget = item["widget"];
 
-    m_widgets.push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"]) });
+    if (itemWidget == nullptr) return;
+    if (itemWidget["type"] == nullptr) return;
+
+    if (itemWidget["type"] == "int") {
+      if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) return;
+      if (itemWidget["minValue"] >= itemWidget["maxValue"]) return;
+
+      m_widgets[item["category"]].push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"]) });
+    }
+    else if (itemWidget["type"] == "bool") {
+      if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) return;
+      if (itemWidget["onValue"] == itemWidget["offValue"]) return;
+
+      if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number())
+        m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<u64>(), itemWidget["offValue"].get<u64>()) });
+      else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
+        m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
+    }
+    else if (itemWidget["type"] == "list") {
+      if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) return;
+
+      if (itemWidget["listItemValues"][0].is_number())
+        m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<u64>>()) });
+      else if (itemWidget["listItemValues"][0].is_string())
+        m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
+    }
+
+    m_widgets[item["category"]].back().widget->setLuaArgs(item["intArgs"], item["strArgs"]);
+
+    tempCategories.insert(item["category"].get<std::string>());
+
+    if (Widget::g_selectedCategory == "")
+      Widget::g_selectedCategory = item["category"];
   }
-  else if (itemWidget["type"] == "bool") {
-    if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) return;
-    if (itemWidget["onValue"] == itemWidget["offValue"]) return;
 
-    if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number())
-      m_widgets.push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<u64>(), itemWidget["offValue"].get<u64>()) });
-    else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
-      m_widgets.push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
-  }
-  else if (itemWidget["type"] == "list") {
-    if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) return;
+  Widget::g_categories.clear();
+  std::copy(tempCategories.begin(), tempCategories.end(), std::back_inserter(Widget::g_categories));
 
-    if (itemWidget["listItemValues"][0].is_number())
-      m_widgets.push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<u64>>()) });
-    else if (itemWidget["listItemValues"][0].is_string())
-      m_widgets.push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
-  }
-
-  m_widgets.back().widget->setLuaArgs(item["intArgs"], item["strArgs"]);
-}
-
-  widgetPageCnt = ceil(m_widgets.size() / WIDGETS_PER_PAGE);
-
+  for (auto category : Widget::g_categories)
+    widgetPageCnt[category] = ceil(m_widgets[category].size() / WIDGETS_PER_PAGE);
 }
 
 void updateBackupList() {
@@ -218,7 +234,7 @@ void GuiEditor::updateSaveFileList(const char *saveFilePath) {
 }
 
 void GuiEditor::onInput(u32 kdown) {
-if (GuiEditor::g_currSaveFile == nullptr) {
+if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 
   if (kdown & KEY_MINUS) {
     if (!hasConfigFile) return;
@@ -248,8 +264,9 @@ if (GuiEditor::g_currSaveFile == nullptr) {
               GuiEditor::g_currSaveFile = nullptr;
               GuiEditor::g_currSaveFileName = "";
 
-              for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
-                delete it->widget;
+              for (auto const& [category, widgets] : m_widgets)
+                for(auto widget : widgets)
+                  delete widget.widget;
 
               m_widgets.clear();
             }
@@ -345,27 +362,73 @@ if (GuiEditor::g_currSaveFile == nullptr) {
         Gui::g_nextGui = GUI_EDITOR;
       } else nextAccount = nullptr;
     }
-  }
+  } /* Savefile loaded */
   else {
-    if (kdown & KEY_B) {
-      (new MessageBox("Are you sure you want to discard your changes?", YES_NO))->setSelectionAction([&](s8 selection) {
-        if (selection) {
-          luaParser.luaDeinit();
+    if (Widget::g_selectedRow == WIDGETS) { /* Widgets row */
+      if (kdown & KEY_L) {
+        if (widgetPage > 0)
+          widgetPage--;
+        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage;
+      }
 
-          delete[] GuiEditor::g_currSaveFile;
-          GuiEditor::g_currSaveFileName = "";
-          GuiEditor::g_currSaveFile = nullptr;
+      if (kdown & KEY_R) {
+        if (widgetPage < widgetPageCnt[Widget::g_selectedCategory] - 1)
+          widgetPage++;
+        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage ;
+      }
 
-          for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
-            delete it->widget;
+      if (kdown & KEY_B) {
+        Widget::g_selectedRow = CATEGORIES;
+        Widget::g_selectedWidgetIndex = std::distance(Widget::g_categories.begin(), std::find(Widget::g_categories.begin(), Widget::g_categories.end(), Widget::g_selectedCategory));
+      }
 
-          m_widgets.clear();
-        }
-      })->show();
+      if (kdown & KEY_UP) {
+        if (Widget::g_selectedWidgetIndex > 0)
+          Widget::g_selectedWidgetIndex--;
+        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
+      }
 
-      return;
+      if (kdown & KEY_DOWN) {
+        if (Widget::g_selectedWidgetIndex < m_widgets[Widget::g_selectedCategory].size() - 1)
+          Widget::g_selectedWidgetIndex++;
+        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
+      }
+
+    } else { /* Categories row */
+      if (kdown & KEY_B) {
+        (new MessageBox("Are you sure you want to discard your changes?", YES_NO))->setSelectionAction([&](s8 selection) {
+          if (selection) {
+            luaParser.luaDeinit();
+
+            delete[] GuiEditor::g_currSaveFile;
+            GuiEditor::g_currSaveFileName = "";
+            GuiEditor::g_currSaveFile = nullptr;
+
+            for (auto const& [category, widgets] : m_widgets)
+              for(auto widget : widgets)
+                delete widget.widget;
+
+            m_widgets.clear();
+            Widget::g_categories.clear();
+          }
+        })->show();
+
+        return;
+      }
+
+      if (kdown & KEY_UP) {
+        if (Widget::g_selectedWidgetIndex > 0)
+          Widget::g_selectedWidgetIndex--;
+        Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
+      }
+
+      if (kdown & KEY_DOWN) {
+        if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 1)
+          Widget::g_selectedWidgetIndex++;
+        Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
+      }
     }
-
+    /* Categories and widgets row */
     if (kdown & KEY_X) {
       (new MessageBox("Are you sure you want to edit these values?", YES_NO))->setSelectionAction([&](s8 selection) {
         if (selection) {
@@ -383,8 +446,9 @@ if (GuiEditor::g_currSaveFile == nullptr) {
           GuiEditor::g_currSaveFile = nullptr;
           GuiEditor::g_currSaveFileName = "";
 
-          for (auto it = m_widgets.begin(); it != m_widgets.end(); it++)
-            delete it->widget;
+          for (auto const& [category, widgets] : m_widgets)
+            for(auto widget : widgets)
+              delete widget.widget;
 
           m_widgets.clear();
         }
@@ -393,36 +457,12 @@ if (GuiEditor::g_currSaveFile == nullptr) {
       return;
     }
 
-    if (kdown & KEY_L) {
-      if (widgetPage > 0)
-        widgetPage--;
-      Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage;
-    }
-
-    if (kdown & KEY_R) {
-      if (widgetPage < widgetPageCnt - 1)
-        widgetPage++;
-      Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage ;
-    }
-
-    if (kdown & KEY_UP) {
-      if (Widget::g_selectedWidgetIndex > 0)
-        Widget::g_selectedWidgetIndex--;
-      widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
-    }
-
-    if (kdown & KEY_DOWN) {
-      if (Widget::g_selectedWidgetIndex < m_widgets.size() - 1)
-        Widget::g_selectedWidgetIndex++;
-      widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
-    }
+    Widget::handleInput(kdown, m_widgets);
   }
-
-  Widget::handleInput(kdown, m_widgets);
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
-  s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
+  //s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
 
   if (GuiEditor::g_currSaveFile == nullptr) {
     if (touch.px < 128 && touch.py < 128) {
@@ -465,14 +505,6 @@ void GuiEditor::onTouch(touchPosition &touch) {
         Account::g_currAccount = nextAccount;
         Gui::g_nextGui = GUI_EDITOR;
       } else nextAccount = nullptr;
-    }
-  }
-
-  if (touch.px > 100 && touch.px < Gui::g_framebuffer_width - 100 && m_widgets.size() > 0) {
-    if (widgetTouchPos >= 0 && widgetTouchPos < static_cast<u16>(m_widgets.size()) && widgetTouchPos < (WIDGETS_PER_PAGE * (widgetPage + 1)) - (widgetPage == widgetPageCnt ? static_cast<u16>(m_widgets.size()) % static_cast<u16>(WIDGETS_PER_PAGE + 1) : 0)) {
-      if (Widget::g_selectedWidgetIndex == widgetTouchPos)
-        m_widgets[widgetTouchPos].widget->onTouch(touch);
-      Widget::g_selectedWidgetIndex = widgetTouchPos;
     }
   }
 }

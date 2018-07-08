@@ -41,8 +41,10 @@ void GuiMain::draw() {
   float selectedX = 0, selectedY = 0;
 
   for (auto title : Title::g_titles) {
-    Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
-    Gui::drawShadow(x - xOffset, y, 256, 256);
+    if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
+      Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
+      Gui::drawShadow(x - xOffset, y, 256, 256);
+    }
 
     if (currItem == m_selected.titleIndex) {
       selectedX = x - xOffset;
@@ -52,10 +54,9 @@ void GuiMain::draw() {
 
     y = y == 10 ? 266 : 10;
 
-    if (y == 10)
-      x += 256;
-
     currItem++;
+    
+    x = floor(currItem / 2.0F) * 256;
   }
 
   if (selectionState >= TITLE_SELECT) {
@@ -88,7 +89,6 @@ void GuiMain::draw() {
     else
       xOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
   }
-
 
   Gui::endDraw();
 }
@@ -140,11 +140,6 @@ void GuiMain::onInput(u32 kdown) {
         m_selected.accountIndex = 0;
     }
   }
-
-  if(kdown & KEY_ZL)
-    (new MessageBox("TEST MESSAGE", YES_NO))->setSelectionAction([&](s8 selection){
-      printf("Selection: %d\n", selection);
-    })->show();
 }
 
 void GuiMain::onTouch(touchPosition &touch) {

@@ -64,10 +64,18 @@ void MessageBox::onInput(u32 kdown) {
 
 void MessageBox::onTouch(touchPosition &touch) {
   if (m_options == OKAY) {
-    if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180)
+    if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180) {
       m_selectionAction(0);
+      this->hide();
+    }
   } else if (m_options == YES_NO) {
-
+    if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < 250 + (Gui::g_framebuffer_width - 500) / 2 && touch.py < Gui::g_framebuffer_height - 180) {
+      m_selectionAction(0);
+      this->hide();
+    } else if (touch.px > 250 + (Gui::g_framebuffer_width - 500) / 2 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180) {
+      m_selectionAction(1);
+      this->hide();
+    }
   }
 }
 

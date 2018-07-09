@@ -165,22 +165,22 @@ void GuiEditor::createWidgets() {
   Widget::g_selectedRow = CATEGORIES;
 
   for (auto item : m_offsetFile["items"]) {
-    if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) return;
+    if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) continue;
 
     auto itemWidget = item["widget"];
 
-    if (itemWidget == nullptr) return;
-    if (itemWidget["type"] == nullptr) return;
+    if (itemWidget == nullptr) continue;
+    if (itemWidget["type"] == nullptr) continue;
 
     if (itemWidget["type"] == "int") {
-      if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) return;
-      if (itemWidget["minValue"] >= itemWidget["maxValue"]) return;
+      if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) continue;
+      if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
 
       m_widgets[item["category"]].push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"]) });
     }
     else if (itemWidget["type"] == "bool") {
-      if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) return;
-      if (itemWidget["onValue"] == itemWidget["offValue"]) return;
+      if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;
+      if (itemWidget["onValue"] == itemWidget["offValue"]) continue;
 
       if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number())
         m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<u64>(), itemWidget["offValue"].get<u64>()) });
@@ -188,7 +188,7 @@ void GuiEditor::createWidgets() {
         m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
     }
     else if (itemWidget["type"] == "list") {
-      if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) return;
+      if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) continue;
 
       if (itemWidget["listItemValues"][0].is_number())
         m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<u64>>()) });
@@ -200,14 +200,14 @@ void GuiEditor::createWidgets() {
 
     tempCategories.insert(item["category"].get<std::string>());
 
-    if (Widget::g_selectedCategory == "")
-      Widget::g_selectedCategory = item["category"];
   }
 
   Widget::g_categories.clear();
   std::copy(tempCategories.begin(), tempCategories.end(), std::back_inserter(Widget::g_categories));
 
-  for (auto category : Widget::g_categories)
+  Widget::g_selectedCategory = Widget::g_categories[0];
+
+  for (auto category : tempCategories)
     widgetPageCnt[category] = ceil(m_widgets[category].size() / WIDGETS_PER_PAGE);
 }
 

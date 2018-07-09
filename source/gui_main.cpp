@@ -55,7 +55,7 @@ void GuiMain::draw() {
     y = y == 10 ? 266 : 10;
 
     currItem++;
-    
+
     x = floor(currItem / 2.0F) * 256;
   }
 

@@ -45,8 +45,9 @@ int main(int argc, char** argv) {
 
   s32 inputTicker = 0;
 
-#ifdef NXLINK
   socketInitializeDefault();
+
+#ifdef NXLINK
   nxlinkStdio();
 #endif
 
@@ -136,10 +137,7 @@ int main(int argc, char** argv) {
   Title::g_titles.clear();
   Account::g_accounts.clear();
 
-#ifdef NXLINK
   socketExit();
-#endif
-
   gfxExit();
 
   return 0;

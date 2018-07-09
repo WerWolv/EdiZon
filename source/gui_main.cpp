@@ -4,6 +4,9 @@
 #include "save.hpp"
 #include "title.hpp"
 #include "account.hpp"
+
+#include "update_manager.hpp"
+
 #include <string>
 #include <sstream>
 #include <math.h>
@@ -65,6 +68,9 @@ void GuiMain::draw() {
     Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
     Gui::drawShadow(selectedX - 10, selectedY - 10, 276, 276);
   }
+
+  if (selectionState == TITLE_SELECT)
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \x01 or update all config and script files by pressing \x08.", ALIGNED_CENTER);
 
   if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
 
@@ -139,6 +145,14 @@ void GuiMain::onInput(u32 kdown) {
         selectionState = TITLE_SELECT;
         m_selected.accountIndex = 0;
     }
+  }
+  if (kdown & KEY_MINUS) {
+    UpdateManager updateManager(0);
+
+    if (updateManager.checkUpdate())
+      (new Snackbar("Updated configs and scripts to latest version!"))->show();
+    else (new Snackbar("No updates found..."))->show();
+
   }
 }
 

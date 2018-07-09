@@ -269,7 +269,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     for (auto saveFilePath : m_offsetFile["saveFilePaths"])
       updateSaveFileList(saveFilePath.get<std::string>().c_str());
 
-    (new ListSelector("Edit save file", "\x04 - Update config/script files      \x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
+    (new ListSelector("Edit save file", "\x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {
         if (saveFiles.size() != 0) {
           size_t length;

@@ -6,6 +6,8 @@
 
 MessageBox::MessageBox(std::string message, MessageBoxOptions options) : m_message(message), m_options(options) {
   m_selectedOption = 0;
+
+  m_selectionAction = [](s8 selection){};
 }
 
 MessageBox::~MessageBox() {
@@ -27,6 +29,7 @@ void MessageBox::draw(Gui *gui) {
 
   if (m_options == OKAY) {
     gui->drawRectangled(245, Gui::g_framebuffer_height - 265, Gui::g_framebuffer_width - 490, 90, currTheme.highlightColor);
+    gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);
     gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 237, currTheme.selectedColor, "Back", ALIGNED_CENTER);
   }
   else if (m_options == YES_NO) {

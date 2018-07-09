@@ -150,8 +150,8 @@ void GuiMain::onInput(u32 kdown) {
     UpdateManager updateManager(0);
 
     if (updateManager.checkUpdate())
-      (new Snackbar("Updated configs and scripts to latest version!"))->show();
-    else (new Snackbar("No updates found..."))->show();
+      (new MessageBox("Updated configs and scripts to latest version!", OKAY))->show();
+    else (new MessageBox("No updates found...", OKAY))->show();
 
   }
 }

@@ -70,7 +70,7 @@ void GuiMain::draw() {
   }
 
   if (selectionState == TITLE_SELECT)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \x01 or update all config and script files by pressing \x08.", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \x01 or update all config and script files by pressing \x08", ALIGNED_CENTER);
 
   if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
 
@@ -151,7 +151,7 @@ void GuiMain::onInput(u32 kdown) {
 
     if (updateManager.checkUpdate())
       (new MessageBox("Updated configs and scripts to latest version!", OKAY))->show();
-    else (new MessageBox("No updates found...", OKAY))->show();
+    else (new MessageBox("Latest configs and scripts are already installed!", OKAY))->show();
 
   }
 }
@@ -194,5 +194,5 @@ void GuiMain::onTouch(touchPosition &touch) {
 }
 
 void GuiMain::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
-  printf("Start: %d %d, End: %d %d\n", startPosition.px, startPosition.py, endPosition.px, endPosition.py);
+
 }

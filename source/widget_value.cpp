@@ -3,7 +3,7 @@
 #define ACCELERATED_SPEED 20
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(LuaSaveParser *saveParser, u64 minValue, u64 maxValue) : Widget(saveParser), m_minValue(minValue), m_maxValue(maxValue) {
+WidgetValue::WidgetValue(LuaSaveParser *saveParser, s32 minValue, s32 maxValue) : Widget(saveParser), m_minValue(minValue), m_maxValue(maxValue) {
   m_widgetDataType = INT;
 }
 

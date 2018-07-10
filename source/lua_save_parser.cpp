@@ -60,13 +60,13 @@ void LuaSaveParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize) {
   this->m_bufferSize = bufferSize;
 }
 
-void LuaSaveParser::setLuaArgs(std::vector<u64> intArgs, std::vector<std::string> strArgs) {
+void LuaSaveParser::setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs) {
   this->m_intArgs = intArgs;
   this->m_strArgs = strArgs;
 }
 
-u64 LuaSaveParser::getValueFromSaveFile() {
-  u64 out;
+s32 LuaSaveParser::getValueFromSaveFile() {
+  s32 out;
 
   lua_getglobal(m_luaState, "getValueFromSaveFile");
   if(lua_pcall(m_luaState, 0, 1, 0))
@@ -91,7 +91,7 @@ std::string LuaSaveParser::getStringFromSaveFile() {
   return out;
 }
 
-void LuaSaveParser::setValueInSaveFile(u64 value) {
+void LuaSaveParser::setValueInSaveFile(s32 value) {
   lua_getglobal(m_luaState, "setValueInSaveFile");
   lua_pushinteger(m_luaState, value);
   if (lua_pcall(m_luaState, 1, 0, 0))

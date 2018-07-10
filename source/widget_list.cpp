@@ -2,7 +2,7 @@
 
 #include "list_selector.hpp"
 
-WidgetList::WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<u64> listItemValues) : Widget(saveParser), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
+WidgetList::WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) : Widget(saveParser), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
   m_widgetDataType = INT;
 }
 

@@ -70,7 +70,7 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
   }
 }
 
-u64 Widget::getIntegerValue() {
+s32 Widget::getIntegerValue() {
   m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
   return m_saveParser->getValueFromSaveFile();
 }
@@ -80,7 +80,7 @@ std::string Widget::getStringValue() {
   return m_saveParser->getStringFromSaveFile();
 }
 
-void Widget::setIntegerValue(u64 value) {
+void Widget::setIntegerValue(s32 value) {
   m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
   m_saveParser->setValueInSaveFile(value);
 }
@@ -90,7 +90,7 @@ void Widget::setStringValue(std::string value) {
   m_saveParser->setStringInSaveFile(value);
 }
 
-void Widget::setLuaArgs(std::vector<u64> intArgs, std::vector<std::string> strArgs) {
+void Widget::setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs) {
   this->m_intArgs = intArgs;
   this->m_strArgs = strArgs;
 }

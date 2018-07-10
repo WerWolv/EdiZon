@@ -45,16 +45,16 @@ public:
   virtual void onInput(u32 kdown) = 0;
   virtual void onTouch(touchPosition &touch) = 0;
 
-  u64 getIntegerValue();
+  s32 getIntegerValue();
   std::string getStringValue();
-  void setIntegerValue(u64 value);
+  void setIntegerValue(s32 value);
   void setStringValue(std::string value);
 
-  void setLuaArgs(std::vector<u64> intArgs, std::vector<std::string> strArgs);
+  void setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
 
 protected:
   LuaSaveParser *m_saveParser;
   WidgetDataType m_widgetDataType;
-  std::vector<u64> m_intArgs;
+  std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;
 };

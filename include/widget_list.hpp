@@ -6,7 +6,7 @@
 
 class WidgetList : public Widget {
 public:
-  WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<u64> listItemValues);
+  WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<s32> listItemValues);
   WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues);
   ~WidgetList();
 
@@ -17,7 +17,7 @@ public:
 
 private:
   std::vector<std::string> m_listItemNames;
-  std::vector<u64> m_intListItemValues;
+  std::vector<s32> m_intListItemValues;
   std::vector<std::string> m_strListItemValues;
 
 };

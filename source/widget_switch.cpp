@@ -1,6 +1,6 @@
 #include "widget_switch.hpp"
 
-WidgetSwitch::WidgetSwitch(LuaSaveParser *saveParser, u64 onValue, u64 offValue) : Widget(saveParser), m_intOnValue(onValue), m_intOffValue(offValue) {
+WidgetSwitch::WidgetSwitch(LuaSaveParser *saveParser, s32 onValue, s32 offValue) : Widget(saveParser), m_intOnValue(onValue), m_intOffValue(offValue) {
   m_widgetDataType = INT;
 }
 

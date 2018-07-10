@@ -16,13 +16,13 @@ public:
   void luaInit(std::string filetype);
   void luaDeinit();
 
-  u64 getValueFromSaveFile();
+  s32 getValueFromSaveFile();
   std::string getStringFromSaveFile();
-  void setValueInSaveFile(u64 value);
+  void setValueInSaveFile(s32 value);
   void setStringInSaveFile(std::string value);
   void getModifiedSaveFile(std::vector<u8> &buffer, size_t *outSize);
 
-  void setLuaArgs(std::vector<u64> intArgs, std::vector<std::string> strArgs);
+  void setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
   void setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize);
 
   int lua_getSaveFileBuffer(lua_State *state);
@@ -35,6 +35,6 @@ private:
   size_t m_bufferSize;
 
   lua_State *m_luaState;
-  std::vector<u64> m_intArgs;
+  std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;
 };

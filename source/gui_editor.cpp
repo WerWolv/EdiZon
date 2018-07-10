@@ -183,7 +183,7 @@ void GuiEditor::createWidgets() {
       if (itemWidget["onValue"] == itemWidget["offValue"]) continue;
 
       if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number())
-        m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<u64>(), itemWidget["offValue"].get<u64>()) });
+        m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
       else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
         m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
     }
@@ -191,7 +191,7 @@ void GuiEditor::createWidgets() {
       if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) continue;
 
       if (itemWidget["listItemValues"][0].is_number())
-        m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<u64>>()) });
+        m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
       else if (itemWidget["listItemValues"][0].is_string())
         m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
     }

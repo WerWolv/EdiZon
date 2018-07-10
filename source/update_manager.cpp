@@ -101,7 +101,7 @@ bool UpdateManager::checkUpdate() {
   mkdir("/EdiZon/editor/scripts", 0777);
   mkdir("/EdiZon/editor/scripts/lib", 0777);
 
-  fp = fopen("/EdiZon/update.txt", "r+");
+  fp = fopen("/EdiZon/version", "r+");
 
   if (fp != nullptr) {
     u8 fileLength;
@@ -123,7 +123,7 @@ bool UpdateManager::checkUpdate() {
 
   fclose(fp);
 
-  fp = fopen("/EdiZon/update.txt", "w+");
+  fp = fopen("/EdiZon/version", "w+");
   fputs(m_versionString.c_str(), fp);
 
   fclose(fp);

@@ -83,7 +83,7 @@ bool UpdateManager::checkUpdate() {
   FILE *fp;
   std::string str;
 
-  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL"/update.txt");
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL"/dir.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToString);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &str);
 
@@ -104,9 +104,16 @@ bool UpdateManager::checkUpdate() {
   fp = fopen("/EdiZon/update.txt", "r+");
 
   if (fp != nullptr) {
-    char *localVersionString = new char[5];
+    u8 fileLength;
+    char *localVersionString;
 
-    fread(localVersionString, sizeof(char), 5, fp);
+    fseek(fp, 0L, SEEK_END);
+    fileLength = ftell(fp);
+    rewind(fp);
+
+    localVersionString = new char[fileLength];
+
+    fread(localVersionString, sizeof(char), fileLength, fp);
 
     if (std::string(localVersionString) == m_versionString) {
       fclose(fp);

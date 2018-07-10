@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
       else if (Gui::g_currListSelector != nullptr)
         Gui::g_currListSelector->onTouch(touch);
       else {
-        currGui->onTouch(touch);
+        currGui->onTouch(touchEnd);
         currGui->onGesture(touch, touchEnd);
       }
     }

@@ -280,6 +280,33 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
               luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
               createWidgets();
               luaParser.luaInit(m_offsetFile["filetype"]);
+
+              if (m_offsetFile["titleVersion"] != nullptr) {
+                if (Title::g_currTitle->getTitleVersion() != m_offsetFile["titleVersion"]) {
+                  std::string message = "The config file you're using was made for\nversion ";
+                  message += m_offsetFile["titleVersion"];
+                  message += " but your current version is ";
+                  message += Title::g_currTitle->getTitleVersion();
+                  message += ".\nAre you sure you want to continue?";
+
+                (new MessageBox(message, YES_NO))->setSelectionAction([&](s8 selection) {
+                    if (!selection) {
+                      luaParser.luaDeinit();
+
+                      delete[] GuiEditor::g_currSaveFile;
+                      GuiEditor::g_currSaveFileName = "";
+                      GuiEditor::g_currSaveFile = nullptr;
+
+                      for (auto const& [category, widgets] : m_widgets)
+                        for(auto widget : widgets)
+                          delete widget.widget;
+
+                      m_widgets.clear();
+                      Widget::g_categories.clear();
+                    }
+                  })->show();
+                }
+              }
             }
             else {
               (new Snackbar("Failed to load save file! Is it empty?"))->show();

@@ -44,6 +44,9 @@ Title::Title(FsSaveDataInfo& saveInfo) {
 
   m_titleName = std::string(langentry->name);
   m_titleAuthor = std::string(langentry->author);
+  m_titleVersion = std::string(buf->nacp.version);
+
+  printf("%s - Version: %s\n", m_titleName.c_str(), m_titleVersion.c_str());
 
   m_titleID = saveInfo.titleID;
 
@@ -91,6 +94,10 @@ std::string Title::getTitleName() {
 
 std::string Title::getTitleAuthor() {
   return m_titleAuthor;
+}
+
+std::string Title::getTitleVersion() {
+  return m_titleVersion;
 }
 
 u8* Title::getTitleIcon() {

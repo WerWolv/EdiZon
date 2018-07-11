@@ -18,6 +18,7 @@ public:
 
   std::string getTitleName();
   std::string getTitleAuthor();
+  std::string getTitleVersion();
   u8* getTitleIcon();
   std::vector<u128> getUserIDs();
   void addUserID(u128 userID);
@@ -28,6 +29,7 @@ private:
   u64 m_titleID;
   std::string m_titleName;
   std::string m_titleAuthor;
+  std::string m_titleVersion;
   std::vector<u128> m_userIDs;
   u8 m_errorCode;
 };

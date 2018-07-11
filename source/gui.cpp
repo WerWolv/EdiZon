@@ -234,20 +234,49 @@ void Gui::drawText(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const c
     drawText_(font, x, y, clr, text, 0);
 }
 
+std::vector<std::string> Gui::split(const std::string& s, const char& c) {
+	std::string buff {""};
+	std::vector<std::string> v;
+
+	for(auto n:s) {
+		if (n != c) buff += n;
+    else if (n == c && buff != "") {
+       v.push_back(buff);
+        buff = "";
+     }
+	}
+
+	if(buff != "")
+    v.push_back(buff);
+
+	return v;
+}
+
 void Gui::drawTextAligned(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, TextAlignment alignment) {
-    u32 textWidth;
+    u32 textWidth, textHeight;
+    std::vector<std::string> lines;
 
     switch (alignment) {
       case ALIGNED_LEFT:
         drawText_(font, x, y, clr, text, 0);
         break;
       case ALIGNED_CENTER:
-        getTextDimensions(font, text, &textWidth, nullptr);
-        drawText_(font, x - (textWidth / 2.0F), y, clr, text, 0);
+        lines = Gui::split(text, '\n');
+
+        for (auto line : lines) {
+          getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
+          drawText_(font, x - (textWidth / 2.0F), y, clr, line.c_str(), 0);
+          y += textHeight;
+        }
         break;
       case ALIGNED_RIGHT:
-        getTextDimensions(font, text, &textWidth, nullptr);
-        drawText_(font, x - textWidth, y, clr, text, 0);
+        lines = Gui::split(text, '\n');
+
+        for (auto line : lines) {
+          getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
+          drawText_(font, x - textWidth, y, clr, line.c_str(), 0);
+          y += textHeight;
+        }
         break;
 
     }
@@ -259,7 +288,7 @@ void Gui::drawTextTruncate(const ffnt_header_t* font, s16 x, s16 y, color_t clr,
 
 void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out) {
     s32 x = 0;
-    s32 width = 0, height = 0;
+    s32 width = 0, height = font->height;
 
     while (*text) {
         glyph_t glyph;

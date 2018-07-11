@@ -47,6 +47,7 @@ public:
   virtual void onGesture(touchPosition &startPosition, touchPosition &endPosition) = 0;
 
   static void resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size_t dest_width, size_t dest_height);
+  static std::vector<std::string> split(const std::string& s, const char& c);
   inline u8 blendColor(u32 src, u32 dst, u8 alpha);
   color_t makeColor(u8 r, u8 g, u8 b, u8 a);
   void drawRectangle(s16 x, s16 y, s16 w, s16 h, color_t color);

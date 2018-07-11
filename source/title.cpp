@@ -46,8 +46,6 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   m_titleAuthor = std::string(langentry->author);
   m_titleVersion = std::string(buf->nacp.version);
 
-  printf("%s - Version: %s\n", m_titleName.c_str(), m_titleVersion.c_str());
-
   m_titleID = saveInfo.titleID;
 
   njInit();

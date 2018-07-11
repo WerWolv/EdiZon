@@ -11,6 +11,8 @@
 
 #include <curl/curl.h>
 
+#include "gui.hpp"
+
 #define EDIZON_URL "http://werwolv.net/EdiZon"
 
 CURL *curl;
@@ -28,24 +30,6 @@ UpdateManager::~UpdateManager() {
   curl_global_cleanup();
 }
 
-const std::vector<std::string> split(const std::string& s, const char& c) {
-	std::string buff {""};
-	std::vector<std::string> v;
-
-	for(auto n:s) {
-		if (n != c) buff += n;
-    else if (n == c && buff != "") {
-       v.push_back(buff);
-        buff = "";
-     }
-	}
-
-	if(buff != "")
-    v.push_back(buff);
-
-	return v;
-}
-
 size_t writeToString(void *contents, size_t size, size_t nmemb, void *userp){
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
@@ -58,13 +42,13 @@ size_t writeToFile(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 
 std::vector<std::pair<std::string, std::string>> parseUpdateFile(std::string content, std::string *out_versionString) {
   std::vector<std::pair<std::string, std::string>> updatePathPair;
-  std::vector<std::string> lines = split(content, '\n');
+  std::vector<std::string> lines = Gui::split(content, '\n');
 
   *out_versionString = lines[0];
   lines.erase(lines.begin());
 
   for (auto line : lines) {
-    std::vector<std::string> paths = split(line, ' ');
+    std::vector<std::string> paths = Gui::split(line, ' ');
     updatePathPair.push_back(std::make_pair(std::string(EDIZON_URL) + paths[0], paths[1]));
   }
 

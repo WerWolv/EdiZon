@@ -1,7 +1,11 @@
 # EdiZon
 ![Icon](https://raw.githubusercontent.com/thomasnet-mc/EdiZon/master/icon.jpg)
 
-A save dumper (future editor) for Horizon by thomasnet and WerWolv
+A save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch. Developed by thomasnet-mc and WerWolv.
+
+
+# Discord
+If you need any help with the usage of EdiZon or if you want to start developing your own Editor Configs and Editor Scripts, feel free to join our Discord server: https://discord.gg/qyA38T8
 
 # Credits
 [3096](https://github.com/3096) for [save dumping/injecting](https://github.com/3096/nut)

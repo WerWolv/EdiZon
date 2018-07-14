@@ -58,7 +58,7 @@ CFLAGS	:=	-g -Wall -O3 -ffunction-sections \
 			-DVERSION_MINOR=${VERSION_MINOR} \
 			-DVERSION_MICRO=${VERSION_MICRO}
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -I$(DEVKITPRO)/libnx/external/bsd/include
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 

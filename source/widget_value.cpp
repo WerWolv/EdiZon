@@ -1,10 +1,14 @@
 #include "widget_value.hpp"
 
-#define ACCELERATED_SPEED 20
+#include <math.h>
+
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(LuaSaveParser *saveParser, s32 minValue, s32 maxValue) : Widget(saveParser), m_minValue(minValue), m_maxValue(maxValue) {
+WidgetValue::WidgetValue(LuaSaveParser *saveParser, s32 minValue, s32 maxValue, u32 stepSize) : Widget(saveParser), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
   m_widgetDataType = INT;
+
+  if (stepSize == 0)
+    m_stepSize = floor((maxValue - minValue) / 500.0F);
 }
 
 WidgetValue::~WidgetValue() {
@@ -24,8 +28,8 @@ void WidgetValue::onInput(u32 kdown) {
   if (kdown & KEY_LEFT) {
     accelerationTimer++;
     if (Widget::getIntegerValue() > m_minValue) {
-      if(accelerationTimer > ACCELERATION_DELAY && Widget::getIntegerValue() > m_minValue + ACCELERATED_SPEED)
-        Widget::setIntegerValue(Widget::getIntegerValue() - ACCELERATED_SPEED);
+      if(accelerationTimer > ACCELERATION_DELAY && Widget::getIntegerValue() > static_cast<u32>(m_minValue + m_stepSize))
+        Widget::setIntegerValue(Widget::getIntegerValue() - m_stepSize);
       else
         Widget::setIntegerValue(Widget::getIntegerValue() - 1);
     }
@@ -35,8 +39,8 @@ void WidgetValue::onInput(u32 kdown) {
   if (kdown & KEY_RIGHT) {
     accelerationTimer++;
     if (Widget::getIntegerValue() < m_maxValue) {
-      if(accelerationTimer > 50 && Widget::getIntegerValue() < m_maxValue - ACCELERATED_SPEED)
-        Widget::setIntegerValue(Widget::getIntegerValue() + ACCELERATED_SPEED);
+      if(accelerationTimer > 50 && Widget::getIntegerValue() < m_maxValue - m_stepSize)
+        Widget::setIntegerValue(Widget::getIntegerValue() + m_stepSize);
       else
         Widget::setIntegerValue(Widget::getIntegerValue() + 1);
     }
@@ -44,7 +48,7 @@ void WidgetValue::onInput(u32 kdown) {
   }
 
   if ((kdown & (KEY_LEFT | KEY_RIGHT)) == 0 ||
-      Widget::getIntegerValue() - ACCELERATED_SPEED <= m_minValue || Widget::getIntegerValue() + ACCELERATED_SPEED >= m_maxValue)
+      Widget::getIntegerValue() - m_stepSize <= m_minValue || Widget::getIntegerValue() + m_stepSize >= m_maxValue)
     accelerationTimer = 0;
 }
 

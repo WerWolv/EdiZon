@@ -176,7 +176,7 @@ void GuiEditor::createWidgets() {
       if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) continue;
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
 
-      m_widgets[item["category"]].push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"]) });
+      m_widgets[item["category"]].push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"], itemWidget.find("stepSize") != itemWidget.end() ? itemWidget["stepSize"].get<u32>() : 0) });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;

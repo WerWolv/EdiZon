@@ -22,6 +22,10 @@ LuaSaveParser::~LuaSaveParser() {
   lua_close(m_luaState);
 }
 
+void LuaSaveParser::printError(lua_State *luaState) {
+  printf("%s\n", lua_tostring(luaState, -1));
+}
+
 void LuaSaveParser::luaInit(std::string filetype) {
   m_luaState = luaL_newstate();
 
@@ -31,6 +35,7 @@ void LuaSaveParser::luaInit(std::string filetype) {
 
   const luaL_Reg regs[] {
     { "getSaveFileBuffer", &dispatch<&LuaSaveParser::lua_getSaveFileBuffer> },
+    { "getSaveFileString", &dispatch<&LuaSaveParser::lua_getSaveFileString> },
     { "getStrArgs", &dispatch<&LuaSaveParser::lua_getStrArgs> },
     { "getIntArgs", &dispatch<&LuaSaveParser::lua_getIntArgs> },
     { nullptr, nullptr }
@@ -46,7 +51,7 @@ void LuaSaveParser::luaInit(std::string filetype) {
   luaL_loadfile(m_luaState, path.c_str());
 
   if(lua_pcall(m_luaState, 0, 0, 0))
-    printf("%s\n", lua_tostring(m_luaState, -1));
+    printError(m_luaState);
 
   printf("Lua interpreter initialized!\n");
 }
@@ -70,7 +75,7 @@ s32 LuaSaveParser::getValueFromSaveFile() {
 
   lua_getglobal(m_luaState, "getValueFromSaveFile");
   if(lua_pcall(m_luaState, 0, 1, 0))
-    printf("%s\n", lua_tostring(m_luaState, -1));
+    printError(m_luaState);
 
   out = lua_tointeger(m_luaState, -1);
   lua_pop(m_luaState, 1);
@@ -83,7 +88,7 @@ std::string LuaSaveParser::getStringFromSaveFile() {
 
   lua_getglobal(m_luaState, "getStringFromSaveFile");
   if (lua_pcall(m_luaState, 0, 1, 0))
-    printf("%s\n", lua_tostring(m_luaState, -1));
+    printError(m_luaState);
 
   out = lua_tostring(m_luaState, -1);
   lua_pop(m_luaState, 1);
@@ -95,20 +100,20 @@ void LuaSaveParser::setValueInSaveFile(s32 value) {
   lua_getglobal(m_luaState, "setValueInSaveFile");
   lua_pushinteger(m_luaState, value);
   if (lua_pcall(m_luaState, 1, 0, 0))
-    printf("%s\n", lua_tostring(m_luaState, -1));
+    printError(m_luaState);
 }
 
 void LuaSaveParser::setStringInSaveFile(std::string value) {
   lua_getglobal(m_luaState, "setStringInSaveFile");
   lua_pushstring(m_luaState, value.c_str());
   if (lua_pcall(m_luaState, 1, 0, 0))
-    printf("%s\n", lua_tostring(m_luaState, -1));
+    printError(m_luaState);
 }
 
 void LuaSaveParser::getModifiedSaveFile(std::vector<u8> &buffer, size_t *outSize) {
   lua_getglobal(m_luaState, "getModifiedSaveFile");
   if (lua_pcall(m_luaState, 0, 1, 0))
-    printf("%s\n", lua_tostring(m_luaState, -1));
+    printError(m_luaState);
 
   lua_pushnil(m_luaState);
 
@@ -133,6 +138,14 @@ int LuaSaveParser::lua_getSaveFileBuffer(lua_State *state) {
   lua_pushliteral(state, "n");
   lua_pushinteger(state, m_bufferSize);
   lua_rawset(state, -3);
+
+  return 1;
+}
+
+int LuaSaveParser::lua_getSaveFileString(lua_State *state) {
+  std::string str = reinterpret_cast<char*>(m_buffer);
+
+  lua_pushstring(state, str.c_str());
 
   return 1;
 }

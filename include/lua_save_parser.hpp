@@ -26,6 +26,7 @@ public:
   void setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize);
 
   int lua_getSaveFileBuffer(lua_State *state);
+  int lua_getSaveFileString(lua_State *state);
   int lua_getStrArgs(lua_State *state);
   int lua_getIntArgs(lua_State *state);
 
@@ -37,4 +38,6 @@ private:
   lua_State *m_luaState;
   std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;
+
+  void printError(lua_State *luaState);
 };

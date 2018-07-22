@@ -718,7 +718,7 @@
 #if LUAI_BITSINT >= 32
 #define LUAI_MAXSTACK		1000000
 #else
-#define LUAI_MAXSTACK		15000
+#define LUAI_MAXSTACK		1500000
 #endif
 
 

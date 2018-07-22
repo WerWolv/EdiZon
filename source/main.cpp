@@ -18,6 +18,8 @@ extern "C" {
 #define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   10
 
+size_t __nx_heap_size = 0x200000 * 32;
+
 Gui* currGui = nullptr;
 
 void initTitles() {

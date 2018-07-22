@@ -48,7 +48,7 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
 
     u32 textWidth, textHeight;
     gui->getTextDimensions(font20, currWidgets[start].title.c_str(), &textWidth, &textHeight);
-    gui->drawText(font20, widgetInset + 50 + X_OFFSET, y + ((WIDGET_HEIGHT / 2.0F) - (textHeight / 2.0F)) - 13, currTheme.textColor, currWidgets[start].title.c_str());
+    gui->drawTextAligned(font20, widgetInset + 50 + X_OFFSET, y + (WIDGET_HEIGHT / 2.0F) - 13, currTheme.textColor, currWidgets[start].title.c_str(), ALIGNED_LEFT);
     gui->drawRectangle(widgetInset + 30 + X_OFFSET, y + WIDGET_HEIGHT + (WIDGET_SEPARATOR / 2) - 1, WIDGET_WIDTH - 60, 1, currTheme.separatorColor);
     currWidgets[start].widget->draw(gui, widgetInset + 50 + X_OFFSET, y - 13);
 

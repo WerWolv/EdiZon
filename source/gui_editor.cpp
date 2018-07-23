@@ -226,34 +226,69 @@ void updateBackupList() {
   }
 }
 
-void GuiEditor::updateSaveFileList(const char *saveFilePath) {
+void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::string files) {
   DIR *dir;
   struct dirent *ent;
   FsFileSystem fs;
+
+  std::vector<std::string> pathsOld;
+  std::vector<std::string> paths;
 
   if (m_offsetFile == nullptr) return;
 
   if (mountSaveByTitleAccountIDs(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), fs))
     return;
 
-  std::stringstream path;
-  path << "save:" << saveFilePath;
-
-  if ((dir = opendir(path.str().c_str())) != nullptr) {
-    std::regex validSaveFileNames(m_offsetFile["files"].get<std::string>());
+  if (saveFilePath[0] != "") {
+    dir = opendir("save:/");
 
     while ((ent = readdir(dir)) != nullptr) {
-      if (std::regex_match(ent->d_name, validSaveFileNames))
-        saveFiles.push_back(std::string(saveFilePath) + ent->d_name);
+      if (std::regex_match(std::string(ent->d_name), std::regex(saveFilePath[0])))
+        pathsOld.push_back(std::string(ent->d_name) + "/");
     }
 
-    std::sort(saveFiles.begin(), saveFiles.end());
-
     closedir(dir);
+
+    for (u16 i = 1; i < saveFilePath.size(); i++) {
+      for (auto path : pathsOld) {
+        dir = opendir(path.c_str());
+        while ((ent = readdir(dir)) != nullptr) {
+          if (std::regex_match(std::string(ent->d_name), std::regex(saveFilePath[i]))) {
+            std::string newPath = path;
+            newPath += "/";
+            newPath += ent->d_name;
+            paths.push_back(newPath);
+          }
+        }
+
+        closedir(dir);
+      }
+
+      pathsOld = paths;
+      paths.clear();
+    }
+  } else pathsOld.push_back("");
+
+  for (auto path : pathsOld) {
+    printf("%s\n", path.c_str());
+    std::string finalSaveFilePath = std::string("save:/") + path;
+      if ((dir = opendir(finalSaveFilePath.c_str())) != nullptr) {
+        std::regex validSaveFileNames(files);
+
+        while ((ent = readdir(dir)) != nullptr) {
+          if (std::regex_match(ent->d_name, validSaveFileNames))
+            saveFiles.push_back(path + ent->d_name);
+        }
+
+        std::sort(saveFiles.begin(), saveFiles.end());
+
+        closedir(dir);
+      }
+
+      fsdevUnmountDevice(SAVE_DEV);
+      fsFsClose(&fs);
   }
 
-  fsdevUnmountDevice(SAVE_DEV);
-  fsFsClose(&fs);
 }
 
 void GuiEditor::onInput(u32 kdown) {
@@ -266,8 +301,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     if (m_offsetFile == nullptr) return;
     if (m_offsetFile["saveFilePaths"] == nullptr || m_offsetFile["files"] == nullptr || m_offsetFile["filetype"] == nullptr || m_offsetFile["items"] == nullptr) return;
 
-    for (auto saveFilePath : m_offsetFile["saveFilePaths"])
-      updateSaveFileList(saveFilePath.get<std::string>().c_str());
+    updateSaveFileList(m_offsetFile["saveFilePaths"], m_offsetFile["files"]);
 
     (new ListSelector("Edit save file", "\x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {

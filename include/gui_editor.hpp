@@ -27,5 +27,5 @@ private:
   void createWidgets();
   bool loadConfigFile(json &j);
 
-  void updateSaveFileList(const char *saveFilePath);
+  void updateSaveFileList(std::vector<std::string> saveFilePath, std::string files);
 };

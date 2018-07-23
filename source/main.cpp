@@ -20,6 +20,8 @@ extern "C" {
 
 size_t __nx_heap_size = 0x200000 * 32;
 
+char* g_edizonPath;
+
 Gui* currGui = nullptr;
 
 void initTitles() {
@@ -63,6 +65,9 @@ int main(int argc, char** argv) {
 
   Gui::g_nextGui = GUI_MAIN;
   touchCntOld = hidTouchCount();
+
+  g_edizonPath = new char[strlen(argv[0])];
+  strcpy(g_edizonPath, argv[0] + 5);
 
   while (appletMainLoop()) {
     hidScanInput();

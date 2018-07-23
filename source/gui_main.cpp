@@ -149,10 +149,12 @@ void GuiMain::onInput(u32 kdown) {
   if (kdown & KEY_MINUS) {
     UpdateManager updateManager(0);
 
-    if (updateManager.checkUpdate())
-      (new MessageBox("Updated configs and scripts to latest version!", OKAY))->show();
-    else (new MessageBox("Latest configs and scripts are already installed!", OKAY))->show();
-
+    switch (updateManager.checkUpdate()) {
+      case NONE: (new MessageBox("Latest configs and scripts are already installed!", OKAY))->show(); break;
+      case ERROR: (new MessageBox("An error while downloading the updates has occured.", OKAY))->show(); break;
+      case EDITOR: (new MessageBox("Updated editor configs and scripts to the latest version!", OKAY))->show(); break;
+      case EDIZON: (new MessageBox("Updated EdiZon and editor configs and scripts to\nthe latest version! Please restart EdiZon!", OKAY))->show(); break;
+    }
   }
 }
 

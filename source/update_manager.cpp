@@ -9,7 +9,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <cerrno>
 #include <utime.h>
 
 #include <curl/curl.h>
@@ -20,7 +19,9 @@
 
 #define EDIZON_URL "http://werwolv.net"
 
-using namespace nlohmann;
+using json = nlohmann::json;
+
+extern char* g_edizonPath;
 
 CURL *curl;
 
@@ -47,27 +48,26 @@ size_t writeToFile(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return written;
 }
 
-void deleteFile(std::string path)
-{
+void deleteFile(std::string path) {
   printf("Deleting %s.\n", path.c_str());
 
   remove(path.c_str());
 }
 
-void updateFile(std::string path)
-{
+void updateFile(std::string path) {
   printf("Updating %s.\n", path.c_str());
 
   std::string url = EDIZON_URL;
   url.append(path);
 
   FILE* fp;
-  if (path.compare("/EdiZon/EdiZon.nro") == 0)
-  {
-    deleteFile("/switch/EdiZon.nro");
+
+  if (path.compare("/EdiZon/EdiZon.nro") == 0) {
+    deleteFile(g_edizonPath);
     mkdir("/switch/EdiZon", 0777);
     path = "/switch/EdiZon/EdiZon.nro";
   }
+
   fp = fopen(path.c_str(), "wb");
 
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -77,15 +77,14 @@ void updateFile(std::string path)
   CURLcode res = curl_easy_perform(curl);
 
   if (res != CURLE_OK)
-    printf("2nd CURL perform failed: %s\n", curl_easy_strerror(res));
+    printf("Update download CURL perform failed: %s\n", curl_easy_strerror(res));
 
   fclose(fp);
 }
 
-bool UpdateManager::checkUpdate()
-{
+Updates UpdateManager::checkUpdate() {
   if (!curl)
-    return false;
+    return ERROR;
 
   CURLcode res;
   std::string str;
@@ -97,15 +96,14 @@ bool UpdateManager::checkUpdate()
   res = curl_easy_perform(curl);
 
   if (res != CURLE_OK) {
-    printf("1st CURL perform failed: %s\n", curl_easy_strerror(res));
-    return false;
+    printf("Version check CURL perform failed: %s\n", curl_easy_strerror(res));
+    return ERROR;
   }
 
   printf("Returned data: %s\n", str.c_str());
-  if (str.compare(0, 1, "{") != 0)
-  {
-    printf("Invalid downloaded JSON!\n");
-    return false;
+  if (str.compare(0, 1, "{") != 0) {
+    printf("Invalid downloaded update file!\n");
+    return ERROR;
   }
 
   json remote = json::parse(str);
@@ -115,58 +113,59 @@ bool UpdateManager::checkUpdate()
   mkdir("/EdiZon/editor/scripts", 0777);
   mkdir("/EdiZon/editor/scripts/lib", 0777);
 
-  bool updatedFile = false;
+  Updates updatedFile = NONE;
 
 	std::ifstream i("/EdiZon/editor/update.json");
-	if (!i.is_open())
-	{
-		printf("File didn't exist, will create it.\n");
+
+	if (!i.is_open()) {
+		printf("Update file didn't exist, will create it.\n");
 		for (json::iterator it = remote.begin(); it != remote.end(); ++it)
 			updateFile(it.key());
-		updatedFile = true;
+		updatedFile = EDIZON;
 	}
-	else
-	{
-		printf("File opened.\n");
+	else {
 		std::string buf;
 		std::getline(i, buf);
-		if (buf.size() == 0) return false;
-		printf("Read from SD card: %s\n", buf.c_str());
-    if (buf.compare(0, 1, "{") != 0)
-    {
-      printf("Invalid JSON on SD card!\n");
+		if (buf.size() == 0)
+      return ERROR;
+
+    if (buf.compare(0, 1, "{") != 0) {
+      printf("Invalid update file on SD card!\n");
       deleteFile("/EdiZon/editor/update.json");
-      return false;
+      return ERROR;
     }
+
 		auto local = json::parse(buf);
 		i.close();
 
-		for (json::iterator it = remote.begin(); it != remote.end(); ++it)
-		{
-			if (local.find(it.key()) == local.end() || local[it.key()] < remote[it.key()])
-			{
+		for (json::iterator it = remote.begin(); it != remote.end(); ++it) {
+			if (local.find(it.key()) == local.end() || local[it.key()] < remote[it.key()]) {
 				updateFile(it.key());
-				updatedFile = true;
+
+        if (it.key().compare("/EdiZon/EdiZon.nro") == 0)
+				    updatedFile = EDIZON;
+
+        if (updatedFile != EDIZON)
+          updatedFile = EDITOR;
 			}
 		}
 
-		for (json::iterator it = local.begin(); it != local.end(); ++it)
-		{
+		for (json::iterator it = local.begin(); it != local.end(); ++it) {
 			if (remote.find(it.key()) == remote.end())
 				deleteFile(it.key());
 		}
 	}
 
-	if (updatedFile)
-	{
+	if (updatedFile) {
 		printf("Writing updated file to SD.\n");
 		std::ofstream o("/EdiZon/editor/update.json");
+
 		if (o.is_open()) {
 			o << str;
 			o.close();
 		}
 		else
-			printf("Error while opening the output file.\n");
+			printf("Error while opening the output file for update.\n");
 	}
 
   return updatedFile;

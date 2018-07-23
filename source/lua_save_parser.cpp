@@ -143,7 +143,11 @@ int LuaSaveParser::lua_getSaveFileBuffer(lua_State *state) {
 }
 
 int LuaSaveParser::lua_getSaveFileString(lua_State *state) {
-  lua_pushstring(state, reinterpret_cast<char*>(m_buffer));
+  char* str = reinterpret_cast<char*>(m_buffer);
+
+  str[m_bufferSize] = 0x00;
+
+  lua_pushstring(state, str);
 
   return 1;
 }

@@ -474,12 +474,14 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
         if (Widget::g_selectedWidgetIndex > 0)
           Widget::g_selectedWidgetIndex--;
         Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
+        widgetPage = 0;
       }
 
       if (kdown & KEY_DOWN) {
         if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 1)
           Widget::g_selectedWidgetIndex++;
         Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
+        widgetPage = 0;
       }
     }
     /* Categories and widgets row */
@@ -499,6 +501,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           delete[] GuiEditor::g_currSaveFile;
           GuiEditor::g_currSaveFile = nullptr;
           GuiEditor::g_currSaveFileName = "";
+          widgetPage = 0;
 
           for (auto const& [category, widgets] : m_widgets)
             for(auto widget : widgets)

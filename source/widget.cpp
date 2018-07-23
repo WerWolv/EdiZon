@@ -4,7 +4,7 @@
 #include <iostream>
 
 Widget::Widget(LuaSaveParser *saveParser) : m_saveParser(saveParser) {
-
+  
 }
 
 Widget::~Widget() {
@@ -12,6 +12,9 @@ Widget::~Widget() {
 }
 
 void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end) {
+
+  if (Widget::g_categories.empty() || widgets.empty()) return;
+  if (widgets.find(Widget::g_selectedCategory) == widgets.end()) return;
 
   u8 categoryIndex = 0;
   for (auto category : Widget::g_categories) {

@@ -274,6 +274,10 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
         if (saveFiles.size() != 0) {
           size_t length;
 
+          Widget::g_selectedWidgetIndex = 0;
+          Widget::g_selectedCategory = "";
+          Widget::g_selectedRow = CATEGORIES;
+
           GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {

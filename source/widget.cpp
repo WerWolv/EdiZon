@@ -4,7 +4,7 @@
 #include <iostream>
 
 Widget::Widget(LuaSaveParser *saveParser) : m_saveParser(saveParser) {
-  
+
 }
 
 Widget::~Widget() {
@@ -68,7 +68,7 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
   if (Widget::g_selectedRow == CATEGORIES) {
     if (kdown & KEY_A || kdown & KEY_RIGHT) {
       Widget::g_selectedRow = WIDGETS;
-      Widget::g_selectedWidgetIndex = 0;
+      Widget::g_selectedWidgetIndex = Widget::g_widgetPage * WIDGETS_PER_PAGE;
     }
   }
 }

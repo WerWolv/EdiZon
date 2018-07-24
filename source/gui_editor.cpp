@@ -31,8 +31,6 @@ u8* titleIcon;
 
 std::vector<std::string> backupNames;
 std::vector<std::string> saveFiles;
-u16 widgetPage;
-std::map<std::string, u16> widgetPageCnt;
 
 color_t dominantColor;
 color_t textColor;
@@ -73,7 +71,7 @@ GuiEditor::GuiEditor() : Gui() {
 
   textColor = (dominantColor.r > 0x80 && dominantColor.g > 0x80 && dominantColor.b > 0x80) ? COLOR_BLACK : COLOR_WHITE;
 
-  widgetPage = 0;
+  Widget::g_widgetPage = 0;
   Widget::g_selectedWidgetIndex = 0;
   Widget::g_selectedCategory = "";
 
@@ -113,7 +111,7 @@ void GuiEditor::draw() {
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 45, textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, textColor, ss.str().c_str(), ALIGNED_CENTER);
 
-  Widget::drawWidgets(this, m_widgets, 150, widgetPage * WIDGETS_PER_PAGE, (widgetPage + 1) * WIDGETS_PER_PAGE);
+  Widget::drawWidgets(this, m_widgets, 150, Widget::g_widgetPage * WIDGETS_PER_PAGE, (Widget::g_widgetPage + 1) * WIDGETS_PER_PAGE);
 
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
@@ -124,14 +122,14 @@ void GuiEditor::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel     \x01 - OK", ALIGNED_RIGHT);
 
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
-    for (u8 page = 0; page < widgetPageCnt[Widget::g_selectedCategory]; page++) {
-      Gui::drawRectangle((Gui::g_framebuffer_width / 2) - widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 , 615, 20, 20, currTheme.separatorColor);
-      if (page == widgetPage)
-        Gui::drawRectangled((Gui::g_framebuffer_width / 2) - widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 619, 12, 12, currTheme.highlightColor);
+    for (u8 page = 0; page < Widget::g_widgetPageCnt[Widget::g_selectedCategory]; page++) {
+      Gui::drawRectangle((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 , 615, 20, 20, currTheme.separatorColor);
+      if (page == Widget::g_widgetPage)
+        Gui::drawRectangled((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 619, 12, 12, currTheme.highlightColor);
     }
 
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) - widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 598, currTheme.textColor, "\x05", ALIGNED_CENTER);
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) + widgetPageCnt[Widget::g_selectedCategory] * 15 + 18, 598, currTheme.textColor, "\x06", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 598, currTheme.textColor, "\x05", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) + Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + 18, 598, currTheme.textColor, "\x06", ALIGNED_CENTER);
 
   }
 
@@ -208,7 +206,7 @@ void GuiEditor::createWidgets() {
   Widget::g_selectedCategory = Widget::g_categories[0];
 
   for (auto category : tempCategories)
-    widgetPageCnt[category] = ceil(m_widgets[category].size() / WIDGETS_PER_PAGE);
+    Widget::g_widgetPageCnt[category] = ceil(m_widgets[category].size() / WIDGETS_PER_PAGE);
 }
 
 void updateBackupList() {
@@ -454,15 +452,15 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
   else {
     if (Widget::g_selectedRow == WIDGETS) { /* Widgets row */
       if (kdown & KEY_L) {
-        if (widgetPage > 0)
-          widgetPage--;
-        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage;
+        if (Widget::g_widgetPage > 0)
+          Widget::g_widgetPage--;
+        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * Widget::g_widgetPage;
       }
 
       if (kdown & KEY_R) {
-        if (widgetPage < widgetPageCnt[Widget::g_selectedCategory] - 1)
-          widgetPage++;
-        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * widgetPage ;
+        if (Widget::g_widgetPage < Widget::g_widgetPageCnt[Widget::g_selectedCategory] - 1)
+          Widget::g_widgetPage++;
+        Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * Widget::g_widgetPage ;
       }
 
       if (kdown & KEY_B) {
@@ -473,13 +471,13 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
       if (kdown & KEY_UP) {
         if (Widget::g_selectedWidgetIndex > 0)
           Widget::g_selectedWidgetIndex--;
-        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
+        Widget::g_widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
       }
 
       if (kdown & KEY_DOWN) {
         if (Widget::g_selectedWidgetIndex < m_widgets[Widget::g_selectedCategory].size() - 1)
           Widget::g_selectedWidgetIndex++;
-        widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
+        Widget::g_widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
       }
 
     } else { /* Categories row */
@@ -508,14 +506,14 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
         if (Widget::g_selectedWidgetIndex > 0)
           Widget::g_selectedWidgetIndex--;
         Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
-        widgetPage = 0;
+        Widget::g_widgetPage = 0;
       }
 
       if (kdown & KEY_DOWN) {
         if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 1)
           Widget::g_selectedWidgetIndex++;
         Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
-        widgetPage = 0;
+        Widget::g_widgetPage = 0;
       }
     }
     /* Categories and widgets row */
@@ -535,7 +533,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           delete[] GuiEditor::g_currSaveFile;
           GuiEditor::g_currSaveFile = nullptr;
           GuiEditor::g_currSaveFileName = "";
-          widgetPage = 0;
+          Widget::g_widgetPage = 0;
 
           for (auto const& [category, widgets] : m_widgets)
             for(auto widget : widgets)
@@ -554,7 +552,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
-  //s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * widgetPage;
+  //s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * Widget::g_widgetPage;
 
   if (GuiEditor::g_currSaveFile == nullptr) {
     if (touch.px < 128 && touch.py < 128) {

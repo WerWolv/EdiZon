@@ -268,23 +268,22 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
   } else pathsOld.push_back("");
 
   for (auto path : pathsOld) {
-    printf("%s\n", path.c_str());
     std::string finalSaveFilePath = std::string("save:/") + path;
-      if ((dir = opendir(finalSaveFilePath.c_str())) != nullptr) {
-        std::regex validSaveFileNames(files);
+    if ((dir = opendir(finalSaveFilePath.c_str())) != nullptr) {
+      std::regex validSaveFileNames(files);
 
-        while ((ent = readdir(dir)) != nullptr) {
-          if (std::regex_match(ent->d_name, validSaveFileNames))
-            saveFiles.push_back(path + ent->d_name);
-        }
-
-        std::sort(saveFiles.begin(), saveFiles.end());
-
-        closedir(dir);
+      while ((ent = readdir(dir)) != nullptr) {
+        if (std::regex_match(ent->d_name, validSaveFileNames))
+          saveFiles.push_back(path + ent->d_name);
       }
 
-      fsdevUnmountDevice(SAVE_DEV);
-      fsFsClose(&fs);
+      std::sort(saveFiles.begin(), saveFiles.end());
+
+      closedir(dir);
+    }
+
+    fsdevUnmountDevice(SAVE_DEV);
+    fsFsClose(&fs);
   }
 
 }

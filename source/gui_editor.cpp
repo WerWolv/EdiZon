@@ -241,8 +241,9 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
     dir = opendir("save:/");
 
     while ((ent = readdir(dir)) != nullptr) {
-      if (std::regex_match(std::string(ent->d_name), std::regex(saveFilePath[0])))
+      if (std::regex_match(std::string(ent->d_name), std::regex(saveFilePath[0]))) {
         pathsOld.push_back(std::string(ent->d_name) + "/");
+      }
     }
 
     closedir(dir);
@@ -281,10 +282,10 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
 
       closedir(dir);
     }
-
-    fsdevUnmountDevice(SAVE_DEV);
-    fsFsClose(&fs);
   }
+
+  fsdevUnmountDevice(SAVE_DEV);
+  fsFsClose(&fs);
 
 }
 

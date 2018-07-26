@@ -101,6 +101,9 @@ void GuiEditor::draw() {
   ss << "0x" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
+
+  Widget::drawWidgets(this, m_widgets, 150, Widget::g_widgetPage * WIDGETS_PER_PAGE, (Widget::g_widgetPage + 1) * WIDGETS_PER_PAGE);
+
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, dominantColor);
   Gui::drawImage(0, 0, 128, 128, titleIcon, IMAGE_MODE_RGB24);
   Gui::drawImage(Gui::g_framebuffer_width - 128, 0, 128, 128, Account::g_currAccount->getProfileImage(), IMAGE_MODE_RGB24);
@@ -111,8 +114,7 @@ void GuiEditor::draw() {
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 45, textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, textColor, ss.str().c_str(), ALIGNED_CENTER);
 
-  Widget::drawWidgets(this, m_widgets, 150, Widget::g_widgetPage * WIDGETS_PER_PAGE, (Widget::g_widgetPage + 1) * WIDGETS_PER_PAGE);
-
+  Gui::drawRectangle(0, Gui::g_framebuffer_height - 73, Gui::g_framebuffer_width, 73, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
   if (GuiEditor::g_currSaveFile == nullptr) {
@@ -308,6 +310,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           Widget::g_selectedWidgetIndex = 0;
           Widget::g_selectedCategory = "";
           Widget::g_selectedRow = CATEGORIES;
+          Widget::g_categoryYOffset = 0;
 
           GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
 
@@ -502,15 +505,23 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
       }
 
       if (kdown & KEY_UP) {
-        if (Widget::g_selectedWidgetIndex > 0)
+        if (Widget::g_selectedWidgetIndex > 0) {
           Widget::g_selectedWidgetIndex--;
+
+          if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 7 && Widget::g_categoryYOffset != 0)
+            Widget::g_categoryYOffset--;
+        }
         Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
         Widget::g_widgetPage = 0;
       }
 
       if (kdown & KEY_DOWN) {
-        if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 1)
+        if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 1) {
           Widget::g_selectedWidgetIndex++;
+
+          if (Widget::g_selectedWidgetIndex > 6 && Widget::g_categoryYOffset < Widget::g_categories.size() - 8)
+            Widget::g_categoryYOffset++;
+        }
         Widget::g_selectedCategory = Widget::g_categories[Widget::g_selectedWidgetIndex];
         Widget::g_widgetPage = 0;
       }

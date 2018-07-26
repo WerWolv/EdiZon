@@ -39,6 +39,7 @@ public:
   static inline WidgetRow g_selectedRow = CATEGORIES;
   static inline u16 g_widgetPage;
   static inline std::map<std::string, u16> g_widgetPageCnt;
+  static inline u8 g_categoryYOffset = 0;
 
   static void drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end);
   static void handleInput(u32 kdown, WidgetItems &widgets);

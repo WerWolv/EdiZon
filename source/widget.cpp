@@ -12,27 +12,21 @@ Widget::~Widget() {
 }
 
 void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end) {
-
   if (Widget::g_categories.empty() || widgets.empty()) return;
   if (widgets.find(Widget::g_selectedCategory) == widgets.end()) return;
 
-  u8 categoryIndex = 0;
-  for (auto category : Widget::g_categories) {
-    if (category == Widget::g_selectedCategory) {
-      if (Widget::g_selectedRow == CATEGORIES) {
-        gui->drawRectangled(25, y + 4 + 60 * categoryIndex, 310, 55, currTheme.highlightColor);
-        gui->drawRectangle(30, y + 9 + 60 * categoryIndex, 300, 45, currTheme.selectedButtonColor);
-        gui->drawShadow(25, y + 4 + 60 * categoryIndex, 310, 55);
-      }
-
-      gui->drawRectangle(37, y + 13 + 60 * categoryIndex, 4, 35, currTheme.selectedColor);
-    }
-
-    gui->drawText(font20, 50, y + 15 + 60 * categoryIndex, category == Widget::g_selectedCategory ? currTheme.selectedColor : currTheme.textColor, category.c_str());
-
-    categoryIndex++;
+  ptrdiff_t categoryIndex = std::find(Widget::g_categories.begin(), Widget::g_categories.end(), Widget::g_selectedCategory) - Widget::g_categories.begin() - g_categoryYOffset;
+  if (Widget::g_selectedRow == CATEGORIES) {
+    gui->drawRectangled(25, y + 4 + 60 * categoryIndex, 310, 55, currTheme.highlightColor);
+    gui->drawRectangle(30, y + 9 + 60 * categoryIndex, 300, 45, currTheme.selectedButtonColor);
+    gui->drawShadow(25, y + 4 + 60 * categoryIndex, 310, 55);
   }
 
+  gui->drawRectangle(37, y + 13 + 60 * categoryIndex, 4, 35, currTheme.selectedColor);
+
+  for (u8 i = 0; i < Widget::g_categories.size(); i++) {
+    gui->drawText(font20, 50, y + 15 + 60 * (i - g_categoryYOffset), Widget::g_categories[i] == Widget::g_selectedCategory ? currTheme.selectedColor : currTheme.textColor, Widget::g_categories[i].c_str());
+  }
 
   std::vector<WidgetItem> &currWidgets = widgets[Widget::g_selectedCategory];
 

@@ -3,6 +3,10 @@
 #include <vector>
 #include <algorithm>
 
+#include <iostream>
+#include <unistd.h>
+#include <fcntl.h>
+
 #include "gui.hpp"
 #include "gui_main.hpp"
 #include "gui_editor.hpp"
@@ -54,6 +58,15 @@ int main(int argc, char** argv) {
 #ifdef NXLINK
   nxlinkStdio();
 #endif
+
+  int file = open("/EdiZon/EdiZon.log", O_APPEND | O_WRONLY);
+
+  if (file >= 0) {
+    fflush(stdout);
+    dup2(file, STDOUT_FILENO);
+    fflush(stderr);
+    dup2(file, STDERR_FILENO);
+  }
 
   gfxInitDefault();
   setsysInitialize();
@@ -143,6 +156,8 @@ int main(int argc, char** argv) {
 
   Title::g_titles.clear();
   Account::g_accounts.clear();
+
+  close(file);
 
   socketExit();
   gfxExit();

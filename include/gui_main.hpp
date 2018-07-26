@@ -20,10 +20,9 @@ public:
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
 private:
-  struct {
+  static inline struct {
     u8 titleIndex;
     u8 accountIndex;
-    u8 saveFileIndex;
 
     u64 titleId;
     u128 userId;

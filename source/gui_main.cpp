@@ -18,10 +18,9 @@ enum {
 } selectionState = TITLE_SELECT;
 
 GuiMain::GuiMain() : Gui() {
-  m_selected.titleIndex = 0;
   m_selected.accountIndex = 0;
   selectionState = TITLE_SELECT;
-  xOffset = 0;
+  xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 }
 
 GuiMain::~GuiMain() {

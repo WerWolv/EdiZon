@@ -28,7 +28,7 @@ void WidgetValue::onInput(u32 kdown) {
   if (kdown & KEY_LEFT) {
     accelerationTimer++;
     if (Widget::getIntegerValue() > m_minValue) {
-      if(accelerationTimer > ACCELERATION_DELAY && Widget::getIntegerValue() > static_cast<u32>(m_minValue + m_stepSize))
+      if(accelerationTimer > ACCELERATION_DELAY && Widget::getIntegerValue() > static_cast<s32>(m_minValue + m_stepSize))
         Widget::setIntegerValue(Widget::getIntegerValue() - m_stepSize);
       else
         Widget::setIntegerValue(Widget::getIntegerValue() - 1);
@@ -39,7 +39,7 @@ void WidgetValue::onInput(u32 kdown) {
   if (kdown & KEY_RIGHT) {
     accelerationTimer++;
     if (Widget::getIntegerValue() < m_maxValue) {
-      if(accelerationTimer > 50 && Widget::getIntegerValue() < m_maxValue - m_stepSize)
+      if(accelerationTimer > 50 && Widget::getIntegerValue() < static_cast<s32>(m_maxValue - m_stepSize))
         Widget::setIntegerValue(Widget::getIntegerValue() + m_stepSize);
       else
         Widget::setIntegerValue(Widget::getIntegerValue() + 1);
@@ -48,7 +48,7 @@ void WidgetValue::onInput(u32 kdown) {
   }
 
   if ((kdown & (KEY_LEFT | KEY_RIGHT)) == 0 ||
-      Widget::getIntegerValue() - m_stepSize <= m_minValue || Widget::getIntegerValue() + m_stepSize >= m_maxValue)
+      static_cast<s32>(Widget::getIntegerValue() - m_stepSize) <= m_minValue || static_cast<s32>(Widget::getIntegerValue() + m_stepSize) >= m_maxValue)
     accelerationTimer = 0;
 }
 

@@ -100,7 +100,6 @@ Updates UpdateManager::checkUpdate() {
     return ERROR;
   }
 
-  printf("Returned data: %s\n", str.c_str());
   if (str.compare(0, 1, "{") != 0) {
     printf("Invalid downloaded update file!\n");
     return ERROR;

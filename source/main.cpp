@@ -11,6 +11,8 @@
 #include "gui_main.hpp"
 #include "gui_editor.hpp"
 
+#include "update_manager.hpp"
+
 #include "title.hpp"
 
 extern "C" {
@@ -105,6 +107,20 @@ int main(int argc, char** argv) {
     }
 
     currGui->draw();
+
+    if (GuiMain::g_shouldUpdate) {
+      Gui::g_currMessageBox->hide();
+      UpdateManager updateManager(0);
+
+      switch (updateManager.checkUpdate()) {
+        case NONE: (new MessageBox("Latest configs and scripts are already installed!", MessageBox::OKAY))->show(); break;
+        case ERROR: (new MessageBox("An error while downloading the updates has occured.", MessageBox::OKAY))->show(); break;
+        case EDITOR: (new MessageBox("Updated editor configs and scripts to the latest version!", MessageBox::OKAY))->show(); break;
+        case EDIZON: (new MessageBox("Updated EdiZon and editor configs and scripts to\nthe latest version! Please restart EdiZon!", MessageBox::OKAY))->show(); break;
+      }
+
+      GuiMain::g_shouldUpdate = false;
+    }
 
     if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
       if (Gui::g_currMessageBox != nullptr)

@@ -5,8 +5,6 @@
 #include "title.hpp"
 #include "account.hpp"
 
-#include "update_manager.hpp"
-
 #include <string>
 #include <sstream>
 #include <math.h>
@@ -147,14 +145,8 @@ void GuiMain::onInput(u32 kdown) {
     }
   }
   if (kdown & KEY_MINUS) {
-    UpdateManager updateManager(0);
-
-    switch (updateManager.checkUpdate()) {
-      case NONE: (new MessageBox("Latest configs and scripts are already installed!", OKAY))->show(); break;
-      case ERROR: (new MessageBox("An error while downloading the updates has occured.", OKAY))->show(); break;
-      case EDITOR: (new MessageBox("Updated editor configs and scripts to the latest version!", OKAY))->show(); break;
-      case EDIZON: (new MessageBox("Updated EdiZon and editor configs and scripts to\nthe latest version! Please restart EdiZon!", OKAY))->show(); break;
-    }
+    (new MessageBox("Checking for updates...", MessageBox::NONE))->show();
+    GuiMain::g_shouldUpdate = true;
   }
 }
 

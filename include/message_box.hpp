@@ -6,14 +6,15 @@
 
 class Gui;
 
-typedef enum {
-  OKAY = 1,
-  YES_NO = 2
-} MessageBoxOptions;
-
 class MessageBox {
 public:
-  MessageBox(std::string message, MessageBoxOptions options);
+  typedef enum {
+    NONE = 0,
+    OKAY = 1,
+    YES_NO = 2
+  } MessageBoxOptions;
+
+  MessageBox(std::string message, MessageBox::MessageBoxOptions options);
   ~MessageBox();
 
   MessageBox* setSelectionAction(std::function<void(s8)> selectionAction);

@@ -329,7 +329,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
                   message += Title::g_currTitle->getTitleVersion();
                   message += ".\nAre you sure you want to continue?";
 
-                (new MessageBox(message, YES_NO))->setSelectionAction([&](s8 selection) {
+                (new MessageBox(message, MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
                     if (!selection) {
                       luaParser.luaDeinit();
 
@@ -384,7 +384,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
       (new ListSelector("Restore Backup", "\x01 - Restore     \x03 - Delete      \x02 - Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
         if (k & KEY_A) {
           if (backupNames.size() != 0) {
-              (new MessageBox("Are you sure you want to inject this backup?", YES_NO))->setSelectionAction([&](s8 selection) {
+              (new MessageBox("Are you sure you want to inject this backup?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
                 if (selection) {
                   s16 res;
 
@@ -486,7 +486,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 
     } else { /* Categories row */
       if (kdown & KEY_B) {
-        (new MessageBox("Are you sure you want to discard your changes?", YES_NO))->setSelectionAction([&](s8 selection) {
+        (new MessageBox("Are you sure you want to discard your changes?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
           if (selection) {
             luaParser.luaDeinit();
 
@@ -530,7 +530,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     }
     /* Categories and widgets row */
     if (kdown & KEY_X) {
-      (new MessageBox("Are you sure you want to edit these values?", YES_NO))->setSelectionAction([&](s8 selection) {
+      (new MessageBox("Are you sure you want to edit these values?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         if (selection) {
           size_t size = 0;
           std::vector<u8> buffer;

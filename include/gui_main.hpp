@@ -12,6 +12,8 @@ public:
   GuiMain();
   ~GuiMain();
 
+  static inline bool g_shouldUpdate = false;
+
   void draw();
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);

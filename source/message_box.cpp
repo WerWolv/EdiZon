@@ -4,7 +4,7 @@
 
 #include "gui.hpp"
 
-MessageBox::MessageBox(std::string message, MessageBoxOptions options) : m_message(message), m_options(options) {
+MessageBox::MessageBox(std::string message, MessageBox::MessageBoxOptions options) : m_message(message), m_options(options) {
   m_selectedOption = 0;
 
   m_selectionAction = [](s8 selection){};
@@ -25,14 +25,15 @@ void MessageBox::draw(Gui *gui) {
   gui->drawRectangle(250, 180, Gui::g_framebuffer_width - 500, Gui::g_framebuffer_height - 360, currTheme.backgroundColor);
 
   gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 75, currTheme.textColor, m_message.c_str(), ALIGNED_CENTER);
-  gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);
 
-  if (m_options == OKAY) {
+  if (m_options == MessageBox::OKAY) {
+    gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);
     gui->drawRectangled(245, Gui::g_framebuffer_height - 265, Gui::g_framebuffer_width - 490, 90, currTheme.highlightColor);
     gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);
     gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 237, currTheme.selectedColor, "Back", ALIGNED_CENTER);
   }
-  else if (m_options == YES_NO) {
+  else if (m_options == MessageBox::YES_NO) {
+    gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);
     gui->drawRectangled(245 + ((Gui::g_framebuffer_width - 490) / 2) * m_selectedOption, Gui::g_framebuffer_height - 265, (Gui::g_framebuffer_width - 490) / 2, 90, currTheme.highlightColor);
     gui->drawRectangle(250, Gui::g_framebuffer_height - 260, (Gui::g_framebuffer_width - 500) / 2 - 6, 80, currTheme.selectedButtonColor);
     gui->drawRectangle(250 + ((Gui::g_framebuffer_width - 490) / 2), Gui::g_framebuffer_height - 260, (Gui::g_framebuffer_width - 500) / 2 - 6, 80, currTheme.selectedButtonColor);
@@ -41,12 +42,12 @@ void MessageBox::draw(Gui *gui) {
 }
 
 void MessageBox::onInput(u32 kdown) {
-  if (m_options == OKAY) {
+  if (m_options == MessageBox::OKAY) {
     if (kdown & KEY_A || kdown & KEY_B) {
       this->hide();
     }
   }
-  if (m_options == YES_NO) {
+  else if (m_options == MessageBox::YES_NO) {
     if (kdown & KEY_LEFT)
       m_selectedOption = fmax(0, m_selectedOption - 1);
 
@@ -66,12 +67,12 @@ void MessageBox::onInput(u32 kdown) {
 }
 
 void MessageBox::onTouch(touchPosition &touch) {
-  if (m_options == OKAY) {
+  if (m_options == MessageBox::OKAY) {
     if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < Gui::g_framebuffer_width - 250 && touch.py < Gui::g_framebuffer_height - 180) {
       m_selectionAction(0);
       this->hide();
     }
-  } else if (m_options == YES_NO) {
+  } else if (m_options == MessageBox::YES_NO) {
     if (touch.px > 250 && touch.py > Gui::g_framebuffer_height - 260 && touch.px < 250 + (Gui::g_framebuffer_width - 500) / 2 && touch.py < Gui::g_framebuffer_height - 180) {
       m_selectionAction(0);
       this->hide();

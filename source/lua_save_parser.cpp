@@ -123,6 +123,11 @@ void LuaSaveParser::getModifiedSaveFile(std::vector<u8> &buffer, size_t *outSize
     (*outSize)++;
 	}
 
+  if(buffer.back() == 0x00) {
+    buffer.pop_back();
+    (*outSize)--;
+  }
+
   lua_pop(m_luaState, 1);
 }
 

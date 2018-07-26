@@ -28,6 +28,3 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder);
 
 s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char *path);
 s32 storeSaveFile(u8 *buffer, size_t length, u64 titleID, u128 userID, const char *path);
-
-u64 getValueFromAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u8 addressSize, u8 valueSize);
-void setValueAtAddressAtOffset(u8 **buffer, u32 offsetAddress, u32 address, u64 value, u8 addressSize, u8 valueSize);

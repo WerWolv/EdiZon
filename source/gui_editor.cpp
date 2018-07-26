@@ -222,6 +222,8 @@ void updateBackupList() {
       backupNames.push_back(ent->d_name);
     closedir(dir);
   }
+
+  std::reverse(backupNames.begin(), backupNames.end());
 }
 
 void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::string files) {
@@ -277,9 +279,6 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
         if (std::regex_match(ent->d_name, validSaveFileNames))
           saveFiles.push_back(path + ent->d_name);
       }
-
-      std::sort(saveFiles.begin(), saveFiles.end());
-
       closedir(dir);
     }
   }

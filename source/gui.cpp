@@ -180,42 +180,42 @@ void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const 
             continue;
         }
         else if (codepoint == '\x01') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonA, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonA, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x02') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonB, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonB, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x03') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonX, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonX, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x04') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonY, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonY, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x05') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonL, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonL, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x06') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonR, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonR, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x07') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonPlus, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonPlus, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }
         else if (codepoint == '\x08') {
-            Gui::drawImage(x, y - 20, 25, 25, currTheme.buttonMinus, IMAGE_MODE_ABGR32);
+            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonMinus, IMAGE_MODE_ABGR32);
             x += 25;
             continue;
         }

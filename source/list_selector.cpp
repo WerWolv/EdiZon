@@ -4,6 +4,8 @@
 
 #include "gui.hpp"
 
+float deltaOffset = 0;
+
 ListSelector::ListSelector(std::string title, std::string options, std::vector<std::string> &listItems) : m_title(title), m_options(options), m_listItems(listItems) {
   m_optionsWidth = 0;
   m_optionsHeight = 0;
@@ -20,16 +22,36 @@ ListSelector::~ListSelector() {
 
 }
 
-void ListSelector::draw(Gui *gui) {
-  float deltaOffset = yOffsetNext - yOffset;
-  float scrollSpeed = deltaOffset / 4.0F;
+void ListSelector::update() {
+  deltaOffset = yOffsetNext - yOffset;
+  float scrollSpeed = deltaOffset / 64.0F;
   float deltaOffsetStart = startYOffsetNext - startYOffset;
-  float scrollSpeedStart = deltaOffsetStart / 4.0F;
+  float scrollSpeedStart = deltaOffsetStart / 64.0F;
 
+  yOffsetNext = 60 * selectedItem;
+
+  if (yOffset != yOffsetNext) {
+    if (yOffsetNext > yOffset)
+      yOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+    else
+      yOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+  }
+
+  if (startYOffset != startYOffsetNext) {
+    if (startYOffsetNext > startYOffset)
+      startYOffset += ceil((abs(deltaOffsetStart) > scrollSpeedStart) ? scrollSpeedStart : deltaOffsetStart);
+    else
+      startYOffset += floor((abs(deltaOffsetStart) > scrollSpeedStart) ? scrollSpeedStart : deltaOffsetStart);
+  }
+
+  if(startYOffset == startYOffsetNext && startYOffset == 500)
+    hide();
+}
+
+void ListSelector::draw(Gui *gui) {
   gui->drawRectangled(0, 0, Gui::g_framebuffer_width, 220 + startYOffset, gui->makeColor(0x00, 0x00, 0x00, 0x80 * (1 - (startYOffset / 500.0F))));
   gui->drawRectangle(0, 220 + startYOffset, Gui::g_framebuffer_width, Gui::g_framebuffer_height - 120, currTheme.backgroundColor);
 
-  yOffsetNext = 60 * selectedItem;
   if (m_listItems.size() != 0) {
     for (s8 currItem = -1; currItem < (s8) m_listItems.size(); currItem++)
         gui->drawRectangle(250, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 45, Gui::g_framebuffer_width - 500, 1, currTheme.separatorColor);
@@ -50,24 +72,6 @@ void ListSelector::draw(Gui *gui) {
 
   gui->drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73 + startYOffset, 1220, 1, currTheme.textColor);
   gui->drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50 + startYOffset, currTheme.textColor, m_options.c_str(), ALIGNED_RIGHT);
-
-  if (yOffset != yOffsetNext) {
-    if (yOffsetNext > yOffset)
-      yOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
-    else
-      yOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
-  }
-
-  if (startYOffset != startYOffsetNext) {
-    if (startYOffsetNext > startYOffset)
-      startYOffset += ceil((abs(deltaOffsetStart) > scrollSpeedStart) ? scrollSpeedStart : deltaOffsetStart);
-    else
-      startYOffset += floor((abs(deltaOffsetStart) > scrollSpeedStart) ? scrollSpeedStart : deltaOffsetStart);
-  }
-
-  if(startYOffset == startYOffsetNext && startYOffset == 500)
-    hide();
-
 }
 
 ListSelector* ListSelector::setInputAction(std::function<void(u32, u16)> inputActions) {

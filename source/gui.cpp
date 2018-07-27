@@ -18,6 +18,30 @@ Gui::~Gui() {
   Gui::g_currMessageBox = nullptr;
 }
 
+void Gui::update() {
+  menuTimer += 0.005;
+
+  if (Gui::g_currListSelector != nullptr)
+    Gui::g_currListSelector->update();
+
+  if (Gui::g_currSnackbar != nullptr) {
+    Gui::g_currSnackbar->update();
+
+    if (Gui::g_currSnackbar->isDead()) {
+        delete Gui::g_currSnackbar;
+        Gui::g_currSnackbar = nullptr;
+    }
+  }
+
+  if (Gui::g_currKeyboard != nullptr)
+    Gui::g_currKeyboard->update();
+
+  float highlightMultiplier = (sin(menuTimer) + 1) / 2.0F;
+  currTheme.highlightColor.r = 0x27 + 0x61 * highlightMultiplier;
+  currTheme.highlightColor.g = 0xA3 + 0x4F * highlightMultiplier;
+  currTheme.highlightColor.b = 0xC7 + 0x29 * highlightMultiplier;
+}
+
 inline u8 Gui::blendColor(u32 src, u32 dst, u8 alpha) {
     u8 one_minus_alpha = static_cast<u8>(255) - alpha;
     return (dst*alpha + src*one_minus_alpha) / static_cast<u8>(255);
@@ -445,29 +469,21 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
 }
 
 void Gui::beginDraw() {
-  float highlightMultiplier = (sin(menuTimer) + 1) / 2.0F;
-  currTheme.highlightColor.r = 0x27 + 0x61 * highlightMultiplier;
-  currTheme.highlightColor.g = 0xA3 + 0x4F * highlightMultiplier;
-  currTheme.highlightColor.b = 0xC7 + 0x29 * highlightMultiplier;
+
 }
 
 void Gui::endDraw() {
   if (Gui::g_currListSelector != nullptr)
     Gui::g_currListSelector->draw(this);
 
-  if (Gui::g_currSnackbar != nullptr) {
+  if (Gui::g_currSnackbar != nullptr)
     Gui::g_currSnackbar->draw(this);
-
-    if (Gui::g_currSnackbar->isDead()) {
-        delete Gui::g_currSnackbar;
-        Gui::g_currSnackbar = nullptr;
-    }
-  }
 
   if (Gui::g_currMessageBox != nullptr)
     Gui::g_currMessageBox->draw(this);
 
-  menuTimer += 0.2;
+  if (Gui::g_currKeyboard != nullptr)
+    Gui::g_currKeyboard->draw(this);
 
   gfxFlushBuffers();
   gfxSwapBuffers();

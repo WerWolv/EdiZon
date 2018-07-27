@@ -14,6 +14,7 @@ public:
   GuiEditor();
   ~GuiEditor();
 
+  void update();
   void draw();
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);

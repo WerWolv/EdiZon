@@ -25,7 +25,7 @@ extern char* g_edizonPath;
 
 CURL *curl;
 
-UpdateManager::UpdateManager(u64 titleID) {
+UpdateManager::UpdateManager() {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   curl = curl_easy_init();
 

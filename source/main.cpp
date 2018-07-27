@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 
 #include <iostream>
 #include <unistd.h>
@@ -15,6 +16,8 @@
 
 #include "title.hpp"
 
+#include "threads.hpp"
+
 extern "C" {
   #include "theme.h"
 }
@@ -23,6 +26,10 @@ extern "C" {
 
 #define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   10
+
+bool updateThreadRunning = false;
+
+Mutex mutexCurrGui;
 
 size_t __nx_heap_size = 0x200000 * 32;
 
@@ -43,6 +50,23 @@ void initTitles() {
 
     if (Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())
       Account::g_accounts.insert({ static_cast<u128>(saveInfo.userID), new Account(saveInfo.userID) });
+  }
+}
+
+void update(void *args) {
+  auto begin = std::chrono::steady_clock::now();
+
+  while (updateThreadRunning) {
+    begin = std::chrono::steady_clock::now();
+
+    mutexLock(&mutexCurrGui);
+
+    if (currGui != nullptr)
+      currGui->update();
+
+    mutexUnlock(&mutexCurrGui);
+
+    svcSleepThread(1.0E6 - std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - begin).count());
   }
 }
 
@@ -84,6 +108,11 @@ int main(int argc, char** argv) {
   g_edizonPath = new char[strlen(argv[0])];
   strcpy(g_edizonPath, argv[0] + 5);
 
+  mutexInit(&mutexCurrGui);
+
+  updateThreadRunning = true;
+  Threads::create(&update);
+
   while (appletMainLoop()) {
     hidScanInput();
     kdown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -93,6 +122,8 @@ int main(int argc, char** argv) {
       break;
 
     if (Gui::g_nextGui != GUI_INVALID) {
+      mutexLock(&mutexCurrGui);
+
       delete currGui;
       switch (Gui::g_nextGui) {
         case GUI_MAIN:
@@ -104,13 +135,16 @@ int main(int argc, char** argv) {
         default: break;
       }
       Gui::g_nextGui = GUI_INVALID;
+      mutexUnlock(&mutexCurrGui);
+
     }
 
     currGui->draw();
 
     if (GuiMain::g_shouldUpdate) {
       Gui::g_currMessageBox->hide();
-      UpdateManager updateManager(0);
+
+      UpdateManager updateManager;
 
       switch (updateManager.checkUpdate()) {
         case NONE: (new MessageBox("Latest configs and scripts are already installed!", MessageBox::OKAY))->show(); break;
@@ -127,6 +161,8 @@ int main(int argc, char** argv) {
         Gui::g_currMessageBox->onInput(kdown);
       else if (Gui::g_currListSelector != nullptr)
         Gui::g_currListSelector->onInput(kdown);
+      else if (Gui::g_currKeyboard != nullptr)
+        Gui::g_currKeyboard->onInput(kdown);
       else
         currGui->onInput(kdown);
     }
@@ -161,6 +197,10 @@ int main(int argc, char** argv) {
     touchCntOld = touchCnt;
     kheldOld = kheld;
   }
+
+  updateThreadRunning = false;
+
+  Threads::joinAll();
 
   delete currGui;
 

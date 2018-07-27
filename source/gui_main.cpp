@@ -5,12 +5,16 @@
 #include "title.hpp"
 #include "account.hpp"
 
+#include "threads.hpp"
+
 #include <string>
 #include <sstream>
 #include <math.h>
 
 float xOffset;
 float xOffsetNext;
+
+bool drawingDone = false;
 
 enum {
   TITLE_SELECT,
@@ -27,9 +31,25 @@ GuiMain::~GuiMain() {
 
 }
 
-void GuiMain::draw() {
+void GuiMain::update() {
+  Gui::update();
+
+  if (!drawingDone) return;
+
   float deltaOffset = xOffsetNext - xOffset;
-  float scrollSpeed = deltaOffset / 4.0F;
+  float scrollSpeed = deltaOffset / 24.0F;
+
+  if (xOffset != xOffsetNext) {
+    if (xOffsetNext > xOffset)
+      xOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+    else
+      xOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+  }
+
+}
+
+void GuiMain::draw() {
+  drawingDone = false;
 
   Gui::beginDraw();
 
@@ -86,17 +106,16 @@ void GuiMain::draw() {
       }
   }
 
-  if (xOffset != xOffsetNext) {
-    if (xOffsetNext > xOffset)
-      xOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
-    else
-      xOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
-  }
+  drawingDone = true;
 
   Gui::endDraw();
 }
 
 void GuiMain::onInput(u32 kdown) {
+  if (kdown & KEY_ZL) {
+    (new Keyboard("Test", 10))->show();
+  }
+
   if (kdown & KEY_LEFT) {
     if (selectionState == TITLE_SELECT) {
       if (static_cast<s16>(m_selected.titleIndex - 2) >= 0)

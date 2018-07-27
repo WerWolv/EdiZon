@@ -94,6 +94,10 @@ GuiEditor::~GuiEditor() {
   saveFiles.clear();
 }
 
+void GuiEditor::update() {
+  Gui::update();
+}
+
 void GuiEditor::draw() {
   Gui::beginDraw();
 

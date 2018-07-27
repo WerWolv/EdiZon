@@ -11,6 +11,8 @@ public:
   ~Snackbar();
 
   void show();
+
+  void update();
   void draw(Gui *gui);
 
   bool isDead();

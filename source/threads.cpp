@@ -20,8 +20,8 @@ Result Threads::create(ThreadFunc func) {
 }
 
 void Threads::joinAll() {
-  for (auto &thread : threads) {
-    threadWaitForExit(&thread);
-    threadClose(&thread);
+  for (u32 i = 0; i < threads.size(); i++) {
+    threadWaitForExit(&threads.at(i));
+    threadClose(&threads.at(i));
   }
 }

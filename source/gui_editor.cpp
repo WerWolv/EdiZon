@@ -35,7 +35,7 @@ std::vector<std::string> saveFiles;
 color_t dominantColor;
 color_t textColor;
 
-bool hasConfigFile;
+s8 configFileResult;
 
 LuaSaveParser luaParser;
 
@@ -75,7 +75,7 @@ GuiEditor::GuiEditor() : Gui() {
   Widget::g_selectedWidgetIndex = 0;
   Widget::g_selectedCategory = "";
 
-  hasConfigFile = loadConfigFile(m_offsetFile);
+  configFileResult = loadConfigFile(m_offsetFile);
 
 }
 
@@ -113,7 +113,6 @@ void GuiEditor::draw() {
   Gui::drawImage(Gui::g_framebuffer_width - 128, 0, 128, 128, Account::g_currAccount->getProfileImage(), IMAGE_MODE_RGB24);
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 128);
 
-
   Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 45, textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, textColor, ss.str().c_str(), ALIGNED_CENTER);
@@ -123,7 +122,19 @@ void GuiEditor::draw() {
 
   if (GuiEditor::g_currSaveFile == nullptr) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Backup     \x04 - Restore     \x02 - Back", ALIGNED_RIGHT);
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, hasConfigFile ? "No save file loaded. Press \x08 to select one." : "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
+
+    switch (configFileResult) {
+      case 0:
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \x08 to select one.", ALIGNED_CENTER);
+        break;
+      case 1:
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
+        break;
+      case 2:
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Syntax error in config file! Editing is disabled.", ALIGNED_CENTER);
+        break;
+    }
+
   } else
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel     \x01 - OK", ALIGNED_RIGHT);
 
@@ -142,7 +153,7 @@ void GuiEditor::draw() {
   Gui::endDraw();
 }
 
-bool GuiEditor::loadConfigFile(json &j) {
+s8 GuiEditor::loadConfigFile(json &j) {
   std::stringstream path;
   path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
 
@@ -151,16 +162,16 @@ bool GuiEditor::loadConfigFile(json &j) {
   m_widgets.clear();
 
   if (file.fail())
-    return false;
+    return 1;
 
   try {
     file >> j;
   } catch (json::parse_error& e) {
 		printf("Failed to parse JSON file.\n");
-		return false;
+		return 2;
 	}
 
-  return true;
+  return 0;
 }
 
 void GuiEditor::createWidgets() {
@@ -300,7 +311,7 @@ void GuiEditor::onInput(u32 kdown) {
 if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 
   if (kdown & KEY_MINUS) {
-    if (!hasConfigFile) return;
+    if (configFileResult != 0) return;
     saveFiles.clear();
 
     if (m_offsetFile == nullptr) return;
@@ -321,7 +332,6 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              printf("%lX %lX", sizeof(GuiEditor::g_currSaveFile), length);
               luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, m_offsetFile.find("encoding") != m_offsetFile.end() ? m_offsetFile["encoding"].get<std::string>().c_str() : "ascii");
               createWidgets();
               luaParser.luaInit(m_offsetFile["filetype"]);

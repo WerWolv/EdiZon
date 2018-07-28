@@ -26,7 +26,7 @@ private:
   WidgetItems m_widgets;
   json m_offsetFile;
   void createWidgets();
-  bool loadConfigFile(json &j);
+  s8 loadConfigFile(json &j);
 
   void updateSaveFileList(std::vector<std::string> saveFilePath, std::string files);
 };

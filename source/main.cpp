@@ -198,6 +198,7 @@ int main(int argc, char** argv) {
     kheldOld = kheld;
   }
 
+
   updateThreadRunning = false;
 
   Threads::joinAll();
@@ -216,6 +217,7 @@ int main(int argc, char** argv) {
   close(file);
 
   socketExit();
+
   gfxExit();
 
   return 0;

@@ -323,7 +323,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
               luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
               createWidgets();
-              luaParser.luaInit(m_offsetFile["filetype"]);
+              luaParser.luaInit(m_offsetFile["filetype"], m_offsetFile.find("encoding") != m_offsetFile.end() ? m_offsetFile["encoding"].get<std::string>().c_str() : "ascii");
 
               if (m_offsetFile["titleVersion"] != nullptr) {
                 if (Title::g_currTitle->getTitleVersion() != m_offsetFile["titleVersion"]) {
@@ -536,12 +536,11 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     if (kdown & KEY_X) {
       (new MessageBox("Are you sure you want to edit these values?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         if (selection) {
-          size_t size = 0;
           std::vector<u8> buffer;
 
-          luaParser.getModifiedSaveFile(buffer, &size);
+          luaParser.getModifiedSaveFile(buffer);
 
-          if(!storeSaveFile(&buffer[0], size, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
+          if(!storeSaveFile(&buffer[0], buffer.size(), Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
             (new Snackbar("Sucessfully injected modified values!"))->show();
           else
             (new Snackbar("Injection of modified values failed!"))->show();

@@ -1,6 +1,9 @@
 #include "lua_save_parser.hpp"
 
 #include <iostream>
+#include <algorithm>
+
+#include "encoding.hpp"
 
 int lua_getSaveFileBuffer(lua_State *state);
 int lua_getStrArguments(lua_State *state);
@@ -26,7 +29,7 @@ void LuaSaveParser::printError(lua_State *luaState) {
   printf("%s\n", lua_tostring(luaState, -1));
 }
 
-void LuaSaveParser::luaInit(std::string filetype) {
+void LuaSaveParser::luaInit(std::string filetype, std::string encoding) {
   m_luaState = luaL_newstate();
 
   luaL_openlibs(m_luaState);
@@ -50,6 +53,19 @@ void LuaSaveParser::luaInit(std::string filetype) {
 
   luaL_loadfile(m_luaState, path.c_str());
 
+  std::transform(encoding.begin(), encoding.end(), encoding.begin(), ::tolower);
+
+  if (encoding == "ascii")
+    m_encoding = ASCII;
+  else if (encoding == "utf-8")
+    m_encoding = UTF_8;
+  else if (encoding == "utf-16le")
+    m_encoding = UTF_16LE;
+  else if (encoding == "utf-16be")
+    m_encoding = UTF_16BE;
+  else printf("Lua init warning: Invalid encoding, using ASCII\n");
+
+
   if(lua_pcall(m_luaState, 0, 0, 0))
     printError(m_luaState);
 
@@ -61,8 +77,25 @@ void LuaSaveParser::luaDeinit() {
 }
 
 void LuaSaveParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize) {
-  this->m_buffer = buffer;
-  this->m_bufferSize = bufferSize;
+  std::vector<u8> utf8;
+
+  switch (m_encoding) {
+    case UTF_16BE:
+      utf8 = Encoding::uft16beToUtf8(buffer, bufferSize);
+      break;
+    case UTF_16LE:
+      utf8 = Encoding::uft16leToUtf8(buffer, bufferSize);
+      break;
+    case ASCII: [[fallthrough]]
+    case UTF_8: [[fallthrough]]
+    default:
+      utf8 = std::vector<u8>(buffer, buffer + bufferSize);
+      break;
+  }
+
+  this->m_bufferSize = utf8.size();
+  this->m_buffer = new u8[this->m_bufferSize];
+  std::copy(utf8.begin(), utf8.end(), this->m_buffer);
 }
 
 void LuaSaveParser::setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs) {
@@ -110,7 +143,9 @@ void LuaSaveParser::setStringInSaveFile(std::string value) {
     printError(m_luaState);
 }
 
-void LuaSaveParser::getModifiedSaveFile(std::vector<u8> &buffer, size_t *outSize) {
+void LuaSaveParser::getModifiedSaveFile(std::vector<u8> &buffer) {
+  std::vector<u8> encoded;
+
   lua_getglobal(m_luaState, "getModifiedSaveFile");
   if (lua_pcall(m_luaState, 0, 1, 0))
     printError(m_luaState);
@@ -118,12 +153,25 @@ void LuaSaveParser::getModifiedSaveFile(std::vector<u8> &buffer, size_t *outSize
   lua_pushnil(m_luaState);
 
 	while (lua_next(m_luaState, 1)) {
-		buffer.push_back(lua_tointeger(m_luaState, -1));
+		encoded.push_back(lua_tointeger(m_luaState, -1));
 		lua_pop(m_luaState, 1);
-    (*outSize)++;
 	}
 
   lua_pop(m_luaState, 1);
+
+  switch (m_encoding) {
+    case UTF_16BE:
+      buffer = Encoding::utf8ToUtf16be(&encoded[0], encoded.size());
+      break;
+    case UTF_16LE:
+      buffer = Encoding::utf8ToUtf16le(&encoded[0], encoded.size());
+      break;
+    case ASCII: [[fallthrough]]
+    case UTF_8: [[fallthrough]]
+    default:
+      buffer = encoded;
+      break;
+  }
 }
 
 int LuaSaveParser::lua_getSaveFileBuffer(lua_State *state) {

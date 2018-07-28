@@ -29,7 +29,7 @@ void LuaSaveParser::printError(lua_State *luaState) {
   printf("%s\n", lua_tostring(luaState, -1));
 }
 
-void LuaSaveParser::luaInit(std::string filetype, std::string encoding) {
+void LuaSaveParser::luaInit(std::string filetype) {
   m_luaState = luaL_newstate();
 
   luaL_openlibs(m_luaState);
@@ -53,6 +53,19 @@ void LuaSaveParser::luaInit(std::string filetype, std::string encoding) {
 
   luaL_loadfile(m_luaState, path.c_str());
 
+  if(lua_pcall(m_luaState, 0, 0, 0))
+    printError(m_luaState);
+
+  printf("Lua interpreter initialized!\n");
+}
+
+void LuaSaveParser::luaDeinit() {
+  lua_close(m_luaState);
+}
+
+void LuaSaveParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize, std::string encoding) {
+  std::vector<u8> utf8;
+
   std::transform(encoding.begin(), encoding.end(), encoding.begin(), ::tolower);
 
   if (encoding == "ascii")
@@ -64,20 +77,6 @@ void LuaSaveParser::luaInit(std::string filetype, std::string encoding) {
   else if (encoding == "utf-16be")
     m_encoding = UTF_16BE;
   else printf("Lua init warning: Invalid encoding, using ASCII\n");
-
-
-  if(lua_pcall(m_luaState, 0, 0, 0))
-    printError(m_luaState);
-
-  printf("Lua interpreter initialized!\n");
-}
-
-void LuaSaveParser::luaDeinit() {
-  lua_close(m_luaState);
-}
-
-void LuaSaveParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize) {
-  std::vector<u8> utf8;
 
   switch (m_encoding) {
     case UTF_16BE:
@@ -95,7 +94,9 @@ void LuaSaveParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize) {
 
   this->m_bufferSize = utf8.size();
   this->m_buffer = new u8[this->m_bufferSize];
-  std::copy(utf8.begin(), utf8.end(), this->m_buffer);
+
+  for (u32 i = 0; i < this->m_bufferSize; i++)
+    this->m_buffer[i] = utf8[i];
 }
 
 void LuaSaveParser::setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs) {

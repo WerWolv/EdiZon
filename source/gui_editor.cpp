@@ -321,9 +321,10 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length);
+              printf("%lX %lX", sizeof(GuiEditor::g_currSaveFile), length);
+              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, m_offsetFile.find("encoding") != m_offsetFile.end() ? m_offsetFile["encoding"].get<std::string>().c_str() : "ascii");
               createWidgets();
-              luaParser.luaInit(m_offsetFile["filetype"], m_offsetFile.find("encoding") != m_offsetFile.end() ? m_offsetFile["encoding"].get<std::string>().c_str() : "ascii");
+              luaParser.luaInit(m_offsetFile["filetype"]);
 
               if (m_offsetFile["titleVersion"] != nullptr) {
                 if (Title::g_currTitle->getTitleVersion() != m_offsetFile["titleVersion"]) {

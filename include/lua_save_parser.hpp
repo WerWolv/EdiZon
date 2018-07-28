@@ -13,7 +13,7 @@ public:
   LuaSaveParser();
   ~LuaSaveParser();
 
-  void luaInit(std::string filetype, std::string encoding);
+  void luaInit(std::string filetype);
   void luaDeinit();
 
   s32 getValueFromSaveFile();
@@ -23,7 +23,7 @@ public:
   void getModifiedSaveFile(std::vector<u8> &buffer);
 
   void setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
-  void setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize);
+  void setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize, std::string encoding);
 
   int lua_getSaveFileBuffer(lua_State *state);
   int lua_getSaveFileString(lua_State *state);

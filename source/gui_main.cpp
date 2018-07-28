@@ -112,10 +112,6 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
-  if (kdown & KEY_ZL) {
-    (new Keyboard("Test", 10))->show();
-  }
-
   if (kdown & KEY_LEFT) {
     if (selectionState == TITLE_SELECT) {
       if (static_cast<s16>(m_selected.titleIndex - 2) >= 0)

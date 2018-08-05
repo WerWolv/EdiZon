@@ -17,9 +17,9 @@ public:
   void luaInit(std::string filetype);
   void luaDeinit();
 
-  s32 getValueFromSaveFile();
+  s64 getValueFromSaveFile();
   std::string getStringFromSaveFile();
-  void setValueInSaveFile(s32 value);
+  void setValueInSaveFile(s64 value);
   void setStringInSaveFile(std::string value);
   void getModifiedSaveFile(std::vector<u8> &buffer);
 

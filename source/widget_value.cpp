@@ -4,7 +4,7 @@
 
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(LuaSaveParser *saveParser, s32 minValue, s32 maxValue, u32 stepSize) : Widget(saveParser), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
+WidgetValue::WidgetValue(LuaSaveParser *saveParser, s64 minValue, s64 maxValue, u64 stepSize) : Widget(saveParser), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
   m_widgetDataType = INT;
 
   if (stepSize == 0)

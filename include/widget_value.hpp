@@ -6,7 +6,7 @@
 
 class WidgetValue : public Widget {
 public:
-  WidgetValue(LuaSaveParser *saveParser, s32 minValue, s32 maxValue, u32 stepSize);
+  WidgetValue(LuaSaveParser *saveParser, s64 minValue, s64 maxValue, u64 stepSize);
   ~WidgetValue();
 
   void draw(Gui *gui, u16 x, u16 y);
@@ -15,6 +15,6 @@ public:
   void onTouch(touchPosition &touch);
 
 private:
-  s32 m_minValue, m_maxValue;
-  u32 m_stepSize;
+  s64 m_minValue, m_maxValue;
+  u64 m_stepSize;
 };

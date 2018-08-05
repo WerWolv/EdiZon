@@ -1,6 +1,7 @@
 #pragma once
 
-#define LUA_C89_NUMBERS
+#define LLONG_MAX INT64_MAX
+#define LLONG_MIN INT64_MIN
 #include "lua.hpp"
 
 #include <string>

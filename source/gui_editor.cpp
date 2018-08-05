@@ -39,6 +39,11 @@ s8 configFileResult;
 
 LuaSaveParser luaParser;
 
+template<typename T>
+static inline T optionalArg(json j, std::string tag, T elseVal) {
+  return j.find(tag) != j.end() ? j[tag].get<T>() : elseVal;
+}
+
 void updateSaveFileList(const char *path);
 
 GuiEditor::GuiEditor() : Gui() {
@@ -191,7 +196,7 @@ void GuiEditor::createWidgets() {
       if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) continue;
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
 
-      m_widgets[item["category"]].push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"], itemWidget.find("stepSize") != itemWidget.end() ? itemWidget["stepSize"].get<u32>() : 0) });
+      m_widgets[item["category"]].push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"], optionalArg(itemWidget, "stepSize", 0)) });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;
@@ -332,7 +337,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, m_offsetFile.find("encoding") != m_offsetFile.end() ? m_offsetFile["encoding"].get<std::string>().c_str() : "ascii");
+              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, optionalArg(m_offsetFile, "encoding", "ascii"));
               createWidgets();
               luaParser.luaInit(m_offsetFile["filetype"]);
 

@@ -394,7 +394,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
       s16 res;
 
       if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID())))
-        (new Snackbar("Sucessfully created backup!"))->show();
+        (new Snackbar("Successfully created backup!"))->show();
       else (new Snackbar("An error occured while creating the backup! Error " + std::to_string(res)))->show();
     }
 
@@ -409,7 +409,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
                   s16 res;
 
                   if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[Gui::Gui::g_currListSelector->selectedItem].c_str())))
-                    (new Snackbar("Sucessfully restored backup!"))->show();
+                    (new Snackbar("Successfully restored backup!"))->show();
                   else (new Snackbar("An error occured while restoring the backup! Error " + std::to_string(res)))->show();
 
                   Gui::Gui::g_currListSelector->hide();
@@ -557,7 +557,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           luaParser.getModifiedSaveFile(buffer);
 
           if(!storeSaveFile(&buffer[0], buffer.size(), Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
-            (new Snackbar("Sucessfully injected modified values!"))->show();
+            (new Snackbar("Successfully injected modified values!"))->show();
           else
             (new Snackbar("Injection of modified values failed!"))->show();
 

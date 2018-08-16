@@ -82,6 +82,21 @@ GuiEditor::GuiEditor() : Gui() {
 
   configFileResult = loadConfigFile(m_offsetFile);
 
+  bool foundVersion = false;
+
+  if (m_offsetFile.find("all") == m_offsetFile.end()) {
+    for (auto it : m_offsetFile.items()) {
+      if (it.key().find(Title::g_currTitle->getTitleVersion()) != std::string::npos) {
+        m_offsetFile = m_offsetFile[it.key()];
+        foundVersion = true;
+      }
+    }
+  } else
+    m_offsetFile = m_offsetFile["all"];
+
+  if (!foundVersion)
+    configFileResult = 3;
+
 }
 
 GuiEditor::~GuiEditor() {
@@ -137,6 +152,9 @@ void GuiEditor::draw() {
         break;
       case 2:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Syntax error in config file! Editing is disabled.", ALIGNED_CENTER);
+        break;
+      case 3:
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Config file isn't compatible with your game version. Editing is disabled.", ALIGNED_CENTER);
         break;
     }
 
@@ -320,6 +338,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     saveFiles.clear();
 
     if (m_offsetFile == nullptr) return;
+
     if (m_offsetFile["saveFilePaths"] == nullptr || m_offsetFile["files"] == nullptr || m_offsetFile["filetype"] == nullptr || m_offsetFile["items"] == nullptr) return;
 
     updateSaveFileList(m_offsetFile["saveFilePaths"], m_offsetFile["files"]);
@@ -340,33 +359,6 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
               luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, optionalArg<std::string>(m_offsetFile, "encoding", "ascii"));
               createWidgets();
               luaParser.luaInit(m_offsetFile["filetype"]);
-
-              if (m_offsetFile["titleVersion"] != nullptr) {
-                if (Title::g_currTitle->getTitleVersion() != m_offsetFile["titleVersion"]) {
-                  std::string message = "The config file you're using was made for\nversion ";
-                  message += m_offsetFile["titleVersion"];
-                  message += " but your current version is ";
-                  message += Title::g_currTitle->getTitleVersion();
-                  message += ".\nAre you sure you want to continue?";
-
-                (new MessageBox(message, MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
-                    if (!selection) {
-                      luaParser.luaDeinit();
-
-                      delete[] GuiEditor::g_currSaveFile;
-                      GuiEditor::g_currSaveFileName = "";
-                      GuiEditor::g_currSaveFile = nullptr;
-
-                      for (auto const& [category, widgets] : m_widgets)
-                        for(auto widget : widgets)
-                          delete widget.widget;
-
-                      m_widgets.clear();
-                      Widget::g_categories.clear();
-                    }
-                  })->show();
-                }
-              }
             }
             else {
               (new Snackbar("Failed to load save file! Is it empty?"))->show();

@@ -176,6 +176,8 @@ void GuiMain::onInput(u32 kdown) {
 }
 
 void GuiMain::onTouch(touchPosition &touch) {
+  if (Title::g_titles.size() == 0) return;
+
   switch (selectionState) {
     case TITLE_SELECT: {
       u8 x = floor((touch.px + xOffset) / 256.0F);
@@ -213,5 +215,6 @@ void GuiMain::onTouch(touchPosition &touch) {
 }
 
 void GuiMain::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
+  if (Title::g_titles.size() == 0) return;
 
 }

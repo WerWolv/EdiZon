@@ -24,7 +24,9 @@ enum {
 GuiMain::GuiMain() : Gui() {
   m_selected.accountIndex = 0;
   selectionState = TITLE_SELECT;
-  xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
+
+  if (Title::g_titles.size() != 0)
+    xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 }
 
 GuiMain::~GuiMain() {
@@ -53,12 +55,19 @@ void GuiMain::draw() {
 
   Gui::beginDraw();
 
-  xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 10, COLOR_BLACK);
 
+  if (Title::g_titles.size() == 0) {
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No games or saves found on this system! Please press \x07 to exit EdiZon!", ALIGNED_CENTER);
+    Gui::endDraw();
+    return;
+  }
+
   float x = 0, y = 10, currItem = 0;
   float selectedX = 0, selectedY = 0;
+
+  xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
   for (auto title : Title::g_titles) {
     if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
@@ -112,6 +121,8 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
+  if (Title::g_titles.size() == 0) return;
+
   if (kdown & KEY_LEFT) {
     if (selectionState == TITLE_SELECT) {
       if (static_cast<s16>(m_selected.titleIndex - 2) >= 0)

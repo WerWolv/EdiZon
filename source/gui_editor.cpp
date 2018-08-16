@@ -94,7 +94,7 @@ GuiEditor::GuiEditor() : Gui() {
   } else
     m_offsetFile = m_offsetFile["all"];
 
-  if (!foundVersion)
+  if (!foundVersion && configFileResult == 0)
     configFileResult = 3;
 
 }

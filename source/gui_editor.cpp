@@ -141,7 +141,7 @@ void GuiEditor::draw() {
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
   if (GuiEditor::g_currSaveFile == nullptr) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Backup     \x04 - Restore     \x02 - Back", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03  Backup     \x04  Restore     \x02  Back", ALIGNED_RIGHT);
 
     switch (configFileResult) {
       case 0:
@@ -159,7 +159,7 @@ void GuiEditor::draw() {
     }
 
   } else
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03 - Apply changes     \x02 - Cancel     \x01 - OK", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03  Apply changes     \x02  Cancel     \x01  OK", ALIGNED_RIGHT);
 
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
     for (u8 page = 0; page < Widget::g_widgetPageCnt[Widget::g_selectedCategory]; page++) {
@@ -343,7 +343,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 
     updateSaveFileList(m_offsetFile["saveFilePaths"], m_offsetFile["files"]);
 
-    (new ListSelector("Edit save file", "\x01 - Select      \x02 - Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
+    (new ListSelector("Edit save file", "\x01  Select      \x02  Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {
         if (saveFiles.size() != 0) {
           size_t length;
@@ -393,7 +393,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     if (kdown & KEY_Y) {
       updateBackupList();
 
-      (new ListSelector("Restore Backup", "\x01 - Restore     \x03 - Delete      \x02 - Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
+      (new ListSelector("Restore Backup", "\x01  Restore     \x03  Delete      \x02  Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
         if (k & KEY_A) {
           if (backupNames.size() != 0) {
               (new MessageBox("Are you sure you want to inject this backup?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {

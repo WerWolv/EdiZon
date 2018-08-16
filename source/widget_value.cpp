@@ -25,6 +25,8 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
 void WidgetValue::onInput(u32 kdown) {
   static u32 accelerationTimer = 0;
 
+  printf("%lu\n", accelerationTimer);
+
   if (kdown & KEY_LEFT) {
     accelerationTimer++;
     if (Widget::getIntegerValue() > m_minValue) {
@@ -48,7 +50,8 @@ void WidgetValue::onInput(u32 kdown) {
   }
 
   if ((kdown & (KEY_LEFT | KEY_RIGHT)) == 0 ||
-      static_cast<s32>(Widget::getIntegerValue() - m_stepSize) <= m_minValue || static_cast<s32>(Widget::getIntegerValue() + m_stepSize) >= m_maxValue)
+     ((kdown & KEY_RIGHT) == 0 && static_cast<s32>(Widget::getIntegerValue() - m_stepSize) < m_minValue) ||
+     ((kdown & KEY_LEFT) == 0 && static_cast<s32>(Widget::getIntegerValue() + m_stepSize) > m_maxValue))
     accelerationTimer = 0;
 }
 

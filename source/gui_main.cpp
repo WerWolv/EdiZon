@@ -11,10 +11,7 @@
 #include <sstream>
 #include <math.h>
 
-float xOffset;
-float xOffsetNext;
-
-bool drawingDone = false;
+float xOffset, xOffsetNext, xOffsetDone;
 
 enum {
   TITLE_SELECT,
@@ -36,23 +33,18 @@ GuiMain::~GuiMain() {
 void GuiMain::update() {
   Gui::update();
 
-  if (!drawingDone) return;
+  float deltaOffset = xOffsetNext - xOffsetDone;
+  float scrollSpeed = deltaOffset / 150.0F;
 
-  float deltaOffset = xOffsetNext - xOffset;
-  float scrollSpeed = deltaOffset / 24.0F;
-
-  if (xOffset != xOffsetNext) {
-    if (xOffsetNext > xOffset)
-      xOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+  if (xOffsetDone != xOffsetNext) {
+    if (xOffsetNext > xOffsetDone)
+      xOffsetDone += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
     else
-      xOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+      xOffsetDone += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
   }
-
 }
 
 void GuiMain::draw() {
-  drawingDone = false;
-
   Gui::beginDraw();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
@@ -115,7 +107,8 @@ void GuiMain::draw() {
       }
   }
 
-  drawingDone = true;
+  if (xOffset != xOffsetNext)
+    xOffset = xOffsetDone;
 
   Gui::endDraw();
 }

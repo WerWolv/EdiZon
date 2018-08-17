@@ -31,6 +31,8 @@ public:
   int lua_getStrArgs(lua_State *state);
   int lua_getIntArgs(lua_State *state);
 
+  static double evaluateEquation(std::string equation, s64 value);
+
 private:
   std::string m_filetype;
   u8 *m_buffer;
@@ -47,5 +49,5 @@ private:
     UTF_16BE
   } m_encoding = ASCII;
 
-  void printError(lua_State *luaState);
+  static void printError(lua_State *luaState);
 };

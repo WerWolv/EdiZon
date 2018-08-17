@@ -30,7 +30,7 @@ typedef enum { CATEGORIES, WIDGETS } WidgetRow;
 
 class Widget {
 public:
-  Widget(LuaSaveParser *saveParser);
+  Widget(LuaSaveParser *saveParser, std::string preEquation, std::string postEquation, std::string postEquationInverse);
   virtual ~Widget();
 
   static inline u16 g_selectedWidgetIndex = 0;
@@ -48,9 +48,11 @@ public:
   virtual void onInput(u32 kdown) = 0;
   virtual void onTouch(touchPosition &touch) = 0;
 
-  s32 getIntegerValue();
+  s64 getIntegerValue();
+  s64 getIntegerValueRaw();
   std::string getStringValue();
-  void setIntegerValue(s32 value);
+  void setIntegerValue(s64 value);
+  void setIntegerValueRaw(s64 value);
   void setStringValue(std::string value);
 
   void setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
@@ -60,4 +62,6 @@ protected:
   WidgetDataType m_widgetDataType;
   std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;
+
+  std::string m_preEquation, m_postEquation, m_postEquationInverse;
 };

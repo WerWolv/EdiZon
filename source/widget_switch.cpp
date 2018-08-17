@@ -1,10 +1,12 @@
 #include "widget_switch.hpp"
 
-WidgetSwitch::WidgetSwitch(LuaSaveParser *saveParser, s32 onValue, s32 offValue) : Widget(saveParser), m_intOnValue(onValue), m_intOffValue(offValue) {
+WidgetSwitch::WidgetSwitch(LuaSaveParser *saveParser, std::string preEquation, std::string postEquation, std::string postEquationInverse, s32 onValue, s32 offValue) :
+ Widget(saveParser, preEquation, postEquation, postEquationInverse), m_intOnValue(onValue), m_intOffValue(offValue) {
   m_widgetDataType = INT;
 }
 
-WidgetSwitch::WidgetSwitch(LuaSaveParser *saveParser, std::string onValue, std::string offValue) : Widget(saveParser), m_strOnValue(onValue), m_strOffValue(offValue){
+WidgetSwitch::WidgetSwitch(LuaSaveParser *saveParser, std::string onValue, std::string offValue) :
+ Widget(saveParser, "value", "value", "value"), m_strOnValue(onValue), m_strOffValue(offValue){
   m_widgetDataType = STRING;
 }
 

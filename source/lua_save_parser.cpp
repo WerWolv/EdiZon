@@ -13,8 +13,8 @@ typedef int (LuaSaveParser::*mem_func)(lua_State *s);
 
 template <mem_func func>
 int dispatch(lua_State *s) {
-    LuaSaveParser * ptr = *static_cast<LuaSaveParser**>(lua_getextraspace(s));
-    return ((*ptr).*func)(s);
+  LuaSaveParser * ptr = *static_cast<LuaSaveParser**>(lua_getextraspace(s));
+  return ((*ptr).*func)(s);
 }
 
 LuaSaveParser::LuaSaveParser() {
@@ -154,10 +154,10 @@ void LuaSaveParser::getModifiedSaveFile(std::vector<u8> &buffer) {
 
   lua_pushnil(m_luaState);
 
-	while (lua_next(m_luaState, 1)) {
-		encoded.push_back(lua_tointeger(m_luaState, -1));
-		lua_pop(m_luaState, 1);
-	}
+    while (lua_next(m_luaState, 1)) {
+        encoded.push_back(lua_tointeger(m_luaState, -1));
+        lua_pop(m_luaState, 1);
+    }
 
   lua_pop(m_luaState, 1);
 
@@ -232,4 +232,24 @@ int LuaSaveParser::lua_getIntArgs(lua_State *state) {
   lua_rawset(state, -3);
 
   return 1;
+}
+
+double LuaSaveParser::evaluateEquation(std::string equation, s64 value) {
+  lua_State *s = luaL_newstate();
+  double ret;
+  std::string func = "function eval(value)\n";
+  func += "return ";
+  func += equation;
+  func += "\nend";
+
+  luaL_dostring(s, func.c_str());
+  lua_getglobal(s, "eval");
+  lua_pushnumber(s, value);
+  if (lua_pcall(s, 1, 1, 0))
+    printError(s);
+  ret = lua_tonumber(s, -1);
+
+  lua_close(s);
+
+  return ret;
 }

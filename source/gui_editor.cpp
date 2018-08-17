@@ -216,22 +216,40 @@ void GuiEditor::createWidgets() {
       if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) continue;
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
 
-      m_widgets[item["category"]].push_back({ item["name"], new WidgetValue(&luaParser, itemWidget["minValue"], itemWidget["maxValue"], optionalArg<u64>(itemWidget, "stepSize", 0)) });
+      m_widgets[item["category"]].push_back({ item["name"],
+        new WidgetValue(&luaParser,
+          optionalArg<std::string>(itemWidget, "preEquation", "value"),
+          optionalArg<std::string>(itemWidget, "postEquation", "value"),
+          optionalArg<std::string>(itemWidget, "postEquationInverse", "value"),
+          itemWidget["minValue"], itemWidget["maxValue"], optionalArg<u64>(itemWidget, "stepSize", 0)) });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;
       if (itemWidget["onValue"] == itemWidget["offValue"]) continue;
 
-      if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number())
-        m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
+      if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number()) {
+        m_widgets[item["category"]].push_back({ item["name"],
+        new WidgetSwitch(&luaParser,
+            optionalArg<std::string>(itemWidget, "preEquation", "value"),
+            optionalArg<std::string>(itemWidget, "postEquation", "value"),
+            optionalArg<std::string>(itemWidget, "postEquationInverse", "value"),
+            itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
+      }
       else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
-        m_widgets[item["category"]].push_back({ item["name"], new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
+        m_widgets[item["category"]].push_back({ item["name"],
+        new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
     }
     else if (itemWidget["type"] == "list") {
       if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) continue;
 
-      if (itemWidget["listItemValues"][0].is_number())
-        m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
+      if (itemWidget["listItemValues"][0].is_number()) {
+        m_widgets[item["category"]].push_back({ item["name"],
+        new WidgetList(&luaParser,
+          optionalArg<std::string>(itemWidget, "preEquation", "value"),
+          optionalArg<std::string>(itemWidget, "postEquation", "value"),
+          optionalArg<std::string>(itemWidget, "postEquationInverse", "value"),
+          itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
+      }
       else if (itemWidget["listItemValues"][0].is_string())
         m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
     }

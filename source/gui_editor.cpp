@@ -80,7 +80,12 @@ GuiEditor::GuiEditor() : Gui() {
   Widget::g_selectedWidgetIndex = 0;
   Widget::g_selectedCategory = "";
 
-  configFileResult = loadConfigFile(m_offsetFile);
+
+  std::stringstream path;
+  path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
+
+  configFileResult = loadConfigFile(m_offsetFile, path.str());
+
 
   bool foundVersion = false;
 
@@ -178,11 +183,8 @@ void GuiEditor::draw() {
   Gui::endDraw();
 }
 
-s8 GuiEditor::loadConfigFile(json &j) {
-  std::stringstream path;
-  path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
-
-  std::ifstream file(path.str().c_str());
+s8 GuiEditor::loadConfigFile(json &j, std::string filepath) {
+  std::ifstream file(filepath.c_str());
 
   m_widgets.clear();
 
@@ -195,6 +197,12 @@ s8 GuiEditor::loadConfigFile(json &j) {
 		printf("Failed to parse JSON file.\n");
 		return 2;
 	}
+
+  if (j.find("useInstead") != j.end()) {
+    std::stringstream path;
+    path << CONFIG_ROOT << j["useInstead"].get<std::string>();
+    loadConfigFile(j, path.str());
+  }
 
   return 0;
 }
@@ -221,7 +229,10 @@ void GuiEditor::createWidgets() {
           optionalArg<std::string>(itemWidget, "preEquation", "value"),
           optionalArg<std::string>(itemWidget, "postEquation", "value"),
           optionalArg<std::string>(itemWidget, "postEquationInverse", "value"),
-          itemWidget["minValue"], itemWidget["maxValue"], optionalArg<u64>(itemWidget, "stepSize", 0)) });
+          itemWidget["minValue"],
+          itemWidget["maxValue"],
+          optionalArg<u64>(itemWidget, "stepSize", 0))
+        });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;
@@ -233,7 +244,9 @@ void GuiEditor::createWidgets() {
             optionalArg<std::string>(itemWidget, "preEquation", "value"),
             optionalArg<std::string>(itemWidget, "postEquation", "value"),
             optionalArg<std::string>(itemWidget, "postEquationInverse", "value"),
-            itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
+            itemWidget["onValue"].get<s32>(),
+            itemWidget["offValue"].get<s32>())
+       });
       }
       else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
         m_widgets[item["category"]].push_back({ item["name"],
@@ -248,7 +261,9 @@ void GuiEditor::createWidgets() {
           optionalArg<std::string>(itemWidget, "preEquation", "value"),
           optionalArg<std::string>(itemWidget, "postEquation", "value"),
           optionalArg<std::string>(itemWidget, "postEquationInverse", "value"),
-          itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
+          itemWidget["listItemNames"],
+          itemWidget["listItemValues"].get<std::vector<s32>>())
+        });
       }
       else if (itemWidget["listItemValues"][0].is_string())
         m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });

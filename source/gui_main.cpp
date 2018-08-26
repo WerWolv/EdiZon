@@ -51,7 +51,7 @@ void GuiMain::draw() {
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 10, COLOR_BLACK);
 
   if (Title::g_titles.size() == 0) {
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No games or saves found on this system! Please press \x07 to exit EdiZon!", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No games or saves found on this system! Please press \uE0EF to exit EdiZon!", ALIGNED_CENTER);
     Gui::endDraw();
     return;
   }
@@ -88,7 +88,7 @@ void GuiMain::draw() {
   }
 
   if (selectionState == TITLE_SELECT)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \uE0E0 or update all config and script files by pressing \uE0E1 \uE0E2 \uE0E3 \uE0E4 \uE0E5 \uE0E6 \uE0E7 \uE0E8", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \uE0E0 or update all config and script files by pressing \uE0F0", ALIGNED_LEFT);
 
   if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
 

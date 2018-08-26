@@ -36,6 +36,7 @@ color_t dominantColor;
 color_t textColor;
 
 s8 configFileResult;
+u64 stepSizeMultiplier;
 
 LuaSaveParser luaParser;
 
@@ -50,6 +51,8 @@ GuiEditor::GuiEditor() : Gui() {
   titleIcon = new u8[128*128*3];
   u8 *smallTitleIcon = new u8[32*32*3];
   std::map<u32, u16> colors;
+
+  stepSizeMultiplier = 1;
 
   dominantColor = Gui::makeColor(0xA0, 0xA0, 0xA0, 0xFF);
 
@@ -148,11 +151,11 @@ void GuiEditor::draw() {
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
   if (GuiEditor::g_currSaveFile == nullptr) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03  Backup     \x04  Restore     \x02  Back", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2  Backup     \uE0E3  Restore     \uE0E1  Back", ALIGNED_RIGHT);
 
     switch (configFileResult) {
       case 0:
-        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \x08 to select one.", ALIGNED_CENTER);
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to select one.", ALIGNED_CENTER);
         break;
       case 1:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
@@ -166,7 +169,7 @@ void GuiEditor::draw() {
     }
 
   } else
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\x03  Apply changes     \x02  Cancel     \x01  OK", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2  Apply changes     \uE0E1  Cancel     \uE0E0  OK", ALIGNED_RIGHT);
 
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
     for (u8 page = 0; page < Widget::g_widgetPageCnt[Widget::g_selectedCategory]; page++) {
@@ -175,8 +178,8 @@ void GuiEditor::draw() {
         Gui::drawRectangled((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 619, 12, 12, currTheme.highlightColor);
     }
 
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 598, currTheme.textColor, "\x05", ALIGNED_CENTER);
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) + Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + 18, 598, currTheme.textColor, "\x06", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 598, currTheme.textColor, "\uE0E4", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) + Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + 18, 598, currTheme.textColor, "\uE0E5", ALIGNED_CENTER);
 
   }
 
@@ -225,7 +228,7 @@ void GuiEditor::createWidgets() {
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
 
       m_widgets[item["category"]].push_back({ item["name"],
-        new WidgetValue(&luaParser, optionalArg<std::string>(itemWidget, "readEquation", "value"), optionalArg<std::string>(itemWidget, "writeEquation", "value"), itemWidget["minValue"], itemWidget["maxValue"], optionalArg<u64>(itemWidget, "stepSize", 0)) });
+        new WidgetValue(&luaParser, optionalArg<std::string>(itemWidget, "readEquation", "value"), optionalArg<std::string>(itemWidget, "writeEquation", "value"), itemWidget["minValue"], itemWidget["maxValue"], optionalArg<u64>(itemWidget, "stepSize", 0), stepSizeMultiplier) });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;
@@ -359,7 +362,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 
     updateSaveFileList(m_offsetFile["saveFilePaths"], m_offsetFile["files"]);
 
-    (new ListSelector("Edit save file", "\x01  Select      \x02  Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
+    (new ListSelector("Edit save file", "\uE0E0  Select      \uE0E1  Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {
         if (saveFiles.size() != 0) {
           size_t length;
@@ -409,7 +412,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     if (kdown & KEY_Y) {
       updateBackupList();
 
-      (new ListSelector("Restore Backup", "\x01  Restore     \x03  Delete      \x02  Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
+      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0E1  Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
         if (k & KEY_A) {
           if (backupNames.size() != 0) {
               (new MessageBox("Are you sure you want to inject this backup?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {

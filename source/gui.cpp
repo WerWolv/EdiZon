@@ -267,6 +267,12 @@ void Gui::drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 m
   if (!setFontType(font)) return;
   m_fontLastUsedFace = m_fontFaces[0];
 
+  switch (font) {
+    case font14: y += 16; break;
+    case font20: y += 22; break;
+    case font24: y += 26; break;
+  }
+
   while (*text) {
       if (max_width && x - origX >= max_width) {
           text = end_text;
@@ -366,11 +372,15 @@ void Gui::getTextDimensions(u32 font, const char* text, u32* width_out, u32* hei
       glyph_t glyph;
       u32 codepoint = decodeUTF8(&text);
 
+      //if (codepoint >= 0x0001 && codepoint <=)
+
       if (codepoint == '\n') {
           x = 0;
           height += m_fontLastUsedFace->size->metrics.height / 64;
           continue;
       }
+
+
 
       if (!fontLoadGlyph(&glyph, font, codepoint)) {
           if (!fontLoadGlyph(&glyph, font, '?'))

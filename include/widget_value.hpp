@@ -6,7 +6,7 @@
 
 class WidgetValue : public Widget {
 public:
-  WidgetValue(LuaSaveParser *saveParser, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize);
+  WidgetValue(LuaSaveParser *saveParser, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize, u64 stepSizeMultiplier);
   ~WidgetValue();
 
   void draw(Gui *gui, u16 x, u16 y);
@@ -18,5 +18,5 @@ private:
   s64 m_currValue;
   std::string m_readEquation, m_writeEquation;
   s64 m_minValue, m_maxValue;
-  u64 m_stepSize;
+  u64 m_stepSize, m_stepSizeMultiplier;
 };

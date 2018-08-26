@@ -268,9 +268,9 @@ void Gui::drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 m
   m_fontLastUsedFace = m_fontFaces[0];
 
   switch (font) {
-    case font14: y += 16; break;
-    case font20: y += 22; break;
-    case font24: y += 26; break;
+    case font14: y += 20; break;
+    case font20: y += 24; break;
+    case font24: y += 35; break;
   }
 
   while (*text) {

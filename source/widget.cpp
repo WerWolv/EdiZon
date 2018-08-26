@@ -3,8 +3,7 @@
 #include "gui_editor.hpp"
 #include <iostream>
 
-Widget::Widget(LuaSaveParser *saveParser, std::string preEquation, std::string postEquation, std::string postEquationInverse) :
-  m_saveParser(saveParser), m_preEquation(preEquation), m_postEquation(postEquation), m_postEquationInverse(postEquationInverse) {
+Widget::Widget(LuaSaveParser *saveParser) : m_saveParser(saveParser) {
 
 }
 
@@ -71,13 +70,7 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
 s64 Widget::getIntegerValue() {
   m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
 
-  return static_cast<s64>(LuaSaveParser::evaluateEquation(m_postEquationInverse, LuaSaveParser::evaluateEquation(m_preEquation, m_saveParser->getValueFromSaveFile())));
-}
-
-s64 Widget::getIntegerValueRaw() {
-  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
-
-  return static_cast<s64>(LuaSaveParser::evaluateEquation(m_postEquationInverse, m_saveParser->getValueFromSaveFile()));
+  return  m_saveParser->getValueFromSaveFile();
 }
 
 std::string Widget::getStringValue() {
@@ -86,11 +79,6 @@ std::string Widget::getStringValue() {
 }
 
 void Widget::setIntegerValue(s64 value) {
-  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
-  m_saveParser->setValueInSaveFile(LuaSaveParser::evaluateEquation(m_postEquation, value));
-}
-
-void Widget::setIntegerValueRaw(s64 value) {
   m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
   m_saveParser->setValueInSaveFile(value);
 }

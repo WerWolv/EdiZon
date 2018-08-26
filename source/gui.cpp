@@ -1,9 +1,9 @@
 #include "gui.hpp"
 
 #include <math.h>
+#include <functional>
 
 static float menuTimer = 0.0F;
-
 
 Gui::Gui() {
   this->framebuffer = gfxGetFramebuffer(&Gui::g_framebuffer_width, &Gui::g_framebuffer_height);
@@ -91,14 +91,6 @@ inline void Gui::draw4PixelsRaw(s16 x, s16 y, color_t clr) {
 
 bool Gui::fontInit() {
   FT_Error ret = 0;
-
-  s32 language = 0;
-  u64 textLanguageCode = 0;
-  int textLanguage = SetLanguage_ENUS;
-
-  if(R_FAILED(setInitialize())) printf("setInitialize failed!\n");
-  setGetSystemLanguage(&textLanguageCode);
-  setMakeLanguage(textLanguageCode, &language);
 
   for (u32 i = 0; i < FONT_FACES_MAX; i++) m_fontFacesRet[i] = 1;
 
@@ -269,12 +261,12 @@ void Gui::drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 m
 
   switch (font) {
     case font14: y += 20; break;
-    case font20: y += 24; break;
+    case font20: y += 26; break;
     case font24: y += 35; break;
   }
 
   while (*text) {
-      if (max_width && x - origX >= max_width) {
+      if (max_width && x - origX >= static_cast<u32>(max_width)) {
           text = end_text;
           max_width = 0;
       }
@@ -330,6 +322,9 @@ void Gui::drawTextAligned(u32 font, s16 x, s16 y, color_t clr, const char* text,
     u32 textWidth, textHeight;
     std::vector<std::string> lines;
 
+    std::hash<std::string> hashFn;
+    size_t strHash = hashFn(std::string(text));
+
     switch (alignment) {
       case ALIGNED_LEFT:
         drawText_(font, x, y, clr, text, 0, nullptr);
@@ -338,8 +333,12 @@ void Gui::drawTextAligned(u32 font, s16 x, s16 y, color_t clr, const char* text,
         lines = Gui::split(text, '\n');
 
         for (auto line : lines) {
-          getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
-          drawText_(font, x - (textWidth / 2.0F), y, clr, line.c_str(), 0, nullptr);
+          if (m_stringLengthMap.find(strHash) == m_stringLengthMap.end()) {
+            getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
+            m_stringLengthMap.insert(std::make_pair(strHash, textWidth));
+          }
+
+          drawText_(font, x - (m_stringLengthMap[strHash] / 2.0F), y, clr, line.c_str(), 0, nullptr);
           y += textHeight;
         }
         break;
@@ -347,8 +346,12 @@ void Gui::drawTextAligned(u32 font, s16 x, s16 y, color_t clr, const char* text,
         lines = Gui::split(text, '\n');
 
         for (auto line : lines) {
-          getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
-          drawText_(font, x - textWidth, y, clr, line.c_str(), 0, nullptr);
+          if (m_stringLengthMap.find(strHash) == m_stringLengthMap.end()) {
+            getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
+            m_stringLengthMap.insert(std::make_pair(strHash, textWidth));
+          }
+
+          drawText_(font, x - m_stringLengthMap[strHash], y, clr, line.c_str(), 0, nullptr);
           y += textHeight;
         }
         break;

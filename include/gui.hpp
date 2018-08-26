@@ -2,6 +2,7 @@
 
 #include <switch.h>
 #include <cstring>
+#include <unordered_map>
 
 #include "title.hpp"
 
@@ -80,6 +81,8 @@ private:
   FT_Face m_fontFaces[FONT_FACES_MAX];
   FT_Face m_fontLastUsedFace;
   size_t m_fontFacesTotal;
+
+  std::unordered_map<size_t, u16> m_stringLengthMap;
 
   void drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 max_width, const char* end_text);
   inline void draw4PixelsRaw(s16 x, s16 y, color_t clr);

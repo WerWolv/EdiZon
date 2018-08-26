@@ -88,7 +88,7 @@ void GuiMain::draw() {
   }
 
   if (selectionState == TITLE_SELECT)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \uE0E0 or update all config and script files by pressing \uE0F0", ALIGNED_LEFT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \uE0E0 or update all config and script files by pressing \uE0F0", ALIGNED_CENTER);
 
   if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
 

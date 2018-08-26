@@ -35,31 +35,31 @@ void WidgetValue::onInput(u32 kdown) {
   m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 
   if (kdown & KEY_LEFT) {
-    accelerationTimer++;
+    //accelerationTimer++;
     if (m_currValue > m_minValue) {
-      if(accelerationTimer > ACCELERATION_DELAY && m_currValue > static_cast<s32>(m_minValue + m_stepSize))
+      /*if(accelerationTimer > ACCELERATION_DELAY && m_currValue > static_cast<s32>(m_minValue + m_stepSize))
         Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - m_stepSize);
-      else
-        Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - 1);
+      else*/
+        Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - m_stepSize);
     }
     else Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
   }
 
   if (kdown & KEY_RIGHT) {
-    accelerationTimer++;
+    //accelerationTimer++;
     if (m_currValue < m_maxValue) {
-      if(accelerationTimer > 50 && m_currValue < static_cast<s32>(m_maxValue - m_stepSize))
+      /*if(accelerationTimer > 50 && m_currValue < static_cast<s32>(m_maxValue - m_stepSize))
         Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + m_stepSize);
-      else
-        Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + 1);
+      else*/
+        Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + m_stepSize);
     }
     else Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
   }
 
-  if ((kdown & (KEY_LEFT | KEY_RIGHT)) == 0 ||
+  /*if ((kdown & (KEY_LEFT | KEY_RIGHT)) == 0 ||
      ((kdown & KEY_RIGHT) == 0 && static_cast<s32>(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - m_stepSize) < m_minValue) ||
      ((kdown & KEY_LEFT) == 0 && static_cast<s32>(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + m_stepSize) > m_maxValue))
-    accelerationTimer = 0;
+    accelerationTimer = 0;*/
 }
 
 void WidgetValue::onTouch(touchPosition &touch) {

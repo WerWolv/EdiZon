@@ -38,11 +38,11 @@ APP_TITLE	:=	EdiZon
 APP_AUTHOR	:=	WerWolv and thomasnet
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
-TARGET		:=	$(subst $e ,_,$(notdir $(APP_TITLE)))
+TARGET		:=	$(notdir $(CURDIR))
 OUTDIR		:=	out
-BUILD		:=	build
+BUILD			:=	build
 SOURCES		:=	source source/lua
-DATA		:=	data
+DATA			:=	data
 INCLUDES	:=	include include/lua
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
@@ -53,19 +53,19 @@ EXEFS_SRC	:=	exefs_src
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O3 -ffunction-sections \
-			$(ARCH) $(DEFINES) \
+			$(ARCH) $(DEFINES)\
 			-DVERSION_MAJOR=${VERSION_MAJOR} \
 			-DVERSION_MINOR=${VERSION_MINOR} \
 			-DVERSION_MICRO=${VERSION_MICRO}
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -I$(PORTLIBS)/include/freetype2
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-no-as-needed,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx -lcurl -lz
+LIBS	:= -lnx -lcurl -lz `freetype-config --libs`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -163,7 +163,6 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTDIR)
-
 
 #---------------------------------------------------------------------------------
 else

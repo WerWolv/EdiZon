@@ -4,18 +4,29 @@
 
 static float menuTimer = 0.0F;
 
+
 Gui::Gui() {
   this->framebuffer = gfxGetFramebuffer(&Gui::g_framebuffer_width, &Gui::g_framebuffer_height);
 
   Gui::g_currSnackbar = nullptr;
   Gui::g_currListSelector = nullptr;
   Gui::g_currMessageBox = nullptr;
+
+  m_fontLibret = 1;
+  m_fontFacesTotal = 0;
+
+  if(R_FAILED(plInitialize())) printf("plInitialize failed!\n");
+
+  if(!fontInit())
+    printf("Font not initialied!\n");
 }
 
 Gui::~Gui() {
   Gui::g_currSnackbar = nullptr;
   Gui::g_currListSelector = nullptr;
   Gui::g_currMessageBox = nullptr;
+
+  fontExit();
 }
 
 void Gui::update() {
@@ -78,54 +89,117 @@ inline void Gui::draw4PixelsRaw(s16 x, s16 y, color_t clr) {
     *(reinterpret_cast<u128*>(&this->framebuffer[off])) = val;
 }
 
-inline const ffnt_page_t* Gui::fontGetPage(const ffnt_header_t* font, u32 page_id) {
-    if (page_id >= font->npages)
-        return nullptr;
+bool Gui::fontInit() {
+  FT_Error ret = 0;
 
-    ffnt_pageentry_t* ent = &((ffnt_pageentry_t*)(font+1))[page_id];
+  s32 language = 0;
+  u64 textLanguageCode = 0;
+  int textLanguage = SetLanguage_ENUS;
 
-    if (ent->size == 0)
-        return nullptr;
+  if(R_FAILED(setInitialize())) printf("setInitialize failed!\n");
+  setGetSystemLanguage(&textLanguageCode);
+  setMakeLanguage(textLanguageCode, &language);
 
-    return (const ffnt_page_t*)((const u8*)font + ent->offset);
+  for (u32 i = 0; i < FONT_FACES_MAX; i++) m_fontFacesRet[i] = 1;
+
+  ret = FT_Init_FreeType(&m_fontLibrary);
+  m_fontLibret = ret;
+  if (m_fontLibret) return false;
+
+  PlFontData fonts[PlSharedFontType_Total];
+
+  if (R_FAILED(plGetSharedFont(0, fonts, FONT_FACES_MAX, &m_fontFacesTotal))) return false;
+
+  for (u32 i = 0; i < m_fontFacesTotal; i++) {
+      ret = FT_New_Memory_Face(m_fontLibrary, (FT_Byte*)fonts[i].address, fonts[i].size, 0, &m_fontFaces[i]);
+
+      m_fontFacesRet[i] = ret;
+      if (ret) return false;
+  }
+
+  return true;
 }
 
-inline bool Gui::fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, u32 codepoint) {
-    const ffnt_page_t* page = fontGetPage(font, codepoint >> 8);
+void Gui::fontExit() {
+  for (u32 i = 0; i < m_fontFacesTotal; i++)
+    if (m_fontFacesRet[i] == 0) FT_Done_Face(m_fontFaces[i]);
 
-    if (!page)
-        return false;
+  if (m_fontLibret == 0) FT_Done_FreeType(m_fontLibrary);
+}
 
-    codepoint &= 0xFF;
-    u32 off = page->hdr.pos[codepoint];
+bool Gui::setFontType(u32 font) {
+  u32 scale = 0;
+  FT_Error ret = 0;
 
-    if (off == 0x0000FFFF)
-        return false;
+  switch (font) {
+    case font14: scale = 4; break;
+    case font20: scale = 6; break;
+    case font24: scale = 7; break;
+    default: return false;
+  }
 
-    glyph->width   = page->hdr.widths[codepoint];
-    glyph->height  = page->hdr.heights[codepoint];
-    glyph->advance = page->hdr.advances[codepoint];
-    glyph->posX    = page->hdr.posX[codepoint];
-    glyph->posY    = page->hdr.posY[codepoint];
-    glyph->data    = &page->data[off];
+  for (u32 i = 0; i < m_fontFacesTotal; i++) {
+    ret = FT_Set_Char_Size(m_fontFaces[i], 0, scale * 64, 300, 300);
 
-    return true;
+    if (ret) return false;
+  }
+
+  return true;
+}
+
+inline bool Gui::fontLoadGlyph(glyph_t* glyph, u32 font, u32 codepoint) {
+  FT_Face face;
+  FT_Error ret = 0;
+  FT_GlyphSlot slot;
+  FT_UInt glyphIndex;
+  FT_Bitmap *bitmap;
+
+  if (m_fontFacesTotal == 0) return false;
+
+  for (u32 i = 0; i < m_fontFacesTotal; i++) {
+    face = m_fontFaces[i];
+    m_fontLastUsedFace = face;
+    glyphIndex = FT_Get_Char_Index(face, codepoint);
+
+    if (glyphIndex == 0) continue;
+
+    ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
+
+    if (ret==0)
+        ret = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+
+    if (ret) return false;
+
+    break;
+  }
+
+  slot = face->glyph;
+  bitmap = &slot->bitmap;
+
+  glyph->width   = bitmap->width;
+  glyph->height  = bitmap->rows;
+  glyph->pitch   = bitmap->pitch;
+  glyph->data    = bitmap->buffer;
+  glyph->advance = slot->advance.x >> 6;
+  glyph->posX    = slot->bitmap_left;
+  glyph->posY    = slot->bitmap_top;
+
+  return true;
 }
 
 void Gui::drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph) {
-    s32 i, j;
-    const u8* data = glyph->data;
+  const u8* data = glyph->data;
+  x += glyph->posX;
+  y -= glyph->posY;
 
-    x += glyph->posX;
-    y += glyph->posY;
-
-    for (j = 0; j < glyph->height; j ++) {
-        for (i = 0; i < glyph->width; i ++) {
-            clr.a = *data++;
-            if (!clr.a) continue;
-            drawPixel(x+i, y+j, clr);
-        }
-    }
+  for (u32 j = 0; j < glyph->height; j ++) {
+      for (u32 i = 0; i < glyph->width; i ++) {
+          clr.a = data[i];
+          if (!clr.a) continue;
+          drawPixel(x+i, y+j, clr);
+      }
+      data += glyph->pitch;
+  }
 }
 
 inline u8 Gui::decodeByte(const char** ptr) {
@@ -186,76 +260,46 @@ inline u32 Gui::decodeUTF8(const char** ptr) {
     return 0xFFFD;
 }
 
-void Gui::drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s32 max_width) {
-    y += font->baseline;
-    s32 origX = x;
+void Gui::drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 max_width, const char* end_text) {
+  u32 origX = x;
 
-    while (*text) {
-        glyph_t glyph;
-        u32 codepoint = decodeUTF8(&text);
+  if (m_fontFacesTotal == 0) return;
+  if (!setFontType(font)) return;
+  m_fontLastUsedFace = m_fontFaces[0];
 
-        if (max_width && x-origX >= max_width && (codepoint == ' ')) {
-            break;
-        }
+  while (*text) {
+      if (max_width && x - origX >= max_width) {
+          text = end_text;
+          max_width = 0;
+      }
 
-        if (codepoint == '\n') {
-            x = origX;
-            y += font->height;
-            continue;
-        }
-        else if (codepoint == '\x01') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonA, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
-        else if (codepoint == '\x02') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonB, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
-        else if (codepoint == '\x03') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonX, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
-        else if (codepoint == '\x04') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonY, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
-        else if (codepoint == '\x05') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonL, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
-        else if (codepoint == '\x06') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonR, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
-        else if (codepoint == '\x07') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonPlus, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
-        else if (codepoint == '\x08') {
-            Gui::drawImage(x, y - 22, 25, 25, currTheme.buttonMinus, IMAGE_MODE_ABGR32);
-            x += 25;
-            continue;
-        }
+      glyph_t glyph;
+      uint32_t codepoint = decodeUTF8(&text);
 
-        if (!fontLoadGlyph(&glyph, font, codepoint)) {
-            if (!fontLoadGlyph(&glyph, font, '?'))
-                continue;
-        }
+      if (codepoint == '\n') {
+          if (max_width) {
+              text = end_text;
+              max_width = 0;
+              continue;
+          }
 
-        drawGlyph(x, y, clr, &glyph);
-        x += glyph.advance;
-    }
+          x = origX;
+          y += m_fontLastUsedFace->size->metrics.height / 64;
+          continue;
+      }
+
+      if (!fontLoadGlyph(&glyph, font, codepoint)) {
+          if (!fontLoadGlyph(&glyph, font, '?'))
+              continue;
+      }
+
+      drawGlyph(x, y, clr, &glyph);
+      x += glyph.advance;
+  }
 }
 
-void Gui::drawText(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text) {
-    drawText_(font, x, y, clr, text, 0);
+void Gui::drawText(u32 font, s16 x, s16 y, color_t clr, const char* text) {
+    drawText_(font, x, y, clr, text, 0, nullptr);
 }
 
 std::vector<std::string> Gui::split(const std::string& s, const char& c) {
@@ -276,20 +320,20 @@ std::vector<std::string> Gui::split(const std::string& s, const char& c) {
 	return v;
 }
 
-void Gui::drawTextAligned(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, TextAlignment alignment) {
+void Gui::drawTextAligned(u32 font, s16 x, s16 y, color_t clr, const char* text, TextAlignment alignment) {
     u32 textWidth, textHeight;
     std::vector<std::string> lines;
 
     switch (alignment) {
       case ALIGNED_LEFT:
-        drawText_(font, x, y, clr, text, 0);
+        drawText_(font, x, y, clr, text, 0, nullptr);
         break;
       case ALIGNED_CENTER:
         lines = Gui::split(text, '\n');
 
         for (auto line : lines) {
           getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
-          drawText_(font, x - (textWidth / 2.0F), y, clr, line.c_str(), 0);
+          drawText_(font, x - (textWidth / 2.0F), y, clr, line.c_str(), 0, nullptr);
           y += textHeight;
         }
         break;
@@ -298,7 +342,7 @@ void Gui::drawTextAligned(const ffnt_header_t* font, s16 x, s16 y, color_t clr, 
 
         for (auto line : lines) {
           getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
-          drawText_(font, x - textWidth, y, clr, line.c_str(), 0);
+          drawText_(font, x - textWidth, y, clr, line.c_str(), 0, nullptr);
           y += textHeight;
         }
         break;
@@ -306,48 +350,41 @@ void Gui::drawTextAligned(const ffnt_header_t* font, s16 x, s16 y, color_t clr, 
     }
 }
 
-void Gui::drawTextTruncate(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, u32 max_width) {
-    drawText_(font, x, y, clr, text, max_width);
+void Gui::drawTextTruncate(u32 font, s16 x, s16 y, color_t clr, const char* text, u32 max_width, const char* end_text) {
+    drawText_(font, x, y, clr, text, max_width, end_text);
 }
 
-void Gui::getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out) {
-    s32 x = 0;
-    s32 width = 0, height = font->height;
+void Gui::getTextDimensions(u32 font, const char* text, u32* width_out, u32* height_out) {
+  u32 x = 0;
+  u32 width = 0, height = 0;
 
-    while (*text) {
-        glyph_t glyph;
-        u32 codepoint = decodeUTF8(&text);
+  if (m_fontFacesTotal == 0) return;
+  if (!setFontType(font)) return;
+  m_fontLastUsedFace = m_fontFaces[0];
 
-        if (codepoint == '\n') {
-            x = 0;
-            height += font->height;
-            continue;
-        }
+  while (*text) {
+      glyph_t glyph;
+      u32 codepoint = decodeUTF8(&text);
 
-        if (codepoint >= '\x01' && codepoint <= '\x08') {
-          x += 25;
-
-          if (x > width)
-              width = x;
-
+      if (codepoint == '\n') {
+          x = 0;
+          height += m_fontLastUsedFace->size->metrics.height / 64;
           continue;
-        }
+      }
 
-        if (!fontLoadGlyph(&glyph, font, codepoint)) {
-            if (!fontLoadGlyph(&glyph, font, '?'))
-                continue;
-        }
+      if (!fontLoadGlyph(&glyph, font, codepoint)) {
+          if (!fontLoadGlyph(&glyph, font, '?'))
+              continue;
+      }
 
-        x += glyph.advance;
+      x += glyph.advance;
 
-        if (x > width)
-            width = x;
-    }
+      if (x > width)
+          width = x;
+  }
 
-    if (width_out)
-        *width_out = width;
-    if (height_out)
-        *height_out = height;
+  *width_out = width;
+  *height_out = height;
 }
 
 void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode) {

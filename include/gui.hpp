@@ -15,12 +15,14 @@ extern "C" {
   #include "types.h"
 }
 
-extern const ffnt_header_t tahoma24_nxfnt;
-extern const ffnt_header_t interuiregular20_nxfnt;
-extern const ffnt_header_t interuiregular14_nxfnt;
-#define font24 &tahoma24_nxfnt
-#define font20 &interuiregular20_nxfnt
-#define font14 &interuiregular14_nxfnt
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+#define FONT_FACES_MAX PlSharedFontType_Total
+
+#define font24 3
+#define font20 2
+#define font14 0
 
 enum gui_t {
   GUI_INVALID,
@@ -56,10 +58,15 @@ public:
   color_t makeColor(u8 r, u8 g, u8 b, u8 a);
   void drawRectangle(s16 x, s16 y, s16 w, s16 h, color_t color);
   void drawRectangled(s16 x, s16 y, s16 w, s16 h, color_t color);
-  void drawText(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text);
-  void drawTextAligned(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, TextAlignment alignment);
-  void drawTextTruncate(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, u32 max_width);
-  void getTextDimensions(const ffnt_header_t* font, const char* text, u32* width_out, u32* height_out);
+
+  bool fontInit();
+  void fontExit();
+
+  void drawText(u32 font, s16 x, s16 y, color_t clr, const char* text);
+  void drawTextAligned(u32 font, s16 x, s16 y, color_t clr, const char* text, TextAlignment alignment);
+  void drawTextTruncate(u32 font, s16 x, s16 y, color_t clr, const char* text, u32 max_width, const char* end_text);
+  void getTextDimensions(u32 font, const char* text, u32* width_out, u32* height_out);
+
   void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
@@ -68,14 +75,20 @@ protected:
   void endDraw();
 
 private:
-  void drawText_(const ffnt_header_t* font, s16 x, s16 y, color_t clr, const char* text, s32 max_width);
+  FT_Error m_fontLibret, m_fontFacesRet[FONT_FACES_MAX];
+  FT_Library m_fontLibrary;
+  FT_Face m_fontFaces[FONT_FACES_MAX];
+  FT_Face m_fontLastUsedFace;
+  size_t m_fontFacesTotal;
+
+  void drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 max_width, const char* end_text);
   inline void draw4PixelsRaw(s16 x, s16 y, color_t clr);
-  inline bool fontLoadGlyph(glyph_t* glyph, const ffnt_header_t* font, u32 codepoint);
+  inline bool fontLoadGlyph(glyph_t* glyph, u32 font, u32 codepoint);
   void drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph);
+  bool setFontType(u32 font);
   inline u8 decodeByte(const char** ptr);
   inline s8 decodeUTF8Cont(const char** ptr);
   inline u32 decodeUTF8(const char** ptr);
-  inline const ffnt_page_t* fontGetPage(const ffnt_header_t* font, u32 page_id);
   inline void drawPixel(s16 x, s16 y, color_t clr);
 };
 

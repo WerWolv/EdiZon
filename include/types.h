@@ -40,9 +40,9 @@ typedef struct {
     u32 pos[0x100];
     u8 widths[0x100];
     u8 heights[0x100];
-    int8_t advances[0x100];
-    int8_t posX[0x100];
-    int8_t posY[0x100];
+    s8 advances[0x100];
+    s8 posX[0x100];
+    s8 posY[0x100];
 } ffnt_pagehdr_t;
 
 typedef struct {
@@ -51,7 +51,7 @@ typedef struct {
 } ffnt_page_t;
 
 typedef struct {
-    u8 width, height;
-    int8_t posX, posY, advance;
-    const u8* data;
+  u8 width, height;
+  s8 posX, posY, advance, pitch;
+  const u8* data;
 } glyph_t;

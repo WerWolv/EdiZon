@@ -30,21 +30,19 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
 }
 
 void WidgetValue::onInput(u32 kdown) {
-  static u32 accelerationTimer = 0;
-
   m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 
   u64 incrementValue = m_stepSizeMultiplier * m_stepSize;
 
   if (kdown & KEY_LEFT) {
-    if ((m_currValue - incrementValue) > m_minValue) {
+    if (static_cast<s64>(m_currValue - incrementValue) > m_minValue) {
         Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - incrementValue);
     }
     else Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
   }
 
   if (kdown & KEY_RIGHT) {
-    if ((m_currValue + incrementValue) < m_maxValue) {
+    if (static_cast<s64>(m_currValue + incrementValue) < m_maxValue) {
         Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
     }
     else Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));

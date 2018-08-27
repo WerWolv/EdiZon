@@ -11,7 +11,8 @@
 #include <sstream>
 #include <math.h>
 
-float xOffset, xOffsetNext, xOffsetDone;
+int64_t xOffset, xOffsetNext;
+bool finishedDrawing = true;
 
 enum {
   TITLE_SELECT,
@@ -33,14 +34,14 @@ GuiMain::~GuiMain() {
 void GuiMain::update() {
   Gui::update();
 
-  float deltaOffset = xOffsetNext - xOffsetDone;
-  float scrollSpeed = deltaOffset / 150.0F;
+  double deltaOffset = xOffsetNext - xOffset;
+  double scrollSpeed = deltaOffset / 80.0F;
 
-  if (xOffsetDone != xOffsetNext) {
-    if (xOffsetNext > xOffsetDone)
-      xOffsetDone += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+  if (xOffset != xOffsetNext && finishedDrawing) {
+    if (xOffsetNext > xOffset)
+      xOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
     else
-      xOffsetDone += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+      xOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
   }
 }
 
@@ -56,10 +57,12 @@ void GuiMain::draw() {
     return;
   }
 
-  float x = 0, y = 10, currItem = 0;
-  float selectedX = 0, selectedY = 0;
+  int64_t x = 0, y = 10, currItem = 0;
+  int64_t selectedX = 0, selectedY = 0;
 
   xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
+
+  finishedDrawing = false;
 
   for (auto title : Title::g_titles) {
     if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
@@ -79,6 +82,8 @@ void GuiMain::draw() {
 
     x = floor(currItem / 2.0F) * 256;
   }
+
+  finishedDrawing = true;
 
   if (selectionState >= TITLE_SELECT) {
     Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
@@ -106,9 +111,6 @@ void GuiMain::draw() {
         accountX += 150;
       }
   }
-
-  if (xOffset != xOffsetNext)
-    xOffset = xOffsetDone;
 
   Gui::endDraw();
 }

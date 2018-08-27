@@ -173,13 +173,13 @@ void GuiEditor::draw() {
 
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
     for (u8 page = 0; page < Widget::g_widgetPageCnt[Widget::g_selectedCategory]; page++) {
-      Gui::drawRectangle((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 , 615, 20, 20, currTheme.separatorColor);
+      Gui::drawRectangle((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 , 608, 20, 20, currTheme.separatorColor);
       if (page == Widget::g_widgetPage)
-        Gui::drawRectangled((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 619, 12, 12, currTheme.highlightColor);
+        Gui::drawRectangled((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 612, 12, 12, currTheme.highlightColor);
     }
 
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 598, currTheme.textColor, "\uE0E4", ALIGNED_CENTER);
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2) + Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + 18, 598, currTheme.textColor, "\uE0E5", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 602, currTheme.textColor, "\uE0E4", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2) + Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + 23, 602, currTheme.textColor, "\uE0E5", ALIGNED_CENTER);
 
   }
 

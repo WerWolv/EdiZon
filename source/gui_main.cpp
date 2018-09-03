@@ -3,6 +3,7 @@
 
 #include "save.hpp"
 #include "title.hpp"
+#include "config_parser.hpp"
 #include "account.hpp"
 
 #include "threads.hpp"
@@ -13,6 +14,9 @@
 
 int64_t xOffset, xOffsetNext;
 bool finishedDrawing = true;
+
+bool editableOnly = false;
+int64_t editableCount = 0;
 
 enum {
   TITLE_SELECT,
@@ -25,6 +29,13 @@ GuiMain::GuiMain() : Gui() {
 
   if (Title::g_titles.size() != 0)
     xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
+
+  printf("Size: %lu", Title::g_titles.size());
+  for (auto title : Title::g_titles) {
+    if (ConfigParser::hasConfig(title.first)) {
+      ConfigParser::g_editableTitles.insert({title.first, true});
+    }
+  }
 }
 
 GuiMain::~GuiMain() {
@@ -63,37 +74,54 @@ void GuiMain::draw() {
   xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
   finishedDrawing = false;
+  editableCount = 0;
 
   for (auto title : Title::g_titles) {
-    if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
-      Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
-      Gui::drawShadow(x - xOffset, y, 256, 256);
+    if (!editableOnly || ConfigParser::g_editableTitles.count(title.first)) {
+      if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
+        Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
+        Gui::drawShadow(x - xOffset, y, 256, 256);
+      }
+
+      if (currItem == m_selected.titleIndex) {
+        selectedX = x - xOffset;
+        selectedY = y;
+        m_selected.titleId = title.first;
+      }
+
+      y = y == 10 ? 266 : 10;
+
+      currItem++;
+
+      x = floor(currItem / 2.0F) * 256;
+
+      editableCount++;
     }
-
-    if (currItem == m_selected.titleIndex) {
-      selectedX = x - xOffset;
-      selectedY = y;
-      m_selected.titleId = title.first;
-    }
-
-    y = y == 10 ? 266 : 10;
-
-    currItem++;
-
-    x = floor(currItem / 2.0F) * 256;
   }
 
   finishedDrawing = true;
 
-  if (selectionState >= TITLE_SELECT) {
-    Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
-    Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
-    Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
-    Gui::drawShadow(selectedX - 10, selectedY - 10, 276, 276);
+  if (editableOnly && editableCount == 0) {
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
+    Gui::endDraw();
+    return;
+  }
+  else {
+    if (selectionState >= TITLE_SELECT) {
+      Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
+      Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
+      Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
+      Gui::drawShadow(selectedX - 10, selectedY - 10, 276, 276);
+    }
   }
 
-  if (selectionState == TITLE_SELECT)
+  if (selectionState == TITLE_SELECT) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \uE0E0 or update all config and script files by pressing \uE0F0", ALIGNED_CENTER);
+    if (editableOnly)
+      Gui::drawText(font20, 20, 675, currTheme.textColor, "\uE0E4 Showing editable titles");
+    else
+      Gui::drawText(font20, 20, 675, currTheme.textColor, "\uE0E4 Showing all titles");
+  }
 
   if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
 
@@ -156,6 +184,11 @@ void GuiMain::onInput(u32 kdown) {
       Account::g_currAccount = Account::g_accounts[Title::g_titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]];
       Gui::g_nextGui = GUI_EDITOR;
     }
+  }
+
+  if (kdown & KEY_L) {
+    editableOnly = !editableOnly;
+    Gui::g_nextGui = GUI_MAIN;
   }
 
   if (kdown & KEY_B) {

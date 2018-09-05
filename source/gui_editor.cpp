@@ -8,6 +8,8 @@
 #include "widget_value.hpp"
 #include "widget_list.hpp"
 
+#include "config_parser.hpp"
+
 #include "lua_save_parser.hpp"
 
 #include <string>
@@ -87,26 +89,7 @@ GuiEditor::GuiEditor() : Gui() {
   std::stringstream path;
   path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
 
-  configFileResult = loadConfigFile(m_offsetFile, path.str());
-
-
-  bool foundVersion = false;
-
-  if (m_offsetFile.find("all") == m_offsetFile.end()) {
-    for (auto it : m_offsetFile.items()) {
-      if (it.key().find(Title::g_currTitle->getTitleVersion()) != std::string::npos) {
-        m_offsetFile = m_offsetFile[it.key()];
-        foundVersion = true;
-      }
-    }
-  } else {
-    m_offsetFile = m_offsetFile["all"];
-    foundVersion = true;
-  }
-
-  if (!foundVersion && configFileResult == 0)
-    configFileResult = 3;
-
+  configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), m_offsetFile, path.str());
 }
 
 GuiEditor::~GuiEditor() {
@@ -152,7 +135,6 @@ void GuiEditor::draw() {
 
   if (GuiEditor::g_currSaveFile == nullptr) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2  Backup     \uE0E3  Restore     \uE0E1  Back", ALIGNED_RIGHT);
-
     switch (configFileResult) {
       case 0:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to select one.", ALIGNED_CENTER);
@@ -184,30 +166,6 @@ void GuiEditor::draw() {
   }
 
   Gui::endDraw();
-}
-
-s8 GuiEditor::loadConfigFile(json &j, std::string filepath) {
-  std::ifstream file(filepath.c_str());
-
-  m_widgets.clear();
-
-  if (file.fail())
-    return 1;
-
-  try {
-    file >> j;
-  } catch (json::parse_error& e) {
-		printf("Failed to parse JSON file.\n");
-		return 2;
-	}
-
-  if (j.find("useInstead") != j.end()) {
-    std::stringstream path;
-    path << CONFIG_ROOT << j["useInstead"].get<std::string>();
-    loadConfigFile(j, path.str());
-  }
-
-  return 0;
 }
 
 void GuiEditor::createWidgets() {

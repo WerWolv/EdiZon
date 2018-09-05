@@ -30,9 +30,8 @@ GuiMain::GuiMain() : Gui() {
   if (Title::g_titles.size() != 0)
     xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
-  printf("Size: %lu", Title::g_titles.size());
   for (auto title : Title::g_titles) {
-    if (ConfigParser::hasConfig(title.first)) {
+    if (ConfigParser::hasConfig(title.first) == 0) {
       ConfigParser::g_editableTitles.insert({title.first, true});
     }
   }
@@ -158,7 +157,7 @@ void GuiMain::onInput(u32 kdown) {
 
   if (kdown & KEY_RIGHT) {
     if (selectionState == TITLE_SELECT) {
-      if (static_cast<u16>(m_selected.titleIndex + 2) < Title::g_titles.size())
+      if (static_cast<u16>(m_selected.titleIndex + 2) < ((!editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
         m_selected.titleIndex += 2;
     } else if (selectionState == ACCOUNT_SELECT) {
       if (static_cast<u16>(m_selected.accountIndex + 1) < Title::g_titles[m_selected.titleId]->getUserIDs().size())
@@ -169,7 +168,7 @@ void GuiMain::onInput(u32 kdown) {
   if (kdown & KEY_UP || kdown & KEY_DOWN) {
     if (selectionState == TITLE_SELECT) {
       if ((m_selected.titleIndex % 2) == 0) {
-        if (static_cast<u16>(m_selected.titleIndex + 1) < Title::g_titles.size())
+        if (static_cast<u16>(m_selected.titleIndex + 1) < ((!editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
       }
       else m_selected.titleIndex--;
@@ -188,6 +187,7 @@ void GuiMain::onInput(u32 kdown) {
 
   if (kdown & KEY_L) {
     editableOnly = !editableOnly;
+    m_selected.titleIndex = 0;
     Gui::g_nextGui = GUI_MAIN;
   }
 

@@ -24,8 +24,8 @@ public:
     ~ConfigParser();
 
     static inline std::unordered_map<u64, bool> g_editableTitles;
-    static bool hasConfig(u64 titleId);
-    static bool loadConfigFile(u64 titleId, json &j, std::string filepath);
+    static s8 hasConfig(u64 titleId);
+    static s8 loadConfigFile(u64 titleId, json &j, std::string filepath);
 
 private:
     static inline json m_offsetFile;

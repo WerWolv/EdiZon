@@ -3,7 +3,7 @@
 #include "gui_editor.hpp"
 #include <iostream>
 
-Widget::Widget(LuaSaveParser *saveParser) : m_saveParser(saveParser) {
+Widget::Widget(ScriptParser *saveParser) : m_saveParser(saveParser) {
 
 }
 

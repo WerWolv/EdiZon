@@ -2,12 +2,12 @@
 
 #include "list_selector.hpp"
 
-WidgetList::WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) :
+WidgetList::WidgetList(ScriptParser *saveParser, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) :
  Widget(saveParser), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
   m_widgetDataType = INT;
 }
 
-WidgetList::WidgetList(LuaSaveParser *saveParser, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) :
+WidgetList::WidgetList(ScriptParser *saveParser, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) :
  Widget(saveParser), m_listItemNames(listItemNames), m_strListItemValues(listItemValues) {
   m_widgetDataType = STRING;
 }

@@ -10,7 +10,7 @@
 
 #include "config_parser.hpp"
 
-#include "lua_save_parser.hpp"
+#include "script_parser.hpp"
 
 #include <string>
 #include <sstream>
@@ -40,7 +40,7 @@ color_t textColor;
 s8 configFileResult;
 u64 stepSizeMultiplier;
 
-LuaSaveParser luaParser;
+ScriptParser luaParser;
 
 template<typename T>
 static inline T optionalArg(json j, std::string tag, T elseVal) {

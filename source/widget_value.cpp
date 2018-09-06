@@ -4,7 +4,7 @@
 
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(LuaSaveParser *saveParser, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize, u64 stepSizeMultiplier) :
+WidgetValue::WidgetValue(ScriptParser *saveParser, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize, u64 stepSizeMultiplier) :
  Widget(saveParser), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize), m_stepSizeMultiplier(stepSizeMultiplier) {
   m_widgetDataType = INT;
 

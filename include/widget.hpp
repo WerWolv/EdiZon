@@ -9,7 +9,7 @@
 #include <set>
 
 #include "gui.hpp"
-#include "lua_save_parser.hpp"
+#include "script_parser.hpp"
 
 #define WIDGET_WIDTH      900
 #define WIDGET_HEIGHT     65
@@ -30,7 +30,7 @@ typedef enum { CATEGORIES, WIDGETS } WidgetRow;
 
 class Widget {
 public:
-  Widget(LuaSaveParser *saveParser);
+  Widget(ScriptParser *saveParser);
   virtual ~Widget();
 
   static inline u16 g_selectedWidgetIndex = 0;
@@ -56,7 +56,7 @@ public:
   void setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
 
 protected:
-  LuaSaveParser *m_saveParser;
+  ScriptParser *m_saveParser;
   WidgetDataType m_widgetDataType;
   std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;

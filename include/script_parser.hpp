@@ -9,10 +9,10 @@
 
 #include <switch.h>
 
-class LuaSaveParser {
+class ScriptParser {
 public:
-  LuaSaveParser();
-  ~LuaSaveParser();
+  ScriptParser();
+  ~ScriptParser();
 
   void luaInit(std::string filetype);
   void luaDeinit();

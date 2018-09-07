@@ -44,10 +44,10 @@ GuiMain::~GuiMain() {
 void GuiMain::update() {
   Gui::update();
 
-  double deltaOffset = xOffsetNext - xOffset;
-  double scrollSpeed = deltaOffset / 40.0F;
-
   if (xOffset != xOffsetNext && finishedDrawing) {
+    double deltaOffset = xOffsetNext - xOffset;
+    double scrollSpeed = deltaOffset / 40.0F;
+
     if (xOffsetNext > xOffset)
       xOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
     else
@@ -90,10 +90,7 @@ void GuiMain::draw() {
       }
 
       y = y == 10 ? 266 : 10;
-
-      currItem++;
-
-      x = floor(currItem / 2.0F) * 256;
+      x = floor(++currItem / 2.0F) * 256;
 
       editableCount++;
     }
@@ -104,13 +101,11 @@ void GuiMain::draw() {
     Gui::endDraw();
     return;
   }
-  else {
-    if (selectionState >= TITLE_SELECT) {
+  else if (selectionState >= TITLE_SELECT && selectedY != 0) {
       Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
       Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
       Gui::drawShadow(selectedX - 10, selectedY - 10, 276, 276);
-    }
   }
 
   if (selectionState == TITLE_SELECT) {

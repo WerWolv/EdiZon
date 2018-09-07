@@ -4,12 +4,7 @@
 #include "title.hpp"
 #include "save.hpp"
 
-#include "widget_switch.hpp"
-#include "widget_value.hpp"
-#include "widget_list.hpp"
-
 #include "config_parser.hpp"
-
 #include "script_parser.hpp"
 
 #include <string>
@@ -41,13 +36,6 @@ s8 configFileResult;
 u64 stepSizeMultiplier;
 
 ScriptParser luaParser;
-
-template<typename T>
-static inline T optionalArg(json j, std::string tag, T elseVal) {
-  return j.find(tag) != j.end() ? j[tag].get<T>() : elseVal;
-}
-
-void updateSaveFileList(const char *path);
 
 GuiEditor::GuiEditor() : Gui() {
   titleIcon = new u8[128*128*3];
@@ -89,7 +77,7 @@ GuiEditor::GuiEditor() : Gui() {
   std::stringstream path;
   path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
 
-  configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), m_offsetFile, path.str());
+  configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str());
 }
 
 GuiEditor::~GuiEditor() {
@@ -168,64 +156,6 @@ void GuiEditor::draw() {
   Gui::endDraw();
 }
 
-void GuiEditor::createWidgets() {
-  std::set<std::string> tempCategories;
-
-  Widget::g_selectedRow = CATEGORIES;
-
-  for (auto item : m_offsetFile["items"]) {
-    if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) continue;
-
-    auto itemWidget = item["widget"];
-
-    if (itemWidget == nullptr) continue;
-    if (itemWidget["type"] == nullptr) continue;
-
-    if (itemWidget["type"] == "int") {
-      if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) continue;
-      if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
-
-      m_widgets[item["category"]].push_back({ item["name"],
-        new WidgetValue(&luaParser, optionalArg<std::string>(itemWidget, "readEquation", "value"), optionalArg<std::string>(itemWidget, "writeEquation", "value"), itemWidget["minValue"], itemWidget["maxValue"], optionalArg<u64>(itemWidget, "stepSize", 0), stepSizeMultiplier) });
-    }
-    else if (itemWidget["type"] == "bool") {
-      if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;
-      if (itemWidget["onValue"] == itemWidget["offValue"]) continue;
-
-      if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number()) {
-        m_widgets[item["category"]].push_back({ item["name"],
-        new WidgetSwitch(&luaParser, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
-      }
-      else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
-        m_widgets[item["category"]].push_back({ item["name"],
-        new WidgetSwitch(&luaParser, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
-    }
-    else if (itemWidget["type"] == "list") {
-      if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) continue;
-
-      if (itemWidget["listItemValues"][0].is_number()) {
-        m_widgets[item["category"]].push_back({ item["name"],
-        new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
-      }
-      else if (itemWidget["listItemValues"][0].is_string())
-        m_widgets[item["category"]].push_back({ item["name"], new WidgetList(&luaParser, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
-    }
-
-    m_widgets[item["category"]].back().widget->setLuaArgs(item["intArgs"], item["strArgs"]);
-
-    tempCategories.insert(item["category"].get<std::string>());
-
-  }
-
-  Widget::g_categories.clear();
-  std::copy(tempCategories.begin(), tempCategories.end(), std::back_inserter(Widget::g_categories));
-
-  Widget::g_selectedCategory = Widget::g_categories[0];
-
-  for (auto category : tempCategories)
-    Widget::g_widgetPageCnt[category] = ceil(m_widgets[category].size() / WIDGETS_PER_PAGE);
-}
-
 void updateBackupList() {
   DIR *dir;
   struct dirent *ent;
@@ -251,8 +181,9 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
   std::vector<std::string> pathsOld;
   std::vector<std::string> paths;
 
-  if (m_offsetFile == nullptr) return;
 
+  /*if (!ConfigParser::hasConfig(Title::g_currTitle->getTitleID())) return;
+  printf("Has save file\n");*/
   if (mountSaveByTitleAccountIDs(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), fs))
     return;
 
@@ -314,11 +245,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     if (configFileResult != 0) return;
     saveFiles.clear();
 
-    if (m_offsetFile == nullptr) return;
-
-    if (m_offsetFile["saveFilePaths"] == nullptr || m_offsetFile["files"] == nullptr || m_offsetFile["filetype"] == nullptr || m_offsetFile["items"] == nullptr) return;
-
-    updateSaveFileList(m_offsetFile["saveFilePaths"], m_offsetFile["files"]);
+    updateSaveFileList(ConfigParser::getStrings(std::vector<std::string>({"saveFilePaths"})), ConfigParser::getString({"files"}));
 
     (new ListSelector("Edit save file", "\uE0E0  Select      \uE0E1  Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {
@@ -333,9 +260,9 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, optionalArg<std::string>(m_offsetFile, "encoding", "ascii"));
-              createWidgets();
-              luaParser.luaInit(m_offsetFile["filetype"]);
+              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalString({}, "encoding", "ascii"));
+              ConfigParser::createWidgets(m_widgets, luaParser);
+              luaParser.luaInit(ConfigParser::getString({"filetype"}));
             }
             else {
               (new Snackbar("Failed to load save file! Is it empty?"))->show();

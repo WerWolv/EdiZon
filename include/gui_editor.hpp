@@ -3,10 +3,6 @@
 #include "gui.hpp"
 #include "widget.hpp"
 
-#include "json.hpp"
-
-using json = nlohmann::json;
-
 #define CONFIG_ROOT "/EdiZon/editor/"
 
 class GuiEditor : public Gui {
@@ -24,9 +20,6 @@ public:
 
 private:
   WidgetItems m_widgets;
-  json m_offsetFile;
-  void createWidgets();
-  s8 loadConfigFile(json &j, std::string filepath);
 
   void updateSaveFileList(std::vector<std::string> saveFilePath, std::string files);
 };

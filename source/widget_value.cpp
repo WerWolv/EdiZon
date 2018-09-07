@@ -4,8 +4,8 @@
 
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(ScriptParser *saveParser, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize, u64 stepSizeMultiplier) :
- Widget(saveParser), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize), m_stepSizeMultiplier(stepSizeMultiplier) {
+WidgetValue::WidgetValue(ScriptParser *saveParser, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize) :
+ Widget(saveParser), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
   m_widgetDataType = INT;
 
   if (stepSize == 0)
@@ -32,7 +32,7 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
 void WidgetValue::onInput(u32 kdown) {
   m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 
-  u64 incrementValue = m_stepSizeMultiplier * m_stepSize;
+  u64 incrementValue = m_stepSize;
 
   if (kdown & KEY_LEFT) {
     if (static_cast<s64>(m_currValue - incrementValue) > m_minValue) {

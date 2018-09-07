@@ -181,9 +181,6 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
   std::vector<std::string> pathsOld;
   std::vector<std::string> paths;
 
-
-  /*if (!ConfigParser::hasConfig(Title::g_currTitle->getTitleID())) return;
-  printf("Has save file\n");*/
   if (mountSaveByTitleAccountIDs(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), fs))
     return;
 
@@ -251,13 +248,11 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
       if (k & KEY_A) {
         if (saveFiles.size() != 0) {
           size_t length;
-
           Widget::g_selectedWidgetIndex = 0;
           Widget::g_selectedCategory = "";
           Widget::g_selectedRow = CATEGORIES;
           Widget::g_categoryYOffset = 0;
-
-          GuiEditor::g_currSaveFileName = saveFiles[Gui::Gui::g_currListSelector->selectedItem].c_str();
+          GuiEditor::g_currSaveFileName = saveFiles[Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
               luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalString({}, "encoding", "ascii"));

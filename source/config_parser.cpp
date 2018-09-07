@@ -19,28 +19,22 @@ using json = nlohmann::json;
 static json configFile;
 
 std::string ConfigParser::getOptionalString(std::vector<std::string> keys, std::string optionalKey, std::string elseVal) {
-  json j = configFile;
-
-  for (auto key : keys)
-    j = j[key];
-
-  return j.find(optionalKey) != j.end() ? j[optionalKey].get<std::string>() : elseVal;
+  return elseVal;
 }
 
 u64 ConfigParser::getOptionalInt(std::vector<std::string> keys, std::string optionalKey, u64 elseVal) {
-  json j = configFile;
-
-  for (auto key : keys)
-    j = j[key];
-
-  return j.find(optionalKey) != j.end() ? j[optionalKey].get<u64>() : elseVal;
+  return 0;
 }
 
 std::string ConfigParser::getString(std::vector<std::string> keys) {
   json j = configFile;
 
-  for (auto key : keys)
+  for (auto key : keys) {
+    printf("%s, ", key.c_str());
     j = j[key];
+  }
+
+  printf("-> %s\n", j.get<std::string>().c_str());
 
   return j.get<std::string>();
 }
@@ -63,10 +57,8 @@ s8 ConfigParser::hasConfig(u64 titleId) {
 
 s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
   std::ifstream file(filepath.c_str());
-  if (file.fail()) {
-    printf("Failed reading the config file.\n");
+  if (file.fail())
     return 1;
-  }
 
   try {
     file >> configFile;
@@ -106,32 +98,26 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
 void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParser) {
   std::set<std::string> tempCategories;
 
-  Widget::g_selectedRow = CATEGORIES;
+  if(configFile == nullptr) return;
 
   for (auto item : configFile["items"]) {
     if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) continue;
-
     auto itemWidget = item["widget"];
-
     if (itemWidget == nullptr) continue;
     if (itemWidget["type"] == nullptr) continue;
-
     if (itemWidget["type"] == "int") {
       if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) continue;
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
-
       widgets[item["category"]].push_back({ item["name"],
         new WidgetValue(&scriptParser,
-          ConfigParser::getOptionalString({"items", "widget"}, "readEquation", "value"),
-          ConfigParser::getOptionalString({"items", "widget"}, "writeEquation", "value"),
+          "value",
+          "value",
           itemWidget["minValue"], itemWidget["maxValue"],
-          ConfigParser::getOptionalInt({"items", "widget"},
-          "stepSize", 0)) });
+          0) });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;
       if (itemWidget["onValue"] == itemWidget["offValue"]) continue;
-
       if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number()) {
         widgets[item["category"]].push_back({ item["name"],
         new WidgetSwitch(&scriptParser, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
@@ -153,13 +139,12 @@ void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParse
 
     widgets[item["category"]].back().widget->setLuaArgs(item["intArgs"], item["strArgs"]);
 
-    tempCategories.insert(item["category"].get<std::string>());
-
+    tempCategories.insert(item["category"].get<std::string>());;
+    Widget::g_selectedRow = CATEGORIES;
   }
 
   Widget::g_categories.clear();
   std::copy(tempCategories.begin(), tempCategories.end(), std::back_inserter(Widget::g_categories));
-
   Widget::g_selectedCategory = Widget::g_categories[0];
 
   for (auto category : tempCategories)

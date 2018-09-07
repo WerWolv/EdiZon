@@ -45,7 +45,7 @@ void GuiMain::update() {
   Gui::update();
 
   double deltaOffset = xOffsetNext - xOffset;
-  double scrollSpeed = deltaOffset / 80.0F;
+  double scrollSpeed = deltaOffset / 40.0F;
 
   if (xOffset != xOffsetNext && finishedDrawing) {
     if (xOffsetNext > xOffset)
@@ -57,6 +57,8 @@ void GuiMain::update() {
 
 void GuiMain::draw() {
   Gui::beginDraw();
+
+  finishedDrawing = false;
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 10, COLOR_BLACK);
@@ -72,20 +74,19 @@ void GuiMain::draw() {
 
   xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
-  finishedDrawing = false;
-  editableCount = 0;
-
   for (auto title : Title::g_titles) {
+    if (currItem == m_selected.titleIndex) {
+      selectedX = x - xOffset;
+      selectedY = y;
+      m_selected.titleId = title.first;
+    }
+
     if (!editableOnly || ConfigParser::g_editableTitles.count(title.first)) {
       if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
         Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
-        Gui::drawShadow(x - xOffset, y, 256, 256);
-      }
 
-      if (currItem == m_selected.titleIndex) {
-        selectedX = x - xOffset;
-        selectedY = y;
-        m_selected.titleId = title.first;
+        if (y == 266 || title.first == (--Title::g_titles.end())->first)
+          Gui::drawShadow(x - xOffset, y, 256, 256);
       }
 
       y = y == 10 ? 266 : 10;
@@ -97,8 +98,6 @@ void GuiMain::draw() {
       editableCount++;
     }
   }
-
-  finishedDrawing = true;
 
   if (editableOnly && editableCount == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
@@ -138,6 +137,7 @@ void GuiMain::draw() {
         accountX += 150;
       }
   }
+  finishedDrawing = true;
 
   Gui::endDraw();
 }
@@ -153,9 +153,7 @@ void GuiMain::onInput(u32 kdown) {
       if (static_cast<s16>(m_selected.accountIndex - 1) >= 0)
         m_selected.accountIndex--;
     }
-  }
-
-  if (kdown & KEY_RIGHT) {
+  } else if (kdown & KEY_RIGHT) {
     if (selectionState == TITLE_SELECT) {
       if (static_cast<u16>(m_selected.titleIndex + 2) < ((!editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
         m_selected.titleIndex += 2;
@@ -163,9 +161,7 @@ void GuiMain::onInput(u32 kdown) {
       if (static_cast<u16>(m_selected.accountIndex + 1) < Title::g_titles[m_selected.titleId]->getUserIDs().size())
         m_selected.accountIndex++;
     }
-  }
-
-  if (kdown & KEY_UP || kdown & KEY_DOWN) {
+  } else if (kdown & KEY_UP || kdown & KEY_DOWN) {
     if (selectionState == TITLE_SELECT) {
       if ((m_selected.titleIndex % 2) == 0) {
         if (static_cast<u16>(m_selected.titleIndex + 1) < ((!editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))

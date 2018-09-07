@@ -2,7 +2,7 @@
 
 #include <switch.h>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 #include "types.h"
 #include "save.hpp"
@@ -11,7 +11,7 @@
 class Title {
 public:
   static inline Title *g_currTitle = nullptr;
-  static inline std::unordered_map<u64, Title*> g_titles;
+  static inline std::map<u64, Title*> g_titles;
 
   Title(FsSaveDataInfo& saveInfo);
   ~Title();

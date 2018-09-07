@@ -56,6 +56,10 @@ void GuiMain::update() {
 }
 
 void GuiMain::draw() {
+  int64_t x = 0, y = 10, currItem = 0;
+  int64_t selectedX = 0, selectedY = 0;
+  bool tmpEditableOnly = editableOnly;
+
   Gui::beginDraw();
 
   finishedDrawing = false;
@@ -69,9 +73,6 @@ void GuiMain::draw() {
     return;
   }
 
-  int64_t x = 0, y = 10, currItem = 0;
-  int64_t selectedX = 0, selectedY = 0;
-
   xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
   for (auto title : Title::g_titles) {
@@ -81,7 +82,7 @@ void GuiMain::draw() {
       m_selected.titleId = title.first;
     }
 
-    if (!editableOnly || ConfigParser::g_editableTitles.count(title.first)) {
+    if (!tmpEditableOnly || ConfigParser::g_editableTitles.count(title.first)) {
       if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
         Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
 
@@ -96,7 +97,7 @@ void GuiMain::draw() {
     }
   }
 
-  if (editableOnly && editableCount == 0) {
+  if (tmpEditableOnly && editableCount == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
     Gui::endDraw();
     return;
@@ -110,7 +111,7 @@ void GuiMain::draw() {
 
   if (selectionState == TITLE_SELECT) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \uE0E0 or update all config and script files by pressing \uE0F0", ALIGNED_CENTER);
-    if (editableOnly)
+    if (tmpEditableOnly)
       Gui::drawText(font20, 20, 675, currTheme.textColor, "\uE0E4 Showing editable titles");
     else
       Gui::drawText(font20, 20, 675, currTheme.textColor, "\uE0E4 Showing all titles");

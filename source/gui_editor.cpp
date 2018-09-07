@@ -21,9 +21,6 @@
 
 #define COLOR_THRESHOLD 35
 
-u8 *GuiEditor::g_currSaveFile = nullptr;
-std::string GuiEditor::g_currSaveFileName = "";
-
 u8* titleIcon;
 
 std::vector<std::string> backupNames;
@@ -35,11 +32,11 @@ color_t textColor;
 s8 configFileResult;
 u64 stepSizeMultiplier;
 
-ScriptParser luaParser;
+ScriptParser scriptParser;
 
 GuiEditor::GuiEditor() : Gui() {
-  titleIcon = new u8[128*128*3];
-  u8 *smallTitleIcon = new u8[32*32*3];
+  titleIcon = new u8[128 * 128 * 3];
+  u8 *smallTitleIcon = new u8[32 * 32 * 3];
   std::map<u32, u16> colors;
 
   stepSizeMultiplier = 1;
@@ -115,7 +112,7 @@ void GuiEditor::draw() {
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 128);
 
   Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 45, textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, textColor, ss.str().c_str(), ALIGNED_CENTER);
 
   Gui::drawRectangle(0, Gui::g_framebuffer_height - 73, Gui::g_framebuffer_width, 73, currTheme.backgroundColor);
@@ -255,9 +252,12 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = saveFiles[Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              luaParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalString({}, "encoding", "ascii"));
-              ConfigParser::createWidgets(m_widgets, luaParser);
-              luaParser.luaInit(ConfigParser::getString({"filetype"}));
+              scriptParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalString({}, "encoding", "ascii"));
+              ConfigParser::createWidgets(m_widgets, scriptParser);
+              scriptParser.luaInit(ConfigParser::getString({"filetype"}));
+
+              if (ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()])
+                (new MessageBox("Please create a backup before using this beta config.", MessageBox::OKAY))->show();
             }
             else {
               (new Snackbar("Failed to load save file! Is it empty?"))->show();
@@ -399,7 +399,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
       if (kdown & KEY_B) {
         (new MessageBox("Are you sure you want to discard your changes?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
           if (selection) {
-            luaParser.luaDeinit();
+            scriptParser.luaDeinit();
 
             delete[] GuiEditor::g_currSaveFile;
             GuiEditor::g_currSaveFileName = "";
@@ -445,7 +445,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
         if (selection) {
           std::vector<u8> buffer;
 
-          luaParser.getModifiedSaveFile(buffer);
+          scriptParser.getModifiedSaveFile(buffer);
 
           if(!storeSaveFile(&buffer[0], buffer.size(), Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
             (new Snackbar("Successfully injected modified values!"))->show();

@@ -19,22 +19,31 @@ using json = nlohmann::json;
 static json configFile;
 
 std::string ConfigParser::getOptionalString(std::vector<std::string> keys, std::string optionalKey, std::string elseVal) {
-  return elseVal;
+  json j = configFile;
+
+  for (auto key : keys) {
+    j = j[key];
+  }
+
+  return j.find(optionalKey) != j.end() ? j.get<std::string>() : elseVal;
 }
 
 u64 ConfigParser::getOptionalInt(std::vector<std::string> keys, std::string optionalKey, u64 elseVal) {
-  return 0;
+  json j = configFile;
+
+  for (auto key : keys) {
+    j = j[key];
+  }
+
+  return j.find(optionalKey) != j.end() ? j.get<u64>() : elseVal;
 }
 
 std::string ConfigParser::getString(std::vector<std::string> keys) {
   json j = configFile;
 
   for (auto key : keys) {
-    printf("%s, ", key.c_str());
     j = j[key];
   }
-
-  printf("-> %s\n", j.get<std::string>().c_str());
 
   return j.get<std::string>();
 }
@@ -72,6 +81,9 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
     path << CONFIG_ROOT << configFile["useInstead"].get<std::string>();
     return ConfigParser::loadConfigFile(titleId, path.str());
   }
+
+  if (configFile.find("beta") != configFile.end())
+    ConfigParser::g_betaTitles.insert({titleId, configFile["beta"]});
 
   if (configFile.find("all") == configFile.end()) {
     for (auto it : configFile.items()) {

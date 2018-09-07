@@ -26,5 +26,6 @@ public:
     static u64 getOptionalInt(std::vector<std::string> keys, std::string optionalKey, u64 elseVal);
 
     static inline std::unordered_map<u64, bool> g_editableTitles;
+    static inline std::unordered_map<u64, bool> g_betaTitles;
 
 };

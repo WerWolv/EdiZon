@@ -15,8 +15,8 @@ public:
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
-  static u8 *g_currSaveFile;
-  static std::string g_currSaveFileName;
+  static inline u8 *g_currSaveFile = nullptr;
+  static inline std::string g_currSaveFileName = "";
 
 private:
   WidgetItems m_widgets;

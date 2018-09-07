@@ -6,6 +6,8 @@
 #include "config_parser.hpp"
 #include "account.hpp"
 
+#include "beta_bin.h"
+
 #include "threads.hpp"
 
 #include <string>
@@ -86,6 +88,9 @@ void GuiMain::draw() {
       if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
         Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
 
+        if (ConfigParser::g_betaTitles[title.first])
+          Gui::drawImage(x - xOffset, y, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
+
         if (y == 266 || title.first == (--Title::g_titles.end())->first)
           Gui::drawShadow(x - xOffset, y, 256, 256);
       }
@@ -106,6 +111,10 @@ void GuiMain::draw() {
       Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
       Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
+
+      if (ConfigParser::g_betaTitles[m_selected.titleId])
+        Gui::drawImage(selectedX, selectedY, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
+
       Gui::drawShadow(selectedX - 10, selectedY - 10, 276, 276);
   }
 

@@ -1,5 +1,5 @@
 /*
-** $Id: luaconf.h,v 1.259 2016/12/22 13:08:50 roberto Exp $
+** $Id: luaconf.h,v 1.259.1.1 2017/04/19 17:29:57 roberto Exp $
 ** Configuration file for Lua
 ** See Copyright Notice in lua.h
 */
@@ -203,7 +203,11 @@
 #define LUA_ROOT	"/usr/local/"
 #define LUA_LDIR	LUA_ROOT "share/lua/" LUA_VDIR "/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/" LUA_VDIR "/"
-#define LUA_PATH_DEFAULT "/EdiZon/editor/scripts/?.lua"
+#define LUA_PATH_DEFAULT  \
+		LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
+		LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua;" \
+		"./?.lua;" "./?/init.lua;" \
+		"/EdiZon/editor/scripts/?.lua"
 #define LUA_CPATH_DEFAULT \
 		LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so"
 #endif			/* } */
@@ -618,6 +622,13 @@
 
 
 /*
+@@ lua_pointer2str converts a pointer to a readable string in a
+** non-specified way.
+*/
+#define lua_pointer2str(buff,sz,p)	l_sprintf(buff,sz,"%p",p)
+
+
+/*
 @@ lua_number2strx converts a float to an hexadecimal numeric string.
 ** In C99, 'sprintf' (with format specifiers '%a'/'%A') does that.
 ** Otherwise, you can leave 'lua_number2strx' undefined and Lua will
@@ -718,7 +729,7 @@
 #if LUAI_BITSINT >= 32
 #define LUAI_MAXSTACK		1000000
 #else
-#define LUAI_MAXSTACK		1500000
+#define LUAI_MAXSTACK		15000
 #endif
 
 

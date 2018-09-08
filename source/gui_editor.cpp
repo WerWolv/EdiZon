@@ -82,7 +82,7 @@ GuiEditor::~GuiEditor() {
     for(auto widget : widgets)
       delete widget.widget;
 
-  delete titleIcon;
+  delete[] titleIcon;
   delete[] GuiEditor::g_currSaveFile;
   GuiEditor::g_currSaveFile = nullptr;
   GuiEditor::g_currSaveFileName = "";

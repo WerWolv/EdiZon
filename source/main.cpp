@@ -31,8 +31,6 @@ bool updateThreadRunning = false;
 
 Mutex mutexCurrGui;
 
-size_t __nx_heap_size = 0x200000 * 32;
-
 char* g_edizonPath;
 
 Gui* currGui = nullptr;
@@ -209,6 +207,8 @@ int main(int argc, char** argv) {
   updateThreadRunning = false;
 
   Threads::joinAll();
+
+  delete[] g_edizonPath;
 
   for (auto it = Title::g_titles.begin(); it != Title::g_titles.end(); it++)
     delete it->second;

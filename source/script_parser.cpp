@@ -92,6 +92,11 @@ void ScriptParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize, std::stri
       break;
   }
 
+  if (this->m_buffer != nullptr) {
+    delete[] this->m_buffer;
+    this->m_buffer = nullptr;
+  }
+
   this->m_bufferSize = utf8.size();
   this->m_buffer = new u8[this->m_bufferSize];
 

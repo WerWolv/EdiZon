@@ -29,6 +29,8 @@ std::vector<u8> Encoding::uft16leToUtf8(u8 *data, size_t length) {
 
 	utf8Chars.push_back(0x00);
 
+  delete[] utf16Chars;
+
 	utf8Chars.shrink_to_fit();
 
 	return utf8Chars;
@@ -62,6 +64,8 @@ std::vector<u8> Encoding::uft16beToUtf8(u8 *data, size_t length) {
 	}
 
 	utf8Chars.push_back(0x00);
+
+  delete[] utf16Chars;
 
 	utf8Chars.shrink_to_fit();
 

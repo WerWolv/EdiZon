@@ -12,7 +12,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
 
   NacpLanguageEntry *langentry = nullptr;
 
-  buf = (NsApplicationControlData*)malloc(sizeof(NsApplicationControlData));
+  buf = new NsApplicationControlData();
   if (buf == nullptr) {
     m_errorCode = 1;
     return;
@@ -74,16 +74,17 @@ Title::Title(FsSaveDataInfo& saveInfo) {
     return;
   }
 
-  m_titleIcon = (u8*)malloc(imagesize);
+  m_titleIcon = new u8[imagesize];
   memcpy(m_titleIcon, ptr, imagesize);
   ptr = nullptr;
+  delete buf;
 
   njDone();
   nsExit();
 }
 
 Title::~Title() {
-  free(m_titleIcon);
+  delete[] m_titleIcon;
 }
 
 std::string Title::getTitleName() {

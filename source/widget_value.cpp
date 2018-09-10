@@ -27,20 +27,24 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
 }
 
 void WidgetValue::onInput(u32 kdown) {
-  u64 incrementValue = m_stepSize;
+  u64 incrementValue = m_stepSize * g_stepSizeMultiplier;
 
   if (kdown & KEY_LEFT) {
-    if (static_cast<s64>(m_currValue - incrementValue) > m_minValue) {
+    if (static_cast<s64>(m_currValue - incrementValue) > m_minValue)
         Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - incrementValue);
-    }
-    else Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
+    else if(m_currValue == m_minValue)
+      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
+    else
+      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
   }
 
   if (kdown & KEY_RIGHT) {
-    if (static_cast<s64>(m_currValue + incrementValue) < m_maxValue) {
-        Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
-    }
-    else Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
+    if (static_cast<s64>(m_currValue + incrementValue) < m_maxValue)
+      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
+    else if(m_currValue == m_maxValue)
+      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
+    else
+      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
   }
 
   m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());

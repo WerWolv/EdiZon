@@ -26,8 +26,6 @@ GuiEditor::GuiEditor() : Gui() {
   std::vector<u8> smallTitleIcon(32 * 32 * 3);
   std::map<u32, u16> colors;
 
-  m_stepSizeMultiplier = 1;
-
   m_dominantColor = Gui::makeColor(0xA0, 0xA0, 0xA0, 0xFF);
 
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), &m_titleIcon[0], 256, 256, 128, 128);
@@ -87,8 +85,8 @@ void GuiEditor::update() {
 void GuiEditor::draw() {
   Gui::beginDraw();
 
-  std::stringstream ss;
-  ss << "0x" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+  std::stringstream ssTitleId;
+  ssTitleId << "0x" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 
@@ -101,13 +99,13 @@ void GuiEditor::draw() {
 
   Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, m_textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
   Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, m_textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, ss.str().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, ssTitleId.str().c_str(), ALIGNED_CENTER);
 
   Gui::drawRectangle(0, Gui::g_framebuffer_height - 73, Gui::g_framebuffer_width, 73, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
   if (GuiEditor::g_currSaveFile == nullptr) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2  Backup     \uE0E3  Restore     \uE0E1  Back", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2 Backup     \uE0E3 Restore     \uE0E1 Back", ALIGNED_RIGHT);
     switch (m_configFileResult) {
       case 0:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to select one.", ALIGNED_CENTER);
@@ -123,8 +121,14 @@ void GuiEditor::draw() {
         break;
     }
 
-  } else
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2  Apply changes     \uE0E1  Cancel     \uE0E0  OK", ALIGNED_RIGHT);
+  } else {
+    std::stringstream ssMultiplier;
+    ssMultiplier << "\uE074 : x";
+    ssMultiplier << Widget::g_stepSizeMultiplier;
+
+    Gui::drawTextAligned(font20, 50, Gui::g_framebuffer_height - 55, currTheme.textColor, ssMultiplier.str().c_str(), ALIGNED_LEFT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE105 Increase multiplier     \uE0E2 Apply changes     \uE0E1 Cancel     \uE0E0 Ok", ALIGNED_RIGHT);
+  }
 
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
     for (u8 page = 0; page < Widget::g_widgetPageCnt[Widget::g_selectedCategory]; page++) {

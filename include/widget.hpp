@@ -55,6 +55,8 @@ public:
 
   void setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
 
+  static inline u16 g_stepSizeMultiplier = 1;
+
 protected:
   ScriptParser *m_saveParser;
   WidgetDataType m_widgetDataType;

@@ -1,6 +1,7 @@
 #include "widget.hpp"
 
 #include "gui_editor.hpp"
+
 #include <iostream>
 
 Widget::Widget(ScriptParser *saveParser) : m_saveParser(saveParser) {
@@ -39,12 +40,10 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
 
     if (start == Widget::g_selectedWidgetIndex && Widget::g_selectedRow == WIDGETS) {
       gui->drawRectangled(widgetInset + X_OFFSET, y, WIDGET_WIDTH, WIDGET_HEIGHT, currTheme.highlightColor);
-      gui->drawRectangle(widgetInset + 5 + X_OFFSET, y + 5, WIDGET_WIDTH - 12, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
+      gui->drawRectangle(widgetInset + 5 + X_OFFSET, y + 5, WIDGET_WIDTH - 11, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
       gui->drawShadow(widgetInset + X_OFFSET, y, WIDGET_WIDTH, WIDGET_HEIGHT);
     }
 
-    u32 textWidth, textHeight;
-    gui->getTextDimensions(font20, currWidgets[start].title.c_str(), &textWidth, &textHeight);
     gui->drawTextAligned(font20, widgetInset + 50 + X_OFFSET, y + (WIDGET_HEIGHT / 2.0F) - 13, currTheme.textColor, currWidgets[start].title.c_str(), ALIGNED_LEFT);
     gui->drawRectangle(widgetInset + 30 + X_OFFSET, y + WIDGET_HEIGHT + (WIDGET_SEPARATOR / 2) - 1, WIDGET_WIDTH - 60, 1, currTheme.separatorColor);
     currWidgets[start].widget->draw(gui, widgetInset + 50 + X_OFFSET, y - 13);
@@ -64,6 +63,11 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
       Widget::g_selectedRow = WIDGETS;
       Widget::g_selectedWidgetIndex = Widget::g_widgetPage * WIDGETS_PER_PAGE;
     }
+  }
+
+  if (kdown & KEY_RSTICK) {
+    if (g_stepSizeMultiplier == 10000) g_stepSizeMultiplier = 1;
+    else g_stepSizeMultiplier *= 10;
   }
 }
 

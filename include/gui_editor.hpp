@@ -34,7 +34,6 @@ private:
   color_t m_textColor;
 
   s8 m_configFileResult;
-  u64 m_stepSizeMultiplier;
 
   ScriptParser m_scriptParser;
 

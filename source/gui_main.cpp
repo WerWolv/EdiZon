@@ -119,11 +119,12 @@ void GuiMain::draw() {
   }
 
   if (selectionState == TITLE_SELECT) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 605, currTheme.textColor, "Select title and account by pressing \uE0E0 or update all config and script files by pressing \uE0F0", ALIGNED_CENTER);
+    Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
+
     if (tmpEditableOnly)
-      Gui::drawText(font20, 20, 675, currTheme.textColor, "\uE0E4 Showing editable titles");
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Show all titles     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
     else
-      Gui::drawText(font20, 20, 675, currTheme.textColor, "\uE0E4 Showing all titles");
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Show editable titles     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
   }
 
   if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
@@ -189,7 +190,6 @@ void GuiMain::onInput(u32 kdown) {
   if (kdown & KEY_L) {
     editableOnly = !editableOnly;
     m_selected.titleIndex = 0;
-    Gui::g_nextGui = GUI_MAIN;
   }
 
   if (kdown & KEY_B) {

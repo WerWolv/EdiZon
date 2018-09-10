@@ -18,11 +18,12 @@ int dispatch(lua_State *s) {
 }
 
 ScriptParser::ScriptParser() {
-
+  m_luaState = nullptr;
 }
 
 ScriptParser::~ScriptParser() {
-  lua_close(m_luaState);
+  if (m_luaState != nullptr)
+    lua_close(m_luaState);
 }
 
 void ScriptParser::printError(lua_State *luaState) {

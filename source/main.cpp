@@ -24,16 +24,20 @@ extern "C" {
 
 #define NXLINK
 
-#define LONG_PRESS_DELAY              70
+#define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   300
-
-bool updateThreadRunning = false;
-
-Mutex mutexCurrGui;
 
 char* g_edizonPath;
 
-Gui* currGui = nullptr;
+static bool updateThreadRunning = false;
+static Mutex mutexCurrGui;
+static Gui* currGui = nullptr;
+static u32 inputTicker = 0;
+static u8 touchCntOld = 0, touchCnt = 0;
+static u32 kheld = 0, kheldOld = 0;
+static u32 kdown = 0;
+static touchPosition touch;
+static touchPosition touchEnd;
 
 void initTitles() {
   std::vector<FsSaveDataInfo> saveInfoList;
@@ -52,77 +56,17 @@ void initTitles() {
 }
 
 void update(void *args) {
-  auto begin = std::chrono::steady_clock::now();
-  u32 inputTicker = 0;
-  u8 touchCntOld = hidTouchCount(), touchCnt;
-  u32 kheld = 0, kheldOld = 0;
-  u32 kdown = 0;
-  touchPosition touch;
-  touchPosition touchEnd;
-
+  touchCntOld = hidTouchCount();
   while (updateThreadRunning) {
-    hidScanInput();
-    kdown = hidKeysDown(CONTROLLER_P1_AUTO);
-    kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
-
-    begin = std::chrono::steady_clock::now();
+    auto begin = std::chrono::steady_clock::now();
 
     mutexLock(&mutexCurrGui);
-
-    if (currGui != nullptr) {
-      if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
-        if (Gui::g_currMessageBox != nullptr)
-          Gui::g_currMessageBox->onInput(kdown);
-        else if (Gui::g_currListSelector != nullptr)
-          Gui::g_currListSelector->onInput(kdown);
-        else
-          currGui->onInput(kdown);
-      }
-
-      if (kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;
-      else inputTicker = 0;
-
-      if (kheld != kheldOld)
-        inputTicker = 0;
-
-      if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0) {
-        if (Gui::g_currMessageBox != nullptr)
-          Gui::g_currMessageBox->onInput(kheld);
-        else if (Gui::g_currListSelector != nullptr)
-          Gui::g_currListSelector->onInput(kheld);
-        else
-          currGui->onInput(kheld);
-      }
-
+    if (currGui != nullptr)
       currGui->update();
-    }
-
-    touchCnt = hidTouchCount();
-
-    if (touchCnt > touchCntOld)
-      hidTouchRead(&touch, 0);
-
-    if (touchCnt < touchCntOld) {
-      if (Gui::g_currMessageBox != nullptr)
-        Gui::g_currMessageBox->onTouch(touch);
-      else if (Gui::g_currListSelector != nullptr)
-        Gui::g_currListSelector->onTouch(touch);
-      else {
-        currGui->onTouch(touchEnd);
-        currGui->onGesture(touch, touchEnd);
-      }
-    }
-
-    hidTouchRead(&touchEnd, 0);
-
-    touchCntOld = touchCnt;
-    kheldOld = kheld;
-
-    if (kdown & KEY_PLUS) {
-      updateThreadRunning = false;
-    }
-
     mutexUnlock(&mutexCurrGui);
+
+    if (kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;
+    else inputTicker = 0;
 
     svcSleepThread(1.0E6 - std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - begin).count());
   }
@@ -165,6 +109,11 @@ int main(int argc, char** argv) {
   Threads::create(&update);
 
   while (appletMainLoop()) {
+    hidScanInput();
+    kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    kdown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+
     if (Gui::g_nextGui != GUI_INVALID) {
       mutexLock(&mutexCurrGui);
       if (currGui != nullptr)
@@ -181,10 +130,57 @@ int main(int argc, char** argv) {
       }
       Gui::g_nextGui = GUI_INVALID;
       mutexUnlock(&mutexCurrGui);
-    } else if (currGui == nullptr) break;
+    }
 
-    if (currGui != nullptr)
+    if (currGui != nullptr) {
+      if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
+        if (Gui::g_currMessageBox != nullptr)
+          Gui::g_currMessageBox->onInput(kdown);
+        else if (Gui::g_currListSelector != nullptr)
+          Gui::g_currListSelector->onInput(kdown);
+        else
+          currGui->onInput(kdown);
+      }
+
+      if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0) {
+        if (Gui::g_currMessageBox != nullptr)
+          Gui::g_currMessageBox->onInput(kheld);
+        else if (Gui::g_currListSelector != nullptr)
+          Gui::g_currListSelector->onInput(kheld);
+        else
+          currGui->onInput(kheld);
+      }
+
       currGui->draw();
+    }
+
+    touchCnt = hidTouchCount();
+
+    if (touchCnt > touchCntOld)
+      hidTouchRead(&touch, 0);
+
+    if (touchCnt < touchCntOld) {
+      if (Gui::g_currMessageBox != nullptr)
+        Gui::g_currMessageBox->onTouch(touch);
+      else if (Gui::g_currListSelector != nullptr)
+        Gui::g_currListSelector->onTouch(touch);
+      else {
+        currGui->onTouch(touchEnd);
+        currGui->onGesture(touch, touchEnd);
+      }
+    }
+
+    hidTouchRead(&touchEnd, 0);
+
+    touchCntOld = touchCnt;
+
+    if (kheld != kheldOld)
+      inputTicker = 0;
+
+    kheldOld = kheld;
+
+    if (kdown & KEY_PLUS)
+      break;
 
     if (GuiMain::g_shouldUpdate) {
       Gui::g_currMessageBox->hide();
@@ -200,8 +196,6 @@ int main(int argc, char** argv) {
 
       GuiMain::g_shouldUpdate = false;
     }
-    if (!updateThreadRunning) break;
-
   }
 
   updateThreadRunning = false;

@@ -66,7 +66,7 @@ void ListSelector::draw(Gui *gui) {
   } else gui->drawText(font20, 300, 340 + 60 * 2 + startYOffset, currTheme.textColor, "No items present!");
 
   gui->drawRectangle(0, 220 + startYOffset, Gui::g_framebuffer_width, 80, currTheme.backgroundColor);
-  gui->drawRectangle(0, Gui::g_framebuffer_height - 70 + startYOffset, Gui::g_framebuffer_width, 70, currTheme.backgroundColor);
+  gui->drawRectangle(0, Gui::g_framebuffer_height - 73 + startYOffset, Gui::g_framebuffer_width, 73, currTheme.backgroundColor);
   gui->drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 300 + startYOffset, 1220, 1, currTheme.textColor);
   gui->drawText(font24, 100, 240 + startYOffset, currTheme.textColor, m_title.c_str());
 

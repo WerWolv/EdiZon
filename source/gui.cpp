@@ -27,6 +27,7 @@ Gui::~Gui() {
   Gui::g_currMessageBox = nullptr;
 
   fontExit();
+  plExit();
 }
 
 void Gui::update() {
@@ -43,9 +44,6 @@ void Gui::update() {
         Gui::g_currSnackbar = nullptr;
     }
   }
-
-  if (Gui::g_currKeyboard != nullptr)
-    Gui::g_currKeyboard->update();
 
   float highlightMultiplier = (sin(menuTimer) + 1) / 2.0F;
   currTheme.highlightColor.r = 0x27 + 0x61 * highlightMultiplier;
@@ -532,10 +530,7 @@ void Gui::endDraw() {
   if (Gui::g_currMessageBox != nullptr)
     Gui::g_currMessageBox->draw(this);
 
-  if (Gui::g_currKeyboard != nullptr)
-    Gui::g_currKeyboard->draw(this);
 
   gfxFlushBuffers();
   gfxSwapBuffers();
-  gfxWaitForVsync();
 }

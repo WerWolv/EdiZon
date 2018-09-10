@@ -9,7 +9,6 @@
 #include "snackbar.hpp"
 #include "list_selector.hpp"
 #include "message_box.hpp"
-#include "keyboard.hpp"
 
 extern "C" {
   #include "theme.h"
@@ -42,7 +41,6 @@ public:
   static inline Snackbar *g_currSnackbar = nullptr;
   static inline ListSelector *g_currListSelector = nullptr;
   static inline MessageBox *g_currMessageBox = nullptr;
-  static inline Keyboard *g_currKeyboard = nullptr;
 
   Gui();
   virtual ~Gui();

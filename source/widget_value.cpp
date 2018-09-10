@@ -8,9 +8,6 @@ WidgetValue::WidgetValue(ScriptParser *saveParser, std::string readEquation, std
  Widget(saveParser), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
   m_widgetDataType = INT;
 
-  if (stepSize == 0)
-    m_stepSize = floor((maxValue - minValue) / 500.0F);
-
   m_currValue = 0;
 
 }

@@ -1,7 +1,7 @@
 #include "encoding.hpp"
 
 std::vector<u8> Encoding::uft16leToUtf8(u8 *data, size_t length) {
-  u16 *utf16Chars = new u16[length / 2];
+  std::vector<u16> utf16Chars(length / 2);
 	std::vector<u8> utf8Chars;
 	utf8Chars.reserve(length / 2);
 
@@ -28,16 +28,13 @@ std::vector<u8> Encoding::uft16leToUtf8(u8 *data, size_t length) {
 	}
 
 	utf8Chars.push_back(0x00);
-
-  delete[] utf16Chars;
-
 	utf8Chars.shrink_to_fit();
 
 	return utf8Chars;
 }
 
 std::vector<u8> Encoding::uft16beToUtf8(u8 *data, size_t length) {
-  u16 *utf16Chars = new u16[length / 2];
+  std::vector<u16> utf16Chars(length / 2);
 	std::vector<u8> utf8Chars;
 	utf8Chars.reserve(length / 2);
 
@@ -64,9 +61,6 @@ std::vector<u8> Encoding::uft16beToUtf8(u8 *data, size_t length) {
 	}
 
 	utf8Chars.push_back(0x00);
-
-  delete[] utf16Chars;
-
 	utf8Chars.shrink_to_fit();
 
 	return utf8Chars;

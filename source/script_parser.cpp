@@ -19,11 +19,15 @@ int dispatch(lua_State *s) {
 
 ScriptParser::ScriptParser() {
   m_luaState = nullptr;
+  m_buffer = nullptr;
 }
 
 ScriptParser::~ScriptParser() {
-  if (m_luaState != nullptr)
+  if (m_luaState != nullptr) {
     lua_close(m_luaState);
+    m_luaState = nullptr;
+  }
+
 }
 
 void ScriptParser::printError(lua_State *luaState) {
@@ -61,7 +65,10 @@ void ScriptParser::luaInit(std::string filetype) {
 }
 
 void ScriptParser::luaDeinit() {
-  lua_close(m_luaState);
+  if (m_luaState != nullptr) {
+    lua_close(m_luaState);
+    m_luaState = nullptr;
+  }
 }
 
 void ScriptParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize, std::string encoding) {
@@ -255,7 +262,10 @@ double ScriptParser::evaluateEquation(std::string equation, s64 value) {
     printError(s);
   ret = lua_tonumber(s, -1);
 
-  lua_close(s);
+  if (s != nullptr) {
+    lua_close(s);
+    s = nullptr;
+  }
 
   return ret;
 }

@@ -75,8 +75,6 @@ void update(void *args) {
           Gui::g_currMessageBox->onInput(kdown);
         else if (Gui::g_currListSelector != nullptr)
           Gui::g_currListSelector->onInput(kdown);
-        else if (Gui::g_currKeyboard != nullptr)
-          Gui::g_currKeyboard->onInput(kdown);
         else
           currGui->onInput(kdown);
       }
@@ -92,8 +90,6 @@ void update(void *args) {
           Gui::g_currMessageBox->onInput(kheld);
         else if (Gui::g_currListSelector != nullptr)
           Gui::g_currListSelector->onInput(kheld);
-        else if (Gui::g_currKeyboard != nullptr)
-          Gui::g_currKeyboard->onInput(kheld);
         else
           currGui->onInput(kheld);
       }
@@ -123,7 +119,7 @@ void update(void *args) {
     kheldOld = kheld;
 
     if (kdown & KEY_PLUS) {
-      delete currGui;
+      updateThreadRunning = false;
     }
 
     mutexUnlock(&mutexCurrGui);
@@ -149,16 +145,18 @@ int main(int argc, char** argv) {
   }
 
   gfxInitDefault();
+
   setsysInitialize();
-  ColorSetId colorSetId;
-  setsysGetColorSetId(&colorSetId);
-  setTheme(colorSetId);
+    ColorSetId colorSetId;
+    setsysGetColorSetId(&colorSetId);
+    setTheme(colorSetId);
+  setsysExit();
 
   initTitles();
 
   Gui::g_nextGui = GUI_MAIN;
 
-  g_edizonPath = new char[strlen(argv[0])];
+  g_edizonPath = new char[strlen(argv[0]) + 1];
   strcpy(g_edizonPath, argv[0] + 5);
 
   mutexInit(&mutexCurrGui);
@@ -185,7 +183,8 @@ int main(int argc, char** argv) {
       mutexUnlock(&mutexCurrGui);
     } else if (currGui == nullptr) break;
 
-    currGui->draw();
+    if (currGui != nullptr)
+      currGui->draw();
 
     if (GuiMain::g_shouldUpdate) {
       Gui::g_currMessageBox->hide();
@@ -201,8 +200,9 @@ int main(int argc, char** argv) {
 
       GuiMain::g_shouldUpdate = false;
     }
-  }
+    if (!updateThreadRunning) break;
 
+  }
 
   updateThreadRunning = false;
 
@@ -219,9 +219,11 @@ int main(int argc, char** argv) {
   Title::g_titles.clear();
   Account::g_accounts.clear();
 
-  close(file);
+  delete currGui;
 
   socketExit();
+
+  close(file);
 
   gfxExit();
 

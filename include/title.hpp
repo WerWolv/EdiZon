@@ -3,6 +3,7 @@
 #include <switch.h>
 #include <string>
 #include <map>
+#include <memory>
 
 #include "types.h"
 #include "save.hpp"
@@ -10,7 +11,7 @@
 
 class Title {
 public:
-  static inline Title *g_currTitle = nullptr;
+  static inline Title *g_currTitle;
   static inline std::map<u64, Title*> g_titles;
 
   Title(FsSaveDataInfo& saveInfo);

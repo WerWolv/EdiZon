@@ -21,30 +21,17 @@
 
 #define COLOR_THRESHOLD 35
 
-u8* titleIcon;
-
-std::vector<std::string> backupNames;
-std::vector<std::string> saveFiles;
-
-color_t dominantColor;
-color_t textColor;
-
-s8 configFileResult;
-u64 stepSizeMultiplier;
-
-ScriptParser scriptParser;
-
 GuiEditor::GuiEditor() : Gui() {
-  titleIcon = new u8[128 * 128 * 3];
-  u8 *smallTitleIcon = new u8[32 * 32 * 3];
+  m_titleIcon.reserve(128 * 128 * 3);
+  std::vector<u8> smallTitleIcon(32 * 32 * 3);
   std::map<u32, u16> colors;
 
-  stepSizeMultiplier = 1;
+  m_stepSizeMultiplier = 1;
 
-  dominantColor = Gui::makeColor(0xA0, 0xA0, 0xA0, 0xFF);
+  m_dominantColor = Gui::makeColor(0xA0, 0xA0, 0xA0, 0xFF);
 
-  Gui::resizeImage(Title::g_currTitle->getTitleIcon(), titleIcon, 256, 256, 128, 128);
-  Gui::resizeImage(Title::g_currTitle->getTitleIcon(), smallTitleIcon, 256, 256, 32, 32);
+  Gui::resizeImage(Title::g_currTitle->getTitleIcon(), &m_titleIcon[0], 256, 256, 128, 128);
+  Gui::resizeImage(Title::g_currTitle->getTitleIcon(), &smallTitleIcon[0], 256, 256, 32, 32);
 
   for (u16 i = 0; i < 32 * 32 * 3; i += 3) {
     u32 currColor = smallTitleIcon[i + 0] << 16 | smallTitleIcon[i + 1] << 8 | smallTitleIcon[i + 2];
@@ -60,11 +47,11 @@ GuiEditor::GuiEditor() : Gui() {
         continue;
 
       dominantUseCnt = count;
-      dominantColor = colorCandidate;
+      m_dominantColor = colorCandidate;
     }
   }
 
-  textColor = (dominantColor.r > 0x80 && dominantColor.g > 0x80 && dominantColor.b > 0x80) ? COLOR_BLACK : COLOR_WHITE;
+  m_textColor = (m_dominantColor.r > 0x80 && m_dominantColor.g > 0x80 && m_dominantColor.b > 0x80) ? COLOR_BLACK : COLOR_WHITE;
 
   Widget::g_widgetPage = 0;
   Widget::g_selectedWidgetIndex = 0;
@@ -74,22 +61,23 @@ GuiEditor::GuiEditor() : Gui() {
   std::stringstream path;
   path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
 
-  configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str());
+  m_configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str());
 }
 
 GuiEditor::~GuiEditor() {
-  for (auto const& [category, widgets] : m_widgets)
-    for(auto widget : widgets)
-      delete widget.widget;
+  if (GuiEditor::g_currSaveFile != nullptr) {
+    for (auto const& [category, widgets] : m_widgets)
+      for(auto widget : widgets)
+        delete widget.widget;
 
-  delete[] titleIcon;
-  delete[] GuiEditor::g_currSaveFile;
+    delete[] GuiEditor::g_currSaveFile;
+  }
+
   GuiEditor::g_currSaveFile = nullptr;
   GuiEditor::g_currSaveFileName = "";
   Widget::g_selectedCategory = "";
-
-  backupNames.clear();
-  saveFiles.clear();
+  m_backupNames.clear();
+  m_saveFiles.clear();
 }
 
 void GuiEditor::update() {
@@ -106,21 +94,21 @@ void GuiEditor::draw() {
 
   Widget::drawWidgets(this, m_widgets, 150, Widget::g_widgetPage * WIDGETS_PER_PAGE, (Widget::g_widgetPage + 1) * WIDGETS_PER_PAGE);
 
-  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, dominantColor);
-  Gui::drawImage(0, 0, 128, 128, titleIcon, IMAGE_MODE_RGB24);
+  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, m_dominantColor);
+  Gui::drawImage(0, 0, 128, 128, &m_titleIcon[0], IMAGE_MODE_RGB24);
   Gui::drawImage(Gui::g_framebuffer_width - 128, 0, 128, 128, Account::g_currAccount->getProfileImage(), IMAGE_MODE_RGB24);
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 128);
 
-  Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, textColor, ss.str().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, m_textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, m_textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, ss.str().c_str(), ALIGNED_CENTER);
 
   Gui::drawRectangle(0, Gui::g_framebuffer_height - 73, Gui::g_framebuffer_width, 73, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
   if (GuiEditor::g_currSaveFile == nullptr) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2  Backup     \uE0E3  Restore     \uE0E1  Back", ALIGNED_RIGHT);
-    switch (configFileResult) {
+    switch (m_configFileResult) {
       case 0:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to select one.", ALIGNED_CENTER);
         break;
@@ -153,21 +141,21 @@ void GuiEditor::draw() {
   Gui::endDraw();
 }
 
-void updateBackupList() {
+void GuiEditor::updateBackupList() {
   DIR *dir;
   struct dirent *ent;
 
   std::stringstream path;
   path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
-  backupNames.clear();
+  m_backupNames.clear();
 
   if ((dir = opendir(path.str().c_str())) != nullptr) {
     while ((ent = readdir(dir)) != nullptr)
-      backupNames.push_back(ent->d_name);
+      m_backupNames.push_back(ent->d_name);
     closedir(dir);
   }
 
-  std::reverse(backupNames.begin(), backupNames.end());
+  std::reverse(m_backupNames.begin(), m_backupNames.end());
 }
 
 void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::string files) {
@@ -219,13 +207,13 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
 
       while ((ent = readdir(dir)) != nullptr) {
         if (std::regex_match(ent->d_name, validSaveFileNames))
-          saveFiles.push_back(path + ent->d_name);
+          m_saveFiles.push_back(path + ent->d_name);
       }
       closedir(dir);
     }
   }
 
-  std::reverse(saveFiles.begin(), saveFiles.end());
+  std::reverse(m_saveFiles.begin(), m_saveFiles.end());
 
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
@@ -236,26 +224,25 @@ void GuiEditor::onInput(u32 kdown) {
 if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 
   if (kdown & KEY_MINUS) {
-    if (configFileResult != 0) return;
-    saveFiles.clear();
+    if (m_configFileResult != 0) return;
+    m_saveFiles.clear();
 
     updateSaveFileList(ConfigParser::getStrings(std::vector<std::string>({"saveFilePaths"})), ConfigParser::getString({"files"}));
 
-    (new ListSelector("Edit save file", "\uE0E0  Select      \uE0E1  Back", saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
+    (new ListSelector("Edit save file", "\uE0E0  Select      \uE0E1  Back", m_saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {
-        if (saveFiles.size() != 0) {
+        if (m_saveFiles.size() != 0) {
           size_t length;
           Widget::g_selectedWidgetIndex = 0;
           Widget::g_selectedCategory = "";
           Widget::g_selectedRow = CATEGORIES;
           Widget::g_categoryYOffset = 0;
-          GuiEditor::g_currSaveFileName = saveFiles[Gui::g_currListSelector->selectedItem].c_str();
+          GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              scriptParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalString({}, "encoding", "ascii"));
-              ConfigParser::createWidgets(m_widgets, scriptParser);
-              scriptParser.luaInit(ConfigParser::getString({"filetype"}));
-
+              m_scriptParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalString({}, "encoding", "ascii"));
+              ConfigParser::createWidgets(m_widgets, m_scriptParser);
+              m_scriptParser.luaInit(ConfigParser::getString({"filetype"}));
               if (ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()])
                 (new MessageBox("Please create a backup before using this beta config.", MessageBox::OKAY))->show();
             }
@@ -292,14 +279,14 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     if (kdown & KEY_Y) {
       updateBackupList();
 
-      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0E1  Back", backupNames))->setInputAction([&](u32 k, u16 selectedItem){
+      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0E1  Back", m_backupNames))->setInputAction([&](u32 k, u16 selectedItem){
         if (k & KEY_A) {
-          if (backupNames.size() != 0) {
+          if (m_backupNames.size() != 0) {
               (new MessageBox("Are you sure you want to inject this backup?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
                 if (selection) {
                   s16 res;
 
-                  if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), backupNames[Gui::Gui::g_currListSelector->selectedItem].c_str())))
+                  if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), m_backupNames[Gui::Gui::g_currListSelector->selectedItem].c_str())))
                     (new Snackbar("Successfully restored backup!"))->show();
                   else (new Snackbar("An error occured while restoring the backup! Error " + std::to_string(res)))->show();
 
@@ -312,11 +299,11 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
         if (k & KEY_X) {
           std::stringstream path;
           path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
-          path << "/" << backupNames[Gui::Gui::g_currListSelector->selectedItem];
+          path << "/" << m_backupNames[Gui::Gui::g_currListSelector->selectedItem];
           deleteDirRecursively(path.str().c_str(), false);
           updateBackupList();
 
-          if (Gui::Gui::g_currListSelector->selectedItem == backupNames.size() && Gui::Gui::g_currListSelector->selectedItem > 0)
+          if (Gui::Gui::g_currListSelector->selectedItem == m_backupNames.size() && Gui::Gui::g_currListSelector->selectedItem > 0)
             Gui::Gui::g_currListSelector->selectedItem--;
         }
       })->show();
@@ -399,7 +386,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
       if (kdown & KEY_B) {
         (new MessageBox("Are you sure you want to discard your changes?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
           if (selection) {
-            scriptParser.luaDeinit();
+            m_scriptParser.luaDeinit();
 
             delete[] GuiEditor::g_currSaveFile;
             GuiEditor::g_currSaveFileName = "";
@@ -445,7 +432,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
         if (selection) {
           std::vector<u8> buffer;
 
-          scriptParser.getModifiedSaveFile(buffer);
+          m_scriptParser.getModifiedSaveFile(buffer);
 
           if(!storeSaveFile(&buffer[0], buffer.size(), Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
             (new Snackbar("Successfully injected modified values!"))->show();

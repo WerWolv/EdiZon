@@ -3,6 +3,7 @@
 #include <switch.h>
 
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 class Account {
@@ -23,7 +24,7 @@ private:
   AccountProfileBase m_profileBase;
 
   u128 m_userID;
-  u8 *m_profileImage;
+  std::vector<u8> m_profileImage;
   size_t m_profileImageSize;
   std::string m_userName;
 };

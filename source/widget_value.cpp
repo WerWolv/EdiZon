@@ -27,8 +27,6 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
 }
 
 void WidgetValue::onInput(u32 kdown) {
-  m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
-
   u64 incrementValue = m_stepSize;
 
   if (kdown & KEY_LEFT) {
@@ -44,6 +42,8 @@ void WidgetValue::onInput(u32 kdown) {
     }
     else Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
   }
+
+  m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 }
 
 void WidgetValue::onTouch(touchPosition &touch) {

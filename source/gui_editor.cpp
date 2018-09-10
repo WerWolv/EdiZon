@@ -227,7 +227,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
     if (m_configFileResult != 0) return;
     m_saveFiles.clear();
 
-    updateSaveFileList(ConfigParser::getStrings(std::vector<std::string>({"saveFilePaths"})), ConfigParser::getString({"files"}));
+    updateSaveFileList(ConfigParser::getConfigFile()["saveFilePaths"], ConfigParser::getConfigFile()["files"]);
 
     (new ListSelector("Edit save file", "\uE0E0  Select      \uE0E1  Back", m_saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {
@@ -240,9 +240,9 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              m_scriptParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalString({}, "encoding", "ascii"));
+              m_scriptParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
               ConfigParser::createWidgets(m_widgets, m_scriptParser);
-              m_scriptParser.luaInit(ConfigParser::getString({"filetype"}));
+              m_scriptParser.luaInit(ConfigParser::getConfigFile()["filetype"]);
               if (ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()])
                 (new MessageBox("Please create a backup before using this beta config.", MessageBox::OKAY))->show();
             }

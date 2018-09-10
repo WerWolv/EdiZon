@@ -12,50 +12,6 @@
 #include <iostream>
 #include <regex>
 #include <iterator>
-#include "json.hpp"
-
-using json = nlohmann::json;
-
-static json configFile;
-
-std::string ConfigParser::getOptionalString(std::vector<std::string> keys, std::string optionalKey, std::string elseVal) {
-  json j = configFile;
-
-  for (auto key : keys) {
-    j = j[key];
-  }
-
-  return j.find(optionalKey) != j.end() ? j.get<std::string>() : elseVal;
-}
-
-u64 ConfigParser::getOptionalInt(std::vector<std::string> keys, std::string optionalKey, u64 elseVal) {
-  json j = configFile;
-
-  for (auto key : keys) {
-    j = j[key];
-  }
-
-  return j.find(optionalKey) != j.end() ? j.get<u64>() : elseVal;
-}
-
-std::string ConfigParser::getString(std::vector<std::string> keys) {
-  json j = configFile;
-
-  for (auto key : keys) {
-    j = j[key];
-  }
-
-  return j.get<std::string>();
-}
-
-std::vector<std::string> ConfigParser::getStrings(std::vector<std::string> keys) {
-  json j = configFile;
-
-  for (auto key : keys)
-    j = j[key];
-
-  return j.get<std::vector<std::string>>();
-}
 
 s8 ConfigParser::hasConfig(u64 titleId) {
     std::stringstream path;
@@ -70,39 +26,39 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
     return 1;
 
   try {
-    file >> configFile;
+    file >> ConfigParser::m_configFile;
   } catch (json::parse_error& e) {
 		printf("Failed to parse JSON file.\n");
 		return 2;
 	}
 
-  if (configFile.find("useInstead") != configFile.end()) {
+  if (ConfigParser::m_configFile.find("useInstead") != ConfigParser::m_configFile.end()) {
     std::stringstream path;
-    path << CONFIG_ROOT << configFile["useInstead"].get<std::string>();
+    path << CONFIG_ROOT << ConfigParser::m_configFile["useInstead"].get<std::string>();
     return ConfigParser::loadConfigFile(titleId, path.str());
   }
 
-  if (configFile.find("beta") != configFile.end())
-    ConfigParser::g_betaTitles.insert({titleId, configFile["beta"]});
+  if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
+    ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});
 
-  if (configFile.find("all") == configFile.end()) {
-    for (auto it : configFile.items()) {
+  if (ConfigParser::m_configFile.find("all") == ConfigParser::m_configFile.end()) {
+    for (auto it : ConfigParser::m_configFile.items()) {
       printf("key: %s, title version: %s\n", it.key().c_str(), Title::g_titles[titleId]->getTitleVersion().c_str());
       if (it.key().find(Title::g_titles[titleId]->getTitleVersion()) != std::string::npos) {
-        configFile = configFile[it.key()];
+        ConfigParser::m_configFile = ConfigParser::m_configFile[it.key()];
 
-        if (configFile == nullptr) return 2;
-        if (configFile["saveFilePaths"] == nullptr
-            || configFile["files"] == nullptr
-            || configFile["filetype"] == nullptr
-            || configFile["items"] == nullptr) return 2;
+        if (ConfigParser::m_configFile == nullptr) return 2;
+        if (ConfigParser::m_configFile["saveFilePaths"] == nullptr
+            || ConfigParser::m_configFile["files"] == nullptr
+            || ConfigParser::m_configFile["filetype"] == nullptr
+            || ConfigParser::m_configFile["items"] == nullptr) return 2;
 
         return 0;
       }
     }
     return 3;
   } else {
-    configFile = configFile["all"];
+    ConfigParser::m_configFile = ConfigParser::m_configFile["all"];
     return 0;
   }
 }
@@ -110,9 +66,9 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
 void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParser) {
   std::set<std::string> tempCategories;
 
-  if(configFile == nullptr) return;
+  if(ConfigParser::m_configFile == nullptr) return;
 
-  for (auto item : configFile["items"]) {
+  for (auto item : ConfigParser::m_configFile["items"]) {
     if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) continue;
     auto itemWidget = item["widget"];
     if (itemWidget == nullptr) continue;
@@ -122,10 +78,10 @@ void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParse
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
       widgets[item["category"]].push_back({ item["name"],
         new WidgetValue(&scriptParser,
-          "value",
-          "value",
+          ConfigParser::getOptionalValue<std::string>(itemWidget, "readEquation", "value"),
+          ConfigParser::getOptionalValue<std::string>(itemWidget, "writeEquation", "value"),
           itemWidget["minValue"], itemWidget["maxValue"],
-          0) });
+          ConfigParser::getOptionalValue<u32>(itemWidget, "stepSize", 1)) });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;

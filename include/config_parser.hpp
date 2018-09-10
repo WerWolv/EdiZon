@@ -6,8 +6,11 @@
 
 #include "widget.hpp"
 #include "types.h"
+#include "json.hpp"
 
 #define CONFIG_ROOT "/EdiZon/editor/"
+
+using json = nlohmann::json;
 
 class ScriptParser;
 
@@ -20,12 +23,19 @@ public:
     static void unloadConfigFile();
     static void createWidgets(WidgetItems &widgets, ScriptParser &scriptParser);
 
-    static std::string getString(std::vector<std::string> keys);
-    static std::vector<std::string> getStrings(std::vector<std::string> keys);
-    static std::string getOptionalString(std::vector<std::string> keys, std::string optionalKey, std::string elseVal);
-    static u64 getOptionalInt(std::vector<std::string> keys, std::string optionalKey, u64 elseVal);
-
     static inline std::unordered_map<u64, bool> g_editableTitles;
     static inline std::unordered_map<u64, bool> g_betaTitles;
+
+    template<typename T>
+    static inline T getOptionalValue(json j, std::string key, T elseVal) {
+        return j.find(key) != j.end() ? j[key].get<T>() : elseVal;
+    }
+
+    static inline json& getConfigFile() {
+      return m_configFile;
+    }
+
+private:
+    static inline json m_configFile;
 
 };

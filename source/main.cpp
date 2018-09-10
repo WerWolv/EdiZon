@@ -56,7 +56,6 @@ void initTitles() {
 }
 
 void update(void *args) {
-  touchCntOld = hidTouchCount();
   while (updateThreadRunning) {
     auto begin = std::chrono::steady_clock::now();
 
@@ -108,11 +107,12 @@ int main(int argc, char** argv) {
   updateThreadRunning = true;
   Threads::create(&update);
 
+  touchCntOld = hidTouchCount();
+
   while (appletMainLoop()) {
     hidScanInput();
     kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
     kdown = hidKeysDown(CONTROLLER_P1_AUTO);
-
 
     if (Gui::g_nextGui != GUI_INVALID) {
       mutexLock(&mutexCurrGui);

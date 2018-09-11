@@ -39,8 +39,8 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
     if (start > currWidgets.size() - 1) break;
 
     if (start == Widget::g_selectedWidgetIndex && Widget::g_selectedRow == WIDGETS) {
-      gui->drawRectangled(widgetInset + X_OFFSET, y, WIDGET_WIDTH, WIDGET_HEIGHT, currTheme.highlightColor);
-      gui->drawRectangle(widgetInset + 5 + X_OFFSET, y + 5, WIDGET_WIDTH - 11, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
+      gui->drawRectangled(widgetInset + X_OFFSET, y, WIDGET_WIDTH - 1, WIDGET_HEIGHT, currTheme.highlightColor);
+      gui->drawRectangle(widgetInset + 5 + X_OFFSET, y + 5, WIDGET_WIDTH - 12, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
       gui->drawShadow(widgetInset + X_OFFSET, y, WIDGET_WIDTH, WIDGET_HEIGHT);
     }
 

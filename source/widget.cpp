@@ -5,11 +5,11 @@
 #include <iostream>
 
 Widget::Widget(ScriptParser *saveParser) : m_saveParser(saveParser) {
-
+  Widget::g_stepSizeMultiplier = 1;
 }
 
 Widget::~Widget() {
-
+  Widget::g_stepSizeMultiplier = 1;
 }
 
 void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end) {

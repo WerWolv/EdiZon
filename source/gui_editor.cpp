@@ -137,8 +137,8 @@ void GuiEditor::draw() {
         Gui::drawRectangled((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 612, 12, 12, currTheme.highlightColor);
     }
 
-    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 602, currTheme.textColor, "\uE0E4", ALIGNED_CENTER);
-    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2) + Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + 23, 602, currTheme.textColor, "\uE0E5", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 - 30, 602, currTheme.textColor, "\uE0A4", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2) + Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + 23, 602, currTheme.textColor, "\uE0A5", ALIGNED_CENTER);
 
   }
 

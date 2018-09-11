@@ -108,6 +108,9 @@ void ListSelector::onTouch(touchPosition &touch) {
 }
 
 void ListSelector::show() {
+  if (Gui::g_currListSelector != nullptr)
+    delete Gui::g_currListSelector;
+
   Gui::g_currListSelector = this;
 }
 

@@ -22,6 +22,10 @@ Snackbar::~Snackbar() {
 
 void Snackbar::show() {
   m_displayTime = DISPLAY_TIME;
+
+  if (Gui::g_currSnackbar != nullptr)
+    delete Gui::g_currSnackbar;
+
   Gui::g_currSnackbar = this;
 }
 

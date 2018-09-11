@@ -84,6 +84,9 @@ void MessageBox::onTouch(touchPosition &touch) {
 }
 
 void MessageBox::show() {
+  if (Gui::g_currMessageBox != nullptr)
+    delete Gui::g_currMessageBox;
+
   Gui::g_currMessageBox = this;
 }
 

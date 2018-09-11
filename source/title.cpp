@@ -7,17 +7,16 @@ extern "C" {
 Title::Title(FsSaveDataInfo& saveInfo) {
   Result rc=0;
 
-  NsApplicationControlData *buf = nullptr;
+  std::unique_ptr<NsApplicationControlData> buf = std::make_unique<NsApplicationControlData>();
   size_t outsize=0;
 
   NacpLanguageEntry *langentry = nullptr;
 
-  buf = new NsApplicationControlData();
   if (buf == nullptr) {
     m_errorCode = 1;
     return;
   }
-  memset(buf, 0, sizeof(NsApplicationControlData));
+  memset(buf.get(), 0, sizeof(NsApplicationControlData));
 
   rc = nsInitialize();
   if (R_FAILED(rc)) {
@@ -25,7 +24,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
     return;
   }
 
-  rc = nsGetApplicationControlData(1, saveInfo.titleID, buf, sizeof(NsApplicationControlData), &outsize);
+  rc = nsGetApplicationControlData(1, saveInfo.titleID, buf.get(), sizeof(NsApplicationControlData), &outsize);
   if (R_FAILED(rc)) {
     m_errorCode = 3;
     return;
@@ -74,17 +73,15 @@ Title::Title(FsSaveDataInfo& saveInfo) {
     return;
   }
 
-  m_titleIcon = new u8[imagesize];
-  memcpy(m_titleIcon, ptr, imagesize);
+  m_titleIcon.reserve(imagesize);
+  memcpy(&m_titleIcon[0], ptr, imagesize);
   ptr = nullptr;
-  delete buf;
 
   njDone();
   nsExit();
 }
 
 Title::~Title() {
-  delete[] m_titleIcon;
 }
 
 std::string Title::getTitleName() {
@@ -100,7 +97,7 @@ std::string Title::getTitleVersion() {
 }
 
 u8* Title::getTitleIcon() {
-  return m_titleIcon;
+  return &m_titleIcon[0];
 }
 
 u64 Title::getTitleID() {

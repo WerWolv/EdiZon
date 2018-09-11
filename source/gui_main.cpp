@@ -167,14 +167,18 @@ void GuiMain::onInput(u32 kdown) {
       if (static_cast<u16>(m_selected.accountIndex + 1) < Title::g_titles[m_selected.titleId]->getUserIDs().size())
         m_selected.accountIndex++;
     }
-  } else if (kdown & KEY_UP || kdown & KEY_DOWN) {
+  } else if (kdown & KEY_UP) {
+    if (selectionState == TITLE_SELECT) {
+      if ((m_selected.titleIndex % 2) == 1) {
+          m_selected.titleIndex--;
+      }
+    }
+  } else if (kdown & KEY_DOWN) {
     if (selectionState == TITLE_SELECT) {
       if ((m_selected.titleIndex % 2) == 0) {
         if (static_cast<u16>(m_selected.titleIndex + 1) < ((!editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
-      }
-      else m_selected.titleIndex--;
-    }
+      }    }
   }
 
   if (kdown & KEY_A) {

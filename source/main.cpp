@@ -133,6 +133,8 @@ int main(int argc, char** argv) {
     }
 
     if (currGui != nullptr) {
+      currGui->draw();
+
       if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
         if (Gui::g_currMessageBox != nullptr)
           Gui::g_currMessageBox->onInput(kdown);
@@ -150,8 +152,6 @@ int main(int argc, char** argv) {
         else
           currGui->onInput(kheld);
       }
-
-      currGui->draw();
     }
 
     touchCnt = hidTouchCount();

@@ -187,9 +187,9 @@ void ScriptParser::getModifiedSaveFile(std::vector<u8> &buffer) {
 }
 
 int ScriptParser::lua_getSaveFileBuffer(lua_State *state) {
-  lua_newtable(state);
+  lua_createtable(state, m_bufferSize, 0);
 
-  for (u32 i = 0; i < m_bufferSize; i++) {
+  for (u64 i = 0; i < m_bufferSize; i++) {
     lua_pushnumber(state, i + 1);
     lua_pushnumber(state, m_buffer[i]);
     lua_rawset(state, -3);

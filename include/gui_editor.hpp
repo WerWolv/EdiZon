@@ -18,7 +18,7 @@ public:
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
 
-  static inline u8 *g_currSaveFile = nullptr;
+  static inline std::vector<u8> g_currSaveFile;
   static inline std::string g_currSaveFileName = "";
 
 private:

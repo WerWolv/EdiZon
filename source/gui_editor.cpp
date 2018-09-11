@@ -63,15 +63,15 @@ GuiEditor::GuiEditor() : Gui() {
 }
 
 GuiEditor::~GuiEditor() {
-  if (GuiEditor::g_currSaveFile != nullptr) {
+  if (GuiEditor::g_currSaveFileName != "") {
     for (auto const& [category, widgets] : m_widgets)
       for(auto widget : widgets)
         delete widget.widget;
 
-    delete[] GuiEditor::g_currSaveFile;
+    GuiEditor::g_currSaveFile.clear();
   }
 
-  GuiEditor::g_currSaveFile = nullptr;
+  GuiEditor::g_currSaveFile.clear();
   GuiEditor::g_currSaveFileName = "";
   Widget::g_selectedCategory = "";
   m_backupNames.clear();
@@ -104,7 +104,7 @@ void GuiEditor::draw() {
   Gui::drawRectangle(0, Gui::g_framebuffer_height - 73, Gui::g_framebuffer_width, 73, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
-  if (GuiEditor::g_currSaveFile == nullptr) {
+  if (GuiEditor::g_currSaveFileName == "") {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2 Backup     \uE0E3 Restore     \uE0E1 Back", ALIGNED_RIGHT);
     switch (m_configFileResult) {
       case 0:
@@ -225,7 +225,7 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
 }
 
 void GuiEditor::onInput(u32 kdown) {
-if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
+if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
   if (kdown & KEY_MINUS) {
     if (m_configFileResult != 0) return;
@@ -244,7 +244,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              m_scriptParser.setLuaSaveFileBuffer(g_currSaveFile, length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
+              m_scriptParser.setLuaSaveFileBuffer(&g_currSaveFile[0], length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
               ConfigParser::createWidgets(m_widgets, m_scriptParser);
               m_scriptParser.luaInit(ConfigParser::getConfigFile()["filetype"]);
               if (ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()])
@@ -252,8 +252,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
             }
             else {
               (new Snackbar("Failed to load save file! Is it empty?"))->show();
-              delete[] GuiEditor::g_currSaveFile;
-              GuiEditor::g_currSaveFile = nullptr;
+              GuiEditor::g_currSaveFile.clear();
               GuiEditor::g_currSaveFileName = "";
 
               for (auto const& [category, widgets] : m_widgets)
@@ -392,9 +391,8 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           if (selection) {
             m_scriptParser.luaDeinit();
 
-            delete[] GuiEditor::g_currSaveFile;
+            GuiEditor::g_currSaveFile.clear();
             GuiEditor::g_currSaveFileName = "";
-            GuiEditor::g_currSaveFile = nullptr;
 
             for (auto const& [category, widgets] : m_widgets)
               for(auto widget : widgets)
@@ -443,8 +441,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
           else
             (new Snackbar("Injection of modified values failed!"))->show();
 
-          delete[] GuiEditor::g_currSaveFile;
-          GuiEditor::g_currSaveFile = nullptr;
+          GuiEditor::g_currSaveFile.clear();
           GuiEditor::g_currSaveFileName = "";
           Widget::g_widgetPage = 0;
 
@@ -467,7 +464,7 @@ if (GuiEditor::g_currSaveFile == nullptr) { /* No savefile loaded */
 void GuiEditor::onTouch(touchPosition &touch) {
   //s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * Widget::g_widgetPage;
 
-  if (GuiEditor::g_currSaveFile == nullptr) {
+  if (GuiEditor::g_currSaveFileName == "") {
     if (touch.px < 128 && touch.py < 128) {
       Title *nextTitle = nullptr;
       bool isCurrTitle = false;

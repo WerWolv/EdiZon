@@ -26,5 +26,5 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]);
 s32 backupSave(u64 titleID, u128 userID);
 s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder);
 
-s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char *path);
+s32 loadSaveFile(std::vector<u8> *buffer, size_t *length, u64 titleID, u128 userID, const char *path);
 s32 storeSaveFile(u8 *buffer, size_t length, u64 titleID, u128 userID, const char *path);

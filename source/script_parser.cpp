@@ -19,7 +19,7 @@ int dispatch(lua_State *s) {
 
 ScriptParser::ScriptParser() {
   m_luaState = nullptr;
-  m_buffer = nullptr;
+  m_buffer.clear();
 }
 
 ScriptParser::~ScriptParser() {
@@ -100,21 +100,18 @@ void ScriptParser::setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize, std::stri
       break;
   }
 
-  if (this->m_buffer != nullptr) {
-    delete[] this->m_buffer;
-    this->m_buffer = nullptr;
-  }
+  m_buffer.clear();
 
-  this->m_bufferSize = utf8.size();
-  this->m_buffer = new u8[this->m_bufferSize];
+  m_bufferSize = utf8.size();
+  m_buffer.reserve(m_bufferSize);
 
   for (u32 i = 0; i < this->m_bufferSize; i++)
-    this->m_buffer[i] = utf8[i];
+    m_buffer[i] = utf8[i];
 }
 
 void ScriptParser::setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs) {
-  this->m_intArgs = intArgs;
-  this->m_strArgs = strArgs;
+  m_intArgs = intArgs;
+  m_strArgs = strArgs;
 }
 
 s64 ScriptParser::getValueFromSaveFile() {
@@ -202,7 +199,7 @@ int ScriptParser::lua_getSaveFileBuffer(lua_State *state) {
 }
 
 int ScriptParser::lua_getSaveFileString(lua_State *state) {
-  std::string str = reinterpret_cast<char*>(m_buffer);
+  std::string str = reinterpret_cast<char*>(&m_buffer[0]);
 
   str += '\x00';
 

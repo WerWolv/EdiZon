@@ -303,7 +303,7 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
   return res;
 }
 
-s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const char *path) {
+s32 loadSaveFile(std::vector<u8> *buffer, size_t *length, u64 titleID, u128 userID, const char *path) {
   FsFileSystem fs;
   size_t size;
 
@@ -340,8 +340,8 @@ s32 loadSaveFile(u8 **buffer, size_t *length, u64 titleID, u128 userID, const ch
     return -3;
   }
 
-  *buffer = new u8[size];
-  fread(*buffer, size, 1, file);
+  buffer->reserve(size);
+  fread(&(*buffer)[0], size, 1, file);
   fclose(file);
 
   *length = size;

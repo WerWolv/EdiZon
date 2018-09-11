@@ -35,7 +35,7 @@ public:
 
 private:
   std::string m_filetype;
-  u8 *m_buffer;
+  std::vector<u8> m_buffer;
   size_t m_bufferSize;
 
   lua_State *m_luaState;

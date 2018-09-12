@@ -190,9 +190,9 @@ int ScriptParser::lua_getSaveFileBuffer(lua_State *state) {
   lua_createtable(state, m_bufferSize, 0);
 
   for (u64 i = 0; i < m_bufferSize; i++) {
-    lua_pushnumber(state, i + 1);
-    lua_pushnumber(state, m_buffer[i]);
-    lua_rawset(state, -3);
+    lua_pushinteger(state, i + 1);
+    lua_pushinteger(state, m_buffer[i]);
+    lua_settable(state, -3);
   }
 
   return 1;
@@ -211,35 +211,25 @@ int ScriptParser::lua_getSaveFileString(lua_State *state) {
 }
 
 int ScriptParser::lua_getStrArgs(lua_State *state) {
-  lua_newtable(state);
+  lua_createtable(state, m_strArgs.size(), 0);
 
-  u16 index = 1;
-  for (auto arg : m_strArgs) {
-    lua_pushnumber(state, index++);
-    lua_pushstring(state, arg.c_str());
-    lua_rawset(state, -3);
+  for (u64 i = 0; i < m_strArgs.size(); i++) {
+    lua_pushinteger(state, i + 1);
+    lua_pushstring(state, m_strArgs[i].c_str());
+    lua_settable(state, -3);
   }
-
-  lua_pushliteral(state, "n");
-  lua_pushnumber(state, m_strArgs.size());
-  lua_rawset(state, -3);
 
   return 1;
 }
 
 int ScriptParser::lua_getIntArgs(lua_State *state) {
-  lua_newtable(state);
+  lua_createtable(state, m_intArgs.size(), 0);
 
-  u16 index = 1;
-  for (auto arg : m_intArgs) {
-    lua_pushnumber(state, index++);
-    lua_pushnumber(state, arg);
-    lua_rawset(state, -3);
+  for (u64 i = 0; i < m_intArgs.size(); i++) {
+    lua_pushinteger(state, i + 1);
+    lua_pushinteger(state, m_intArgs[i]);
+    lua_settable(state, -3);
   }
-
-  lua_pushliteral(state, "n");
-  lua_pushnumber(state, m_intArgs.size());
-  lua_rawset(state, -3);
 
   return 1;
 }
@@ -254,7 +244,7 @@ double ScriptParser::evaluateEquation(std::string equation, s64 value) {
 
   luaL_dostring(s, func.c_str());
   lua_getglobal(s, "eval");
-  lua_pushnumber(s, value);
+  lua_pushinteger(s, value);
   if (lua_pcall(s, 1, 1, 0))
     printError(s);
   ret = lua_tonumber(s, -1);

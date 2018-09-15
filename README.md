@@ -1,7 +1,7 @@
 # EdiZon
 <p align="center"><img src="https://raw.githubusercontent.com/thomasnet-mc/EdiZon/master/icon.jpg"></p>
 
-A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch. Developed by thomasnet-mc and WerWolv.
+A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch.
 
 # Images
 <p align="center"><img src="https://i.imgur.com/XxOPfu9.jpg"></p>
@@ -28,3 +28,5 @@ If you need any help with the usage of EdiZon or if you want to start developing
 [Bernardo Giordano](https://github.com/BernardoGiordano) for some [Checkpoint](https://github.com/BernardoGiordano/Checkpoint) code
 
 [SwitchBrew](https://switchbrew.org/) for the [Homebrew Launcher](https://github.com/switchbrew/nx-hbmenu) GUI and shared font code
+
+[thomasnet-mc](https://github.com/thomasnet-mc/) for most of the save backup and restore code and the updater script

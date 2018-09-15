@@ -74,7 +74,8 @@ GuiEditor::~GuiEditor() {
   GuiEditor::g_currSaveFile.clear();
   GuiEditor::g_currSaveFileName = "";
   Widget::g_selectedCategory = "";
-  m_backupNames.clear();
+  m_backupTitles.clear();
+  m_backupPaths.clear();
   m_saveFiles.clear();
 }
 
@@ -146,20 +147,88 @@ void GuiEditor::draw() {
 }
 
 void GuiEditor::updateBackupList() {
-  DIR *dir;
-  struct dirent *ent;
+  DIR *dir_batch;
+  struct dirent *ent_timestamp;
+  DIR *dir_users;
+  struct dirent *ent_user;
+  DIR *dir_titles;  
+
+  std::string metadataUsername;
+
+  m_backupTitles.clear();
+  m_backupPaths.clear();
 
   std::stringstream path;
+  
+  //Read root saves
   path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
-  m_backupNames.clear();
+  if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
+    while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
+      metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/" + std::string(ent_timestamp->d_name) + "/edizon_save_metadata.json");
+      if (metadataUsername.empty())
+        metadataUsername = "By an unknown user";
+      else
+        metadataUsername = "By " + metadataUsername;
 
-  if ((dir = opendir(path.str().c_str())) != nullptr) {
-    while ((ent = readdir(dir)) != nullptr)
-      m_backupNames.push_back(ent->d_name);
-    closedir(dir);
+      m_backupTitles.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
+      m_backupPaths.push_back(path.str() + "/" + std::string(ent_timestamp->d_name));
+    }
+    closedir(dir_titles);
+  }
+  
+  //Read batch saves
+  path=std::stringstream();
+  path << "/EdiZon/batch";
+  if ((dir_batch = opendir(path.str().c_str())) != nullptr) {
+    while ((ent_timestamp = readdir(dir_batch)) != nullptr) {
+      path=std::stringstream();
+      path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name);
+      if ((dir_users = opendir(path.str().c_str())) != nullptr) {
+        while ((ent_user = readdir(dir_users)) != nullptr) {
+          path=std::stringstream();
+          path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name) << "/" << std::string(ent_user->d_name) << "/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+          if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
+            metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/edizon_save_metadata.json");
+          
+            if (metadataUsername.empty())
+              metadataUsername = "By an unknown user [B]";
+            else
+              metadataUsername = "By " + metadataUsername + " [B]";
+
+            m_backupTitles.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
+            m_backupPaths.push_back(path.str());
+
+            closedir(dir_titles);
+          }
+        }
+        closedir(dir_users);
+      }
+    }
+    closedir(dir_batch);
   }
 
-  std::reverse(m_backupNames.begin(), m_backupNames.end());
+  std::reverse(m_backupTitles.begin(), m_backupTitles.end());
+  std::reverse(m_backupPaths.begin(), m_backupPaths.end());
+}
+
+std::string GuiEditor::readMetaDataUsername(std::string path) {
+  json metadata_json;
+
+  std::ifstream metadata_file (path);
+  if (metadata_file.is_open())
+  {
+    metadata_file >> metadata_json;
+    metadata_file.close();
+    try {
+      return metadata_json["user_name"].get<std::string>();
+    } catch (json::parse_error& e) {
+	  }
+  }
+  else 
+  {  
+    printf("Unable to open metadata file\n"); 
+  }
+  return "";
 }
 
 void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::string files) {
@@ -282,14 +351,14 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     if (kdown & KEY_Y) {
       updateBackupList();
 
-      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0E1  Back", m_backupNames))->setInputAction([&](u32 k, u16 selectedItem){
+      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0E1  Back", m_backupTitles))->setInputAction([&](u32 k, u16 selectedItem){
         if (k & KEY_A) {
-          if (m_backupNames.size() != 0) {
+          if (m_backupTitles.size() != 0) {
               (new MessageBox("Are you sure you want to inject this backup?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
                 if (selection) {
                   s16 res;
 
-                  if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), m_backupNames[Gui::Gui::g_currListSelector->selectedItem].c_str())))
+                  if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), m_backupPaths[Gui::Gui::g_currListSelector->selectedItem].c_str())))
                     (new Snackbar("Successfully restored backup!"))->show();
                   else (new Snackbar("An error occured while restoring the backup! Error " + std::to_string(res)))->show();
 
@@ -301,12 +370,10 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
         if (k & KEY_X) {
           std::stringstream path;
-          path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
-          path << "/" << m_backupNames[Gui::Gui::g_currListSelector->selectedItem];
-          deleteDirRecursively(path.str().c_str(), false);
+          deleteDirRecursively(m_backupPaths[Gui::Gui::g_currListSelector->selectedItem].c_str(), false);
           updateBackupList();
 
-          if (Gui::Gui::g_currListSelector->selectedItem == m_backupNames.size() && Gui::Gui::g_currListSelector->selectedItem > 0)
+          if (Gui::Gui::g_currListSelector->selectedItem == m_backupTitles.size() && Gui::Gui::g_currListSelector->selectedItem > 0)
             Gui::Gui::g_currListSelector->selectedItem--;
         }
       })->show();

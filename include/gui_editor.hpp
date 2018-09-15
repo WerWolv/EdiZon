@@ -2,10 +2,13 @@
 
 #include "gui.hpp"
 #include "widget.hpp"
+#include "json.hpp"
 
 #include <vector>
 
 #define CONFIG_ROOT "/EdiZon/editor/"
+
+using json = nlohmann::json;
 
 class GuiEditor : public Gui {
 public:
@@ -23,11 +26,13 @@ public:
 
 private:
   void updateBackupList();
+  std::string readMetaDataUsername(std::string path);
 
   WidgetItems m_widgets;
   std::vector<u8> m_titleIcon;
 
-  std::vector<std::string> m_backupNames;
+  std::vector<std::string> m_backupTitles;
+  std::vector<std::string> m_backupPaths;
   std::vector<std::string> m_saveFiles;
 
   color_t m_dominantColor;

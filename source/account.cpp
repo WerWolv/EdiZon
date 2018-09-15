@@ -16,7 +16,7 @@ Account::Account(u128 userID) : m_userID(userID) {
   accountProfileGet(&m_profile, &m_userData, &m_profileBase);
   accountProfileGetImageSize(&m_profile, &m_profileImageSize);
 
-  m_userName = std::string(m_profileBase.username, 0x20);
+  m_userName = std::string(m_profileBase.username);
 
   std::vector<u8> buffer(m_profileImageSize);
   u8 *decodedBuffer;

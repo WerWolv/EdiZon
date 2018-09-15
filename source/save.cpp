@@ -5,6 +5,9 @@
 #include <unistd.h>
 
 #include "account.hpp"
+#include "title.hpp"
+
+using json = nlohmann::json;
 
 extern "C" {
   #include "nanojpeg.h"
@@ -68,23 +71,69 @@ s32 deleteDirRecursively(const char *path, bool isSave) {
      return r;
 }
 
-void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder) {
-  time_t t = time(nullptr);
+void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder, bool fromBatch=false, time_t timestamp=time(nullptr));
+void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder, bool fromBatch, time_t timestamp) {
+  time_t t = timestamp;
   std::stringstream ss;
+  std::string folder_path(ROOT_DIR);
 
-  mkdir(ROOT_DIR, 0700);
+  json metadata;
+  std::string metadata_string;
+  std::ofstream metadata_file;
+  std::stringstream metadata_user_id;
+  std::stringstream metadata_title_id;
 
-  ss << ROOT_DIR << std::uppercase << std::setfill('0') << std::setw(sizeof(titleID)*2)
+  if (!fromBatch) {
+    mkdir(ROOT_DIR, 0700);
+    ss << ROOT_DIR << std::uppercase << std::setfill('0') << std::setw(sizeof(titleID)*2)
      << std::hex << titleID << "/";
-  mkdir(ss.str().c_str(), 0700);
+    mkdir(ss.str().c_str(), 0700);
 
-  if (isInject)
-    ss << injectFolder << "/";
-  else
-    ss << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S") << "/";
+    if (isInject)
+      ss << injectFolder << "/";
+    else
+      ss << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S") << "/";
+  }
+  else {
+    folder_path += "batch/";
+    mkdir(folder_path.c_str(), 0700);
+    ss << ROOT_DIR << "batch/" << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S") << "/";
+    mkdir(ss.str().c_str(), 0700);
+
+    u64 userIDH = userID >> 64;
+    u64 userIDL = userID & 0xFFFFFFFFFFFFFFFFULL;
+
+    ss << std::setfill('0') << std::uppercase << std::hex << userIDH << std::setfill('0') << std::uppercase << std::hex << userIDL << "/";
+    mkdir(ss.str().c_str(), 0700);
+
+    ss << std::uppercase << std::setfill('0') << std::setw(sizeof(titleID)*2)
+      << std::hex << titleID << "/";
+  }
 
   strcpy(ptr, ss.str().c_str());
   mkdir(ptr, 0700);
+
+  metadata.clear();
+
+  u64 userIDH = userID >> 64;
+  u64 userIDL = userID & 0xFFFFFFFFFFFFFFFFULL;
+  metadata_user_id  << std::setfill('0') << std::uppercase << std::hex << userIDH;
+  metadata_user_id  << std::setfill('0') << std::uppercase << std::hex << userIDL;
+  metadata["user_id"] = metadata_user_id.str();
+
+  metadata["user_name"] = Account::g_accounts[userID]->getUserName();
+
+  metadata_title_id << std::uppercase << std::setfill('0') << std::setw(sizeof(titleID)*2) << std::hex << titleID;
+  metadata["title_id"] = metadata_title_id.str();
+ 
+  metadata["title_name"] = Title::g_titles[titleID]->getTitleName();
+  metadata["title_version"] = Title::g_titles[titleID]->getTitleVersion();
+  metadata_string = metadata.dump(4);
+
+  
+  metadata_file.open (ss.str() + "edizon_save_metadata.json");
+  metadata_file << metadata_string << "\n";
+  metadata_file.close();
 }
 
 Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
@@ -243,7 +292,7 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   }
 }
 
-s32 backupSave(u64 titleID, u128 userID) {
+s32 backupSave(u64 titleID, u128 userID, bool fromBatch, time_t timestamp) {
   FsFileSystem fs;
   char *ptr = new char[0x100];
   s32 res = 0;
@@ -253,7 +302,7 @@ s32 backupSave(u64 titleID, u128 userID) {
     return 1;
   }
 
-  makeExInjDir(ptr, titleID, userID, false, nullptr);
+  makeExInjDir(ptr, titleID, userID, false, nullptr, fromBatch, timestamp);
 
   if (ptr == nullptr) {
     printf("makeExInjDir failed.\n");
@@ -269,9 +318,10 @@ s32 backupSave(u64 titleID, u128 userID) {
   return res;
 }
 
-s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
+s32 restoreSave(u64 titleID, u128 userID, const char* path) {
   FsFileSystem fs;
-  char *ptr = new char[0x100];
+  /*char *ptr[0x100];
+  strcpy(ptr, path);*/
   s32 res = 0;
 
   if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
@@ -279,9 +329,9 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
     return 1;
   }
 
-  makeExInjDir(ptr, titleID, userID, true, injectFolder);
+  //makeExInjDir(ptr, titleID, userID, true, injectFolder);
 
-  if (ptr == nullptr) {
+  if (path == nullptr) {
     printf("makeExInjDir failed.\n");
     fsdevUnmountDevice(SAVE_DEV);
     return 1;
@@ -294,11 +344,11 @@ s32 restoreSave(u64 titleID, u128 userID, const char* injectFolder) {
     return res;
   }
 
-  res = copyAllSave("", true, ptr);
+  res = copyAllSave("", true, path);
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
 
-  delete[] ptr;
+  //delete[] path;
 
   return res;
 }

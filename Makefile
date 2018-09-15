@@ -31,11 +31,11 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 1
-VERSION_MINOR := 4
+VERSION_MINOR := 5
 VERSION_MICRO := 0
 
 APP_TITLE	:=	EdiZon
-APP_AUTHOR	:=	WerWolv and thomasnet
+APP_AUTHOR	:=	WerWolv
 APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 
 TARGET		:=	$(notdir $(CURDIR))

@@ -280,7 +280,7 @@ void Gui::drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 m
           }
 
           x = origX;
-          y += m_fontLastUsedFace->size->metrics.height / 64;
+
           continue;
       }
 
@@ -321,36 +321,52 @@ void Gui::drawTextAligned(u32 font, s16 x, s16 y, color_t clr, const char* text,
     std::vector<std::string> lines;
 
     std::hash<std::string> hashFn;
-    size_t strHash = hashFn(std::string(text));
 
     switch (alignment) {
       case ALIGNED_LEFT:
-        drawText_(font, x, y, clr, text, 0, nullptr);
+        lines = Gui::split(text, '\n');
+
+        for (auto line : lines) {
+          size_t strHash = hashFn(std::string(line));
+
+          if (m_stringDimensions.find(strHash) == m_stringDimensions.end()) {
+            getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
+            m_stringDimensions.insert(std::make_pair(strHash, std::pair<u16, u16>(textWidth, textHeight)));
+          }
+
+          drawText_(font, x, y, clr, text, 0, nullptr);
+          y += m_stringDimensions[strHash].second;
+
+        }
         break;
       case ALIGNED_CENTER:
         lines = Gui::split(text, '\n');
 
         for (auto line : lines) {
-          if (m_stringLengthMap.find(strHash) == m_stringLengthMap.end()) {
+          size_t strHash = hashFn(std::string(line));
+
+          if (m_stringDimensions.find(strHash) == m_stringDimensions.end()) {
             getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
-            m_stringLengthMap.insert(std::make_pair(strHash, textWidth));
+            m_stringDimensions.insert(std::make_pair(strHash, std::pair<u16, u16>(textWidth, textHeight)));
           }
 
-          drawText_(font, x - (m_stringLengthMap[strHash] / 2.0F), y, clr, line.c_str(), 0, nullptr);
-          y += textHeight;
+          drawText_(font, x - (m_stringDimensions[strHash].first / 2.0F), y, clr, line.c_str(), 0, nullptr);
+          y += m_stringDimensions[strHash].second;
         }
         break;
       case ALIGNED_RIGHT:
         lines = Gui::split(text, '\n');
 
         for (auto line : lines) {
-          if (m_stringLengthMap.find(strHash) == m_stringLengthMap.end()) {
+          size_t strHash = hashFn(std::string(line));
+
+          if (m_stringDimensions.find(strHash) == m_stringDimensions.end()) {
             getTextDimensions(font, line.c_str(), &textWidth, &textHeight);
-            m_stringLengthMap.insert(std::make_pair(strHash, textWidth));
+            m_stringDimensions.insert(std::make_pair(strHash, std::pair<u16, u16>(textWidth, textHeight)));
           }
 
-          drawText_(font, x - m_stringLengthMap[strHash], y, clr, line.c_str(), 0, nullptr);
-          y += textHeight;
+          drawText_(font, x - m_stringDimensions[strHash].first, y, clr, line.c_str(), 0, nullptr);
+          y += m_stringDimensions[strHash].second;
         }
         break;
 
@@ -377,7 +393,7 @@ void Gui::getTextDimensions(u32 font, const char* text, u32* width_out, u32* hei
 
       if (codepoint == '\n') {
           x = 0;
-          height += m_fontLastUsedFace->size->metrics.height / 64;
+          height += m_fontLastUsedFace->size->metrics.height >> 6;
           continue;
       }
 
@@ -393,6 +409,7 @@ void Gui::getTextDimensions(u32 font, const char* text, u32* width_out, u32* hei
       if (x > width)
           width = x;
   }
+  height += m_fontLastUsedFace->size->metrics.height >> 6;
 
   *width_out = width;
   *height_out = height;
@@ -530,7 +547,7 @@ void Gui::endDraw() {
   if (Gui::g_currMessageBox != nullptr)
     Gui::g_currMessageBox->draw(this);
 
-
+  gfxWaitForVsync();
   gfxFlushBuffers();
   gfxSwapBuffers();
 }

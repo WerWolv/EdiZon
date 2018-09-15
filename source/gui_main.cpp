@@ -124,11 +124,9 @@ void GuiMain::draw() {
     Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
     if (tmpEditableOnly)
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Show all titles     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 All titles     \uE0E5 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
     else
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Show editable titles     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
-
-    Gui::drawText(font20, 50, Gui::g_framebuffer_height - 50, currTheme.textColor, ("\uE0E5 " + r_button_title).c_str());
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Editable titles     \uE0E5 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
   }
 
   if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
@@ -205,24 +203,25 @@ void GuiMain::onInput(u32 kdown) {
   if (kdown & KEY_X) {
     if (batchClicked) {
       bool batchFailed = false;
-      (new MessageBox("Backup all saves in the console?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
+      (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         if (selection) {
           s16 res;
           time_t t = time(nullptr);
-          std::string failed_titles = "";
+          u16 failed_titles = 0;
           for (auto title : Title::g_titles) {
             for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
               if((res = backupSave(title.first, userID, true, t))) {
                 batchFailed = true;
-                failed_titles += Title::g_titles[title.first]->getTitleName() + "\n";
+                failed_titles++;
               }
             }
           }
           if (!batchFailed)
             (new Snackbar("Successfully created backups!"))->show();
           else {
-            Gui::g_currMessageBox->hide();
-            (new MessageBox("The following titles could not be backed up:\n\n" + failed_titles, MessageBox::OKAY))->show();
+            std::stringstream errorMessage;
+            errorMessage << "Failed to backup " << failed_titles << " titles!";
+            (new Snackbar(errorMessage.str()))->show();
           }
         }
       })->show();
@@ -246,14 +245,7 @@ void GuiMain::onInput(u32 kdown) {
     }
   }
 
-  if (kdown & KEY_R) {
-    batchClicked = true;
-    r_button_title = "Backup all games";
-  }
-  else {
-    batchClicked = false;
-    r_button_title = "Backup selected game";
-  }
+  batchClicked = (kdown & KEY_R) > 0;
 
   if (kdown & KEY_B) {
     if (selectionState == ACCOUNT_SELECT) {

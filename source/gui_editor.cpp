@@ -76,6 +76,7 @@ GuiEditor::~GuiEditor() {
   Widget::g_selectedCategory = "";
   m_backupTitles.clear();
   m_backupPaths.clear();
+
   m_saveFiles.clear();
 }
 
@@ -148,18 +149,20 @@ void GuiEditor::draw() {
 
 void GuiEditor::updateBackupList() {
   DIR *dir_batch;
-  struct dirent *ent_timestamp;
   DIR *dir_users;
-  struct dirent *ent_user;
-  DIR *dir_titles;  
+  DIR *dir_titles;
 
+  struct dirent *ent_timestamp;
+  struct dirent *ent_user;
+
+  std::map<std::string, std::string> backups;
   std::string metadataUsername;
 
   m_backupTitles.clear();
   m_backupPaths.clear();
 
   std::stringstream path;
-  
+
   //Read root saves
   path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
   if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
@@ -170,33 +173,29 @@ void GuiEditor::updateBackupList() {
       else
         metadataUsername = "By " + metadataUsername;
 
-      m_backupTitles.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
-      m_backupPaths.push_back(path.str() + "/" + std::string(ent_timestamp->d_name));
+      backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str() + "/" + std::string(ent_timestamp->d_name)));
     }
     closedir(dir_titles);
   }
-  
+
   //Read batch saves
-  path=std::stringstream();
-  path << "/EdiZon/batch";
-  if ((dir_batch = opendir(path.str().c_str())) != nullptr) {
+  if ((dir_batch = opendir("/EdiZon/batch")) != nullptr) {
     while ((ent_timestamp = readdir(dir_batch)) != nullptr) {
-      path=std::stringstream();
+      path.str("");
       path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name);
       if ((dir_users = opendir(path.str().c_str())) != nullptr) {
         while ((ent_user = readdir(dir_users)) != nullptr) {
-          path=std::stringstream();
+          path.str("");
           path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name) << "/" << std::string(ent_user->d_name) << "/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
           if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
             metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/edizon_save_metadata.json");
-          
+
             if (metadataUsername.empty())
               metadataUsername = "By an unknown user [B]";
             else
               metadataUsername = "By " + metadataUsername + " [B]";
 
-            m_backupTitles.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
-            m_backupPaths.push_back(path.str());
+            backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str()));
 
             closedir(dir_titles);
           }
@@ -205,6 +204,11 @@ void GuiEditor::updateBackupList() {
       }
     }
     closedir(dir_batch);
+  }
+
+  for (auto [title, path] : backups) {
+    m_backupTitles.push_back(title);
+    m_backupPaths.push_back(path);
   }
 
   std::reverse(m_backupTitles.begin(), m_backupTitles.end());
@@ -224,9 +228,9 @@ std::string GuiEditor::readMetaDataUsername(std::string path) {
     } catch (json::parse_error& e) {
 	  }
   }
-  else 
-  {  
-    printf("Unable to open metadata file\n"); 
+  else
+  {
+    printf("Unable to open metadata file\n");
   }
   return "";
 }

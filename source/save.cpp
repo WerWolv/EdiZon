@@ -125,12 +125,12 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
 
   metadata_title_id << std::uppercase << std::setfill('0') << std::setw(sizeof(titleID)*2) << std::hex << titleID;
   metadata["title_id"] = metadata_title_id.str();
- 
+
   metadata["title_name"] = Title::g_titles[titleID]->getTitleName();
   metadata["title_version"] = Title::g_titles[titleID]->getTitleVersion();
   metadata_string = metadata.dump(4);
 
-  
+
   metadata_file.open (ss.str() + "edizon_save_metadata.json");
   metadata_file << metadata_string << "\n";
   metadata_file.close();
@@ -248,7 +248,10 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   }
   else {
     while ((ent = readdir(dir))) {
+      if (strcmp(ent->d_name, "edizon_save_metadata.json") == 0) continue;
+
       char filename[0x100];
+
       strcpy(filename, path);
       strcat(filename, "/");
       strcat(filename, ent->d_name);
@@ -320,16 +323,12 @@ s32 backupSave(u64 titleID, u128 userID, bool fromBatch, time_t timestamp) {
 
 s32 restoreSave(u64 titleID, u128 userID, const char* path) {
   FsFileSystem fs;
-  /*char *ptr[0x100];
-  strcpy(ptr, path);*/
   s32 res = 0;
 
   if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
     printf("Failed to mount save.\n");
     return 1;
   }
-
-  //makeExInjDir(ptr, titleID, userID, true, injectFolder);
 
   if (path == nullptr) {
     printf("makeExInjDir failed.\n");
@@ -347,8 +346,6 @@ s32 restoreSave(u64 titleID, u128 userID, const char* path) {
   res = copyAllSave("", true, path);
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
-
-  //delete[] path;
 
   return res;
 }

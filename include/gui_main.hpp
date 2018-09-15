@@ -29,4 +29,6 @@ private:
     u128 userId;
   } m_selected;
 
+  bool m_editableOnly = false;
+  u16 m_editableCount = 0;
 };

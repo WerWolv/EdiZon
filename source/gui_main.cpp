@@ -17,11 +17,6 @@
 int64_t xOffset, xOffsetNext;
 bool finishedDrawing = true;
 
-bool editableOnly = false;
-int64_t editableCount = 0;
-
-std::string r_button_title = "Backup selected game";
-
 enum {
   TITLE_SELECT,
   ACCOUNT_SELECT
@@ -62,7 +57,7 @@ void GuiMain::update() {
 void GuiMain::draw() {
   int64_t x = 0, y = 10, currItem = 0;
   int64_t selectedX = 0, selectedY = 0;
-  bool tmpEditableOnly = editableOnly;
+  bool tmpEditableOnly = m_editableOnly;
 
   Gui::beginDraw();
 
@@ -78,6 +73,8 @@ void GuiMain::draw() {
   }
 
   xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
+
+  m_editableCount = 0;
 
   for (auto title : Title::g_titles) {
     if (currItem == m_selected.titleIndex) {
@@ -100,11 +97,11 @@ void GuiMain::draw() {
       y = y == 10 ? 266 : 10;
       x = floor(++currItem / 2.0F) * 256;
 
-      editableCount++;
+      m_editableCount++;
     }
   }
 
-  if (tmpEditableOnly && editableCount == 0) {
+  if (tmpEditableOnly && m_editableCount == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
     Gui::endDraw();
     return;
@@ -165,7 +162,7 @@ void GuiMain::onInput(u32 kdown) {
     }
   } else if (kdown & KEY_RIGHT) {
     if (selectionState == TITLE_SELECT) {
-      if (static_cast<u16>(m_selected.titleIndex + 2) < ((!editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
+      if (static_cast<u16>(m_selected.titleIndex + 2) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
         m_selected.titleIndex += 2;
     } else if (selectionState == ACCOUNT_SELECT) {
       if (static_cast<u16>(m_selected.accountIndex + 1) < Title::g_titles[m_selected.titleId]->getUserIDs().size())
@@ -180,7 +177,7 @@ void GuiMain::onInput(u32 kdown) {
   } else if (kdown & KEY_DOWN) {
     if (selectionState == TITLE_SELECT) {
       if ((m_selected.titleIndex % 2) == 0) {
-        if (static_cast<u16>(m_selected.titleIndex + 1) < ((!editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
+        if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
       }    }
   }
@@ -196,7 +193,7 @@ void GuiMain::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_L) {
-    editableOnly = !editableOnly;
+    m_editableOnly = !m_editableOnly;
     m_selected.titleIndex = 0;
   }
 
@@ -269,12 +266,13 @@ void GuiMain::onTouch(touchPosition &touch) {
       u8 title = y + x * 2;
 
       if (y <= 1 && title < Title::g_titles.size()) {
-        if (m_selected.titleIndex == title) {
-          Title::g_currTitle = Title::g_titles[m_selected.titleId];
-          selectionState = ACCOUNT_SELECT;
+        if (m_editableOnly && title > (m_editableCount - 1)) break;
+          if (m_selected.titleIndex == title) {
+            Title::g_currTitle = Title::g_titles[m_selected.titleId];
+            selectionState = ACCOUNT_SELECT;
+          }
+          m_selected.titleIndex = title;
         }
-        m_selected.titleIndex = title;
-      }
       break;
     }
     case ACCOUNT_SELECT: {

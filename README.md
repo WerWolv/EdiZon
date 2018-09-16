@@ -4,8 +4,8 @@
 A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch.
 
 # Images
-<p align="center"><img src="https://i.imgur.com/XxOPfu9.jpg"></p>
-<p align="center"><img src="https://i.imgur.com/doKPA4C.jpg"></p>
+<p align="center"><img src="https://puu.sh/BvBBc/584e11a744.jpg"></p>
+<p align="center"><img src="https://puu.sh/BvBCI/0d1f1e334e.jpg"></p>
 
 # EdiZon Editor Config and Script files
 

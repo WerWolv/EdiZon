@@ -87,11 +87,13 @@ void GuiMain::draw() {
       if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
         Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
 
-        if (ConfigParser::g_betaTitles[title.first])
-          Gui::drawImage(x - xOffset, y, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
+        if (title.first != m_selected.titleId) {
+          if (ConfigParser::g_betaTitles[title.first])
+            Gui::drawImage(x - xOffset, y, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
-        if (y == 266 || title.first == (--Title::g_titles.end())->first)
-          Gui::drawShadow(x - xOffset, y, 256, 256);
+          if (y == 266 || title.first == (--Title::g_titles.end())->first)
+            Gui::drawShadow(x - xOffset, y, 256, 256);
+        }
       }
 
       y = y == 10 ? 266 : 10;
@@ -179,7 +181,8 @@ void GuiMain::onInput(u32 kdown) {
       if ((m_selected.titleIndex % 2) == 0) {
         if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
-      }    }
+      }
+    }
   }
 
   if (kdown & KEY_A) {

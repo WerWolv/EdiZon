@@ -20,6 +20,7 @@ extern "C" {
 
 #define FONT_FACES_MAX PlSharedFontType_Total
 
+#define fontHuge 4
 #define font24 3
 #define font20 2
 #define font14 0
@@ -27,7 +28,8 @@ extern "C" {
 enum gui_t {
   GUI_INVALID,
   GUI_MAIN,
-  GUI_EDITOR
+  GUI_EDITOR,
+  GUI_TX_WARNING
 };
 
 class Gui {

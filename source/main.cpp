@@ -11,6 +11,7 @@
 #include "gui.hpp"
 #include "gui_main.hpp"
 #include "gui_editor.hpp"
+#include "gui_tx_warning.hpp"
 
 #include "update_manager.hpp"
 
@@ -97,7 +98,13 @@ int main(int argc, char** argv) {
 
   initTitles();
 
-  Gui::g_nextGui = GUI_MAIN;
+  Handle txHandle;
+  if (R_FAILED(smRegisterService(&txHandle, "tx", false, 1)))
+    Gui::g_nextGui = GUI_TX_WARNING;
+  else {
+    Gui::g_nextGui = GUI_MAIN;
+    smUnregisterService("tx");
+  }
 
   g_edizonPath = new char[strlen(argv[0]) + 1];
   strcpy(g_edizonPath, argv[0] + 5);
@@ -125,6 +132,9 @@ int main(int argc, char** argv) {
           break;
         case GUI_EDITOR:
           currGui = new GuiEditor();
+          break;
+        case GUI_TX_WARNING:
+          currGui = new GuiTXWarning();
           break;
         default: break;
       }

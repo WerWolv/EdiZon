@@ -37,5 +37,6 @@ public:
 
 private:
     static inline json m_configFile;
+    static inline u8 m_useInsteadTries;
 
 };

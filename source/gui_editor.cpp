@@ -121,6 +121,9 @@ void GuiEditor::draw() {
       case 3:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Config file isn't compatible with your game version. Editing is disabled.", ALIGNED_CENTER);
         break;
+      case 4:
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Config file loading redirected more than 5 times. Editing is disabled.", ALIGNED_CENTER);
+        break;
     }
 
   } else {

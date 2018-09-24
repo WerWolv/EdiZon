@@ -32,11 +32,18 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
 		return 2;
 	}
 
+  if (m_useInsteadTries++ > 5) {
+    m_useInsteadTries = 0;
+    return 4;
+  }
+
   if (ConfigParser::m_configFile.find("useInstead") != ConfigParser::m_configFile.end()) {
     std::stringstream path;
     path << CONFIG_ROOT << ConfigParser::m_configFile["useInstead"].get<std::string>();
     return ConfigParser::loadConfigFile(titleId, path.str());
   }
+
+  m_useInsteadTries = 0;
 
   if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
     ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});

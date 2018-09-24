@@ -50,7 +50,6 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
 
   if (ConfigParser::m_configFile.find("all") == ConfigParser::m_configFile.end()) {
     for (auto it : ConfigParser::m_configFile.items()) {
-      printf("key: %s, title version: %s\n", it.key().c_str(), Title::g_titles[titleId]->getTitleVersion().c_str());
       if (it.key().find(Title::g_titles[titleId]->getTitleVersion()) != std::string::npos) {
         ConfigParser::m_configFile = ConfigParser::m_configFile[it.key()];
 

@@ -1,5 +1,7 @@
 #include "theme.h"
 
+#pragma GCC diagnostic ignored "-Wmissing-braces"
+
 theme_t currTheme;
 
 void setTheme(ColorSetId colorSetId) {
@@ -11,7 +13,7 @@ void setTheme(ColorSetId colorSetId) {
         .highlightColor       =      RGBA8(0x27, 0xA3, 0xC7, 0xFF),
         .selectedColor        =      RGBA8(0x50, 0x2D, 0xE4, 0xFF),
         .separatorColor       =      RGBA8(0x60, 0x60, 0x60, 0x80),
-        .selectedButtonColor  =      RGBA8(0xFD, 0xFD, 0xFD, 0xFF),
+        .selectedButtonColor  =      RGBA8(0xFD, 0xFD, 0xFD, 0xFF)
       };
       break;
     case ColorSetId_Dark:
@@ -21,7 +23,7 @@ void setTheme(ColorSetId colorSetId) {
         .highlightColor       =      RGBA8(0x27, 0xA3, 0xC7, 0xFF),
         .selectedColor        =      RGBA8(0x59, 0xED, 0xC0, 0xFF),
         .separatorColor       =      RGBA8(0x60, 0x60, 0x60, 0x80),
-        .selectedButtonColor  =      RGBA8(0x25, 0x26, 0x2A, 0xFF),
+        .selectedButtonColor  =      RGBA8(0x25, 0x26, 0x2A, 0xFF)
       };
       break;
   }

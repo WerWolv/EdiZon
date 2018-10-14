@@ -26,10 +26,11 @@ Check out our [Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more 
 If you need any help with the usage of EdiZon or if you want to start developing your own Editor Configs and Editor Scripts, feel free to join our Discord server: https://discord.gg/qyA38T8
 
 # Credits
-[3096](https://github.com/3096) for [save dumping/injecting](https://github.com/3096/nut)
-
-[Bernardo Giordano](https://github.com/BernardoGiordano) for some [Checkpoint](https://github.com/BernardoGiordano/Checkpoint) code
-
-[SwitchBrew](https://switchbrew.org/) for the [Homebrew Launcher](https://github.com/switchbrew/nx-hbmenu) GUI and shared font code
-
-[thomasnet-mc](https://github.com/thomasnet-mc/) for most of the save backup and restore code and the updater script
+- [3096](https://github.com/3096) for [save dumping/injecting](https://github.com/3096/nut)
+- [Bernardo Giordano](https://github.com/BernardoGiordano) for some [Checkpoint](https://github.com/BernardoGiordano/Checkpoint) code
+- [SwitchBrew](https://switchbrew.org/) for the [Homebrew Launcher](https://github.com/switchbrew/nx-hbmenu) GUI and shared font code
+- [thomasnet-mc](https://github.com/thomasnet-mc/) for most of the save backup and restore code and the updater script
+- [trueicecold](https://github.com/trueicecold) for batch backups and the editable-only mode
+- [onepiecefreak](https://github.com/onepiecefreak3) for the edizon debugger and LOTS of reviewing implementations
+- [Jojo](https://github.com/drdrjojo) for the Travis CI configuration and the config creator 
+- **All config creators** for bringing this project to life!

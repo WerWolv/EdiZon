@@ -23,7 +23,7 @@ Check out our [Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more 
 - The rest of the compilation works using the `make` command.
 
 # Discord
-If you need any help with the usage of EdiZon or if you want to start developing your own Editor Configs and Editor Scripts, feel free to join our Discord server: <a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
+If you need any help with the usage of EdiZon or if you want to start developing your own Editor Configs and Editor Scripts, feel free to join our Discord server: https://discord.gg/qyA38T8
 
 # Credits
 [3096](https://github.com/3096) for [save dumping/injecting](https://github.com/3096/nut)

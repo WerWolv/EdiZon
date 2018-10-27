@@ -202,12 +202,6 @@ void GuiMain::onInput(u32 kdown) {
 
   if (kdown & KEY_X) {
     time_t t = time(nullptr);
-    if (R_SUCCEEDED(timeInitialize())) {
-      if (R_FAILED(timeGetCurrentTime(TimeType_UserSystemClock, (u64*) &t))) {
-        t = time(nullptr);
-      }
-      timeExit();
-    }
     if (batchClicked) {
       bool batchFailed = false;
       (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {

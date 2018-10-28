@@ -202,19 +202,19 @@ void GuiMain::onInput(u32 kdown) {
     }
 
     if (kdown & KEY_X) {
+      time_t t = time(nullptr);
       if (batchClicked) {
         bool batchFailed = false;
         (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
-          if (selection) {
-            s16 res;
-            time_t t = time(nullptr);
-            u16 failed_titles = 0;
-            for (auto title : Title::g_titles) {
-              for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
-                if((res = backupSave(title.first, userID, true, t))) {
-                  batchFailed = true;
-                  failed_titles++;
-                }
+
+        if (selection) {
+          s16 res;
+          u16 failed_titles = 0;
+          for (auto title : Title::g_titles) {
+            for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
+              if((res = backupSave(title.first, userID, true, t))) {
+                batchFailed = true;
+                failed_titles++;
               }
             }
             if (!batchFailed)
@@ -230,7 +230,6 @@ void GuiMain::onInput(u32 kdown) {
       else {
         bool batchFailed = false;
         s16 res;
-        time_t t = time(nullptr);
 
         for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {
           if((res = backupSave(m_selected.titleId, userID, true, t))) {

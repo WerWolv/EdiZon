@@ -71,6 +71,7 @@ void updateFile(std::string path) {
   fp = fopen(path.c_str(), "wb");
 
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToFile);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 

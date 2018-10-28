@@ -206,23 +206,23 @@ void GuiMain::onInput(u32 kdown) {
       if (batchClicked) {
         bool batchFailed = false;
         (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
-
-        if (selection) {
-          s16 res;
-          u16 failed_titles = 0;
-          for (auto title : Title::g_titles) {
-            for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
-              if((res = backupSave(title.first, userID, true, t))) {
-                batchFailed = true;
-                failed_titles++;
+          if (selection) {
+            s16 res;
+            u16 failed_titles = 0;
+            for (auto title : Title::g_titles) {
+              for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
+                if((res = backupSave(title.first, userID, true, t))) {
+                  batchFailed = true;
+                  failed_titles++;
+                }
               }
-            }
-            if (!batchFailed)
-              (new Snackbar("Successfully created backups!"))->show();
-            else {
-              std::stringstream errorMessage;
-              errorMessage << "Failed to backup " << failed_titles << " titles!";
-              (new Snackbar(errorMessage.str()))->show();
+              if (!batchFailed)
+                (new Snackbar("Successfully created backups!"))->show();
+              else {
+                std::stringstream errorMessage;
+                errorMessage << "Failed to backup " << failed_titles << " titles!";
+                (new Snackbar(errorMessage.str()))->show();
+              }
             }
           }
         })->show();

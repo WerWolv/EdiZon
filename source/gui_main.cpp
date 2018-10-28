@@ -195,39 +195,39 @@ void GuiMain::onInput(u32 kdown) {
     }
   }
 
-  if (kdown & KEY_L) {
-    m_editableOnly = !m_editableOnly;
-    m_selected.titleIndex = 0;
-  }
+  if (selectionState == TITLE_SELECT) {
+    if (kdown & KEY_L) {
+      m_editableOnly = !m_editableOnly;
+      m_selected.titleIndex = 0;
+    }
 
-  if (kdown & KEY_X) {
-    if (batchClicked) {
-      bool batchFailed = false;
-      (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
-        if (selection) {
-          s16 res;
-          time_t t = time(nullptr);
-          u16 failed_titles = 0;
-          for (auto title : Title::g_titles) {
-            for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
-              if((res = backupSave(title.first, userID, true, t))) {
-                batchFailed = true;
-                failed_titles++;
+    if (kdown & KEY_X) {
+      if (batchClicked) {
+        bool batchFailed = false;
+        (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
+          if (selection) {
+            s16 res;
+            time_t t = time(nullptr);
+            u16 failed_titles = 0;
+            for (auto title : Title::g_titles) {
+              for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
+                if((res = backupSave(title.first, userID, true, t))) {
+                  batchFailed = true;
+                  failed_titles++;
+                }
               }
             }
+            if (!batchFailed)
+              (new Snackbar("Successfully created backups!"))->show();
+            else {
+              std::stringstream errorMessage;
+              errorMessage << "Failed to backup " << failed_titles << " titles!";
+              (new Snackbar(errorMessage.str()))->show();
+            }
           }
-          if (!batchFailed)
-            (new Snackbar("Successfully created backups!"))->show();
-          else {
-            std::stringstream errorMessage;
-            errorMessage << "Failed to backup " << failed_titles << " titles!";
-            (new Snackbar(errorMessage.str()))->show();
-          }
-        }
-      })->show();
-    }
-    else {
-      if (selectionState == TITLE_SELECT) {
+        })->show();
+      }
+      else {
         bool batchFailed = false;
         s16 res;
         time_t t = time(nullptr);
@@ -243,6 +243,11 @@ void GuiMain::onInput(u32 kdown) {
         else (new Snackbar("An error occured while creating the backup! Error " + std::to_string(res)))->show();
       }
     }
+
+    if (kdown & KEY_MINUS) {
+      (new MessageBox("Checking for updates...", MessageBox::NONE))->show();
+      GuiMain::g_shouldUpdate = true;
+    }
   }
 
   batchClicked = (kdown & KEY_R) > 0;
@@ -252,10 +257,6 @@ void GuiMain::onInput(u32 kdown) {
         selectionState = TITLE_SELECT;
         m_selected.accountIndex = 0;
     }
-  }
-  if (kdown & KEY_MINUS) {
-    (new MessageBox("Checking for updates...", MessageBox::NONE))->show();
-    GuiMain::g_shouldUpdate = true;
   }
 }
 

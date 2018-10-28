@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <stdbool.h>
 
 class GuiTXWarning : public Gui {
 public:
@@ -15,4 +16,7 @@ public:
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition &startPosition, touchPosition &endPosition);
+
+private:
+  bool hideWarning;
 };

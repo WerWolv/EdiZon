@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
   initTitles();
 
   Handle txHandle;
-  if (R_FAILED(smRegisterService(&txHandle, "tx", false, 1)))
+  if (R_FAILED(smRegisterService(&txHandle, "tx", false, 1)) && access("/EdiZon/.hide_sxos", F_OK) == -1)
     Gui::g_nextGui = GUI_TX_WARNING;
   else {
     Gui::g_nextGui = GUI_MAIN;

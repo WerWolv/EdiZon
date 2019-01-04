@@ -178,8 +178,6 @@ Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
 Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs) {
   Result rc = 0;
 
-  printf("Using titleID=0x%016lx userID: 0x%lx %lx\n", titleID, (u64)(userID>>64), (u64)userID);
-
   rc = fsMount_SaveData(&tmpfs, titleID, userID);//See also libnx fs.h.
   if (R_FAILED(rc)) {
     printf("fsMount_SaveData() failed: 0x%x\n", rc);

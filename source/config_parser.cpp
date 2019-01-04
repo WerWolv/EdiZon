@@ -4,6 +4,7 @@
 #include "widget_switch.hpp"
 #include "widget_value.hpp"
 #include "widget_list.hpp"
+#include "widget_string.hpp"
 
 #include <sstream>
 #include <fstream>
@@ -100,21 +101,30 @@ void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParse
       if (itemWidget["onValue"] == itemWidget["offValue"]) continue;
       if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number()) {
         widgets[item["category"]].push_back({ item["name"],
-        new WidgetSwitch(&scriptParser, isDummy, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
+          new WidgetSwitch(&scriptParser, isDummy, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
       }
       else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
         widgets[item["category"]].push_back({ item["name"],
-        new WidgetSwitch(&scriptParser, isDummy, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
+          new WidgetSwitch(&scriptParser, isDummy, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
     }
     else if (itemWidget["type"] == "list") {
       if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) continue;
 
       if (itemWidget["listItemValues"][0].is_number()) {
         widgets[item["category"]].push_back({ item["name"],
-        new WidgetList(&scriptParser, isDummy, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
+          new WidgetList(&scriptParser, isDummy, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
       }
       else if (itemWidget["listItemValues"][0].is_string())
-        widgets[item["category"]].push_back({ item["name"], new WidgetList(&scriptParser, isDummy, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
+        widgets[item["category"]].push_back({ item["name"], 
+          new WidgetList(&scriptParser, isDummy, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
+    } 
+    else if (itemWidget["type"] == "string") {
+      if (itemWidget["minLength"] == nullptr || itemWidget["maxLength"] == nullptr) continue;
+
+      if (itemWidget["minLength"].is_number() && itemWidget["maxLength"].is_number()) {
+        widgets[item["category"]].push_back({ item["name"], 
+          new WidgetString(&scriptParser, isDummy, itemWidget["minLength"].get<u8>(), itemWidget["maxLength"].get<u8>()) });
+      }
     }
 
     widgets[item["category"]].back().widget->setLuaArgs(item["intArgs"], item["strArgs"]);

@@ -548,7 +548,7 @@ bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText
     kbd.arg.arg.returnButtonFlag = false;
     kbd.arg.arg.type = type;
 
-    swkbdShow(&kbd, out_text, maxLength);
+    swkbdShow(&kbd, out_text, maxLength + 1);
     swkbdClose(&kbd);
 
     return std::strcmp(out_text, "") != 0;

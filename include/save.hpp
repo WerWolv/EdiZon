@@ -24,7 +24,7 @@ s32 isDirectory(const char *path);
 s32 cpFile(std::string srcPath, std::string dstPath);
 s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]);
 
-s32 backupSave(u64 titleID, u128 userID, bool isBatch = false, time_t timestamp = time(nullptr));
+s32 backupSave(u64 titleID, u128 userID, bool isBatch, std::string backupName);
 s32 restoreSave(u64 titleID, u128 userID, const char* path);
 
 s32 loadSaveFile(std::vector<u8> *buffer, size_t *length, u64 titleID, u128 userID, const char *path);

@@ -20,7 +20,7 @@ bool finishedDrawing = true;
 enum {
   TITLE_SELECT,
   ACCOUNT_SELECT
-} selectionState = TITLE_SELECT;
+} selectionState;
 
 GuiMain::GuiMain() : Gui() {
   m_selected.accountIndex = 0;
@@ -203,15 +203,21 @@ void GuiMain::onInput(u32 kdown) {
 
     if (kdown & KEY_X) {
       time_t t = time(nullptr);
+      char backupName[32];
+      std::stringstream initialText;
+      initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
+
       if (batchClicked) {
         bool batchFailed = false;
         (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
+          Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), backupName, 32);
+
           if (selection) {
             s16 res;
             u16 failed_titles = 0;
             for (auto title : Title::g_titles) {
               for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
-                if((res = backupSave(title.first, userID, true, t))) {
+                if((res = backupSave(title.first, userID, true, backupName))) {
                   batchFailed = true;
                   failed_titles++;
                 }
@@ -231,15 +237,23 @@ void GuiMain::onInput(u32 kdown) {
         bool batchFailed = false;
         s16 res;
 
+        Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), backupName, 32);
+
         for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {
-          if((res = backupSave(m_selected.titleId, userID, true, t))) {
+          if((res = backupSave(m_selected.titleId, userID, true, backupName))) {
             batchFailed = true;
           }
         }
 
         if (!batchFailed)
           (new Snackbar("Successfully created backup!"))->show();
-        else (new Snackbar("An error occured while creating the backup! Error " + std::to_string(res)))->show();
+        else {
+          switch(res) {
+            case 1: (new Snackbar("Failed to mount save file!"))->show(); break;
+            case 2: (new Snackbar("A backup with this name already exists!"))->show(); break;
+            case 3: (new Snackbar("Failed to create backup!"))->show(); break;
+          }
+        }      
       }
     }
 

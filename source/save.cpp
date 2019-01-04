@@ -71,9 +71,13 @@ s32 deleteDirRecursively(const char *path, bool isSave) {
      return r;
 }
 
-void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder, bool fromBatch=false, time_t timestamp=time(nullptr));
-void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder, bool fromBatch, time_t timestamp) {
-  time_t t = timestamp;
+bool doesFolderExist(const char *path) {
+  struct stat sb;
+  
+  return stat(path, &sb) == 0 && S_ISDIR(sb.st_mode);
+}
+
+bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder, bool fromBatch, std::string backupName) {
   std::stringstream ss;
   std::string folder_path(ROOT_DIR);
 
@@ -92,12 +96,14 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
     if (isInject)
       ss << injectFolder << "/";
     else
-      ss << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S") << "/";
+      ss << backupName << "/";
   }
   else {
     folder_path += "batch/";
     mkdir(folder_path.c_str(), 0700);
-    ss << ROOT_DIR << "batch/" << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S") << "/";
+    ss << ROOT_DIR << "batch/" << backupName << "/";
+
+
     mkdir(ss.str().c_str(), 0700);
 
     u64 userIDH = userID >> 64;
@@ -110,6 +116,7 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
       << std::hex << titleID << "/";
   }
 
+  if(doesFolderExist(ss.str().c_str())) return false;
   strcpy(ptr, ss.str().c_str());
   mkdir(ptr, 0700);
 
@@ -134,6 +141,8 @@ void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
   metadata_file.open (ss.str() + "edizon_save_metadata.json");
   metadata_file << metadata_string << "\n";
   metadata_file.close();
+
+  return true;
 }
 
 Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
@@ -295,9 +304,8 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   }
 }
 
-s32 backupSave(u64 titleID, u128 userID, bool fromBatch, time_t timestamp) {
+s32 backupSave(u64 titleID, u128 userID, bool fromBatch, std::string backupName) {
   FsFileSystem fs;
-  char *ptr = new char[0x100];
   s32 res = 0;
 
   if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {
@@ -305,12 +313,19 @@ s32 backupSave(u64 titleID, u128 userID, bool fromBatch, time_t timestamp) {
     return 1;
   }
 
-  makeExInjDir(ptr, titleID, userID, false, nullptr, fromBatch, timestamp);
+  char *ptr = new char[0x100];
+
+  if(!makeExInjDir(ptr, titleID, userID, false, nullptr, fromBatch, backupName)) {
+    fsdevUnmountDevice(SAVE_DEV);
+    delete[] ptr;
+    return 2;
+  }
 
   if (ptr == nullptr) {
     printf("makeExInjDir failed.\n");
-      fsdevUnmountDevice(SAVE_DEV);
-      return 1;
+    fsdevUnmountDevice(SAVE_DEV);
+    delete[] ptr;
+    return 3;
   }
 
   res = copyAllSave("", false, ptr);
@@ -333,14 +348,14 @@ s32 restoreSave(u64 titleID, u128 userID, const char* path) {
   if (path == nullptr) {
     printf("makeExInjDir failed.\n");
     fsdevUnmountDevice(SAVE_DEV);
-    return 1;
+    return 2;
   }
 
   res = deleteDirRecursively("save:/", true);
 
   if (!res) {
     printf("Deleting save:/ failed: %d.\n", res);
-    return res;
+    return 3;
   }
 
   res = copyAllSave("", true, path);

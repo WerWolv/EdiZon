@@ -350,9 +350,26 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     if (kdown & KEY_X) {
       s16 res;
 
-      if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID())))
-        (new Snackbar("Successfully created backup!"))->show();
-      else (new Snackbar("An error occured while creating the backup! Error " + std::to_string(res)))->show();
+      time_t t = time(nullptr);
+      char backupName[32];
+      std::stringstream initialText;
+      initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
+
+      if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), backupName, 32)) {
+        (new Snackbar("No backup was created!"))->show();
+        return;
+      }
+
+      if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName)))
+        (new Snackbar("Successfully created backup \"" + std::string(backupName) + "\"!"))->show();
+      else {
+        switch(res) {
+          case 1: (new Snackbar("Failed to mount save file!"))->show(); break;
+          case 2: (new Snackbar("A backup with this name already exists!"))->show(); break;
+          case 3: (new Snackbar("Failed to create backup!"))->show(); break;
+        }
+        
+      }
     }
 
     if (kdown & KEY_Y) {

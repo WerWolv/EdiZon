@@ -10,6 +10,11 @@
 
 using json = nlohmann::json;
 
+typedef struct {
+  std::string fileName;
+  u8 configIndex;
+} SaveFile;
+
 class GuiEditor : public Gui {
 public:
   GuiEditor();
@@ -33,7 +38,7 @@ private:
 
   std::vector<std::string> m_backupTitles;
   std::vector<std::string> m_backupPaths;
-  std::vector<std::string> m_saveFiles;
+  std::vector<SaveFile> m_saveFiles;
 
   color_t m_dominantColor;
   color_t m_textColor;
@@ -42,5 +47,5 @@ private:
 
   ScriptParser m_scriptParser;
 
-  void updateSaveFileList(std::vector<std::string> saveFilePath, std::string files);
+  void updateSaveFileList(std::vector<std::string> saveFilePath, std::string files, u8 configIndex);
 };

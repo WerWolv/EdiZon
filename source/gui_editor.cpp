@@ -238,7 +238,7 @@ std::string GuiEditor::readMetaDataUsername(std::string path) {
   return "";
 }
 
-void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::string files) {
+void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::string files, u8 configIndex) {
   DIR *dir;
   struct dirent *ent;
   FsFileSystem fs;
@@ -287,7 +287,7 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
 
       while ((ent = readdir(dir)) != nullptr) {
         if (std::regex_match(ent->d_name, validSaveFileNames))
-          m_saveFiles.push_back(path + ent->d_name);
+          m_saveFiles.push_back({ path + ent->d_name, configIndex });
       }
       closedir(dir);
     }
@@ -307,9 +307,17 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     if (m_configFileResult != 0) return;
     m_saveFiles.clear();
 
-    updateSaveFileList(ConfigParser::getConfigFile()["saveFilePaths"], ConfigParser::getConfigFile()["files"]);
+    for (u8 configIndex = 0; configIndex < ConfigParser::getConfigFile().size(); configIndex++)
+      updateSaveFileList(ConfigParser::getConfigFile()[configIndex]["saveFilePaths"], ConfigParser::getConfigFile()[configIndex]["files"], configIndex);
 
-    (new ListSelector("Edit save file", "\uE0E0  Select      \uE0E1  Back", m_saveFiles))->setInputAction([&](u32 k, u16 selectedItem){
+    static std::vector<std::string> saveFileNames;
+
+    saveFileNames.clear();
+
+    for (auto saveFile : m_saveFiles)
+      saveFileNames.push_back(saveFile.fileName);
+
+    (new ListSelector("Edit save file", "\uE0E0  Select      \uE0E1  Back", saveFileNames))->setInputAction([&](u32 k, u16 selectedItem){
       if (k & KEY_A) {
         if (m_saveFiles.size() != 0) {
           size_t length;
@@ -317,12 +325,12 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           Widget::g_selectedCategory = "";
           Widget::g_selectedRow = CATEGORIES;
           Widget::g_categoryYOffset = 0;
-          GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].c_str();
+          GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].fileName.c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
               m_scriptParser.setLuaSaveFileBuffer(&g_currSaveFile[0], length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
-              ConfigParser::createWidgets(m_widgets, m_scriptParser);
-              m_scriptParser.luaInit(ConfigParser::getConfigFile()["filetype"]);
+              ConfigParser::createWidgets(m_widgets, m_scriptParser, this->m_saveFiles[selectedItem].configIndex);
+              m_scriptParser.luaInit(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["filetype"]);
               if (ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()])
                 (new MessageBox("Please create a backup before using this beta config.", MessageBox::OKAY))->show();
             }

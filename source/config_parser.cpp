@@ -70,13 +70,15 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
   }
 }
 
-void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParser) {
+void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParser, u8 configIndex) {
   std::set<std::string> tempCategories;
   bool isDummy = false;
 
-  if(ConfigParser::m_configFile == nullptr) return;
+  if (ConfigParser::m_configFile == nullptr) return;
 
-  for (auto item : ConfigParser::m_configFile["items"]) {
+  if (!ConfigParser::m_configFile.is_array()) return;
+
+  for (auto item : ConfigParser::m_configFile[configIndex]["items"]) {
     if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) continue;
 
     auto itemWidget = item["widget"];

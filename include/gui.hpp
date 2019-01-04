@@ -37,8 +37,9 @@ public:
   static inline enum gui_t g_nextGui = GUI_INVALID;
 
   u8 *framebuffer;
-  static inline u32 g_framebuffer_width = 0;
-  static inline u32 g_framebuffer_height = 0;
+    static inline Framebuffer g_fb_obj;
+  static inline u32 g_framebuffer_width = 1280;
+  static inline u32 g_framebuffer_height = 720;
 
   static inline Snackbar *g_currSnackbar = nullptr;
   static inline ListSelector *g_currListSelector = nullptr;
@@ -70,6 +71,8 @@ public:
 
   void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
+
+  bool requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, char *out_text, size_t maxLength);
 
 protected:
   void beginDraw();

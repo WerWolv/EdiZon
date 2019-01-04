@@ -5,3 +5,4 @@
 build/
 out/
 .build-tools.cson
+.vscode/

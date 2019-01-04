@@ -4,10 +4,9 @@
 #include <functional>
 
 static float menuTimer = 0.0F;
+static u32 stride;
 
 Gui::Gui() {
-  this->framebuffer = gfxGetFramebuffer(&Gui::g_framebuffer_width, &Gui::g_framebuffer_height);
-
   Gui::g_currSnackbar = nullptr;
   Gui::g_currListSelector = nullptr;
   Gui::g_currMessageBox = nullptr;
@@ -70,21 +69,21 @@ inline void Gui::drawPixel(s16 x, s16 y, color_t clr) {
     if (x >= 1280 || y >= 720 || x < 0 || y < 0)
         return;
 
-    u32 off = (y * this->g_framebuffer_width + x)*4;
-    this->framebuffer[off] = blendColor(this->framebuffer[off], clr.r, clr.a); off++;
-    this->framebuffer[off] = blendColor(this->framebuffer[off], clr.g, clr.a); off++;
-    this->framebuffer[off] = blendColor(this->framebuffer[off], clr.b, clr.a); off++;
-    this->framebuffer[off] = 0xff;
+    u32 off = y * stride + x * 4;
+    framebuffer[off] = blendColor(framebuffer[off], clr.r, clr.a); off++;
+    framebuffer[off] = blendColor(framebuffer[off], clr.g, clr.a); off++;
+    framebuffer[off] = blendColor(framebuffer[off], clr.b, clr.a); off++;
+    framebuffer[off] = 0xFF;
 }
 
-inline void Gui::draw4PixelsRaw(s16 x, s16 y, color_t clr) {
+inline void Gui::draw4PixelsRaw(s16 x, s16 y, color_t clr) {   
     if (x >= 1280 || y >= 720 || x > 1280-4 || x < 0 || y < 0)
         return;
 
-    u32 color = clr.r | (clr.g << 8) | (clr.b << 16) | (0xFF << 24);
-    u128 val = color | (static_cast<u128>(color) << 0x20) | (static_cast<u128>(color) << 0x40) | (static_cast<u128>(color) << 0x60);
-    u32 off = (y * this->g_framebuffer_width + x) * 4;
-    *(reinterpret_cast<u128*>(&this->framebuffer[off])) = val;
+    u32 color = clr.r | (clr.g<<8) | (clr.b<<16) | (0xff<<24);
+    u128 val = color | ((u128)color<<32) | ((u128)color<<64) | ((u128)color<<96);
+    u32 off = y * stride + x * 4;
+    *((u128*)&framebuffer[off]) = val;
 }
 
 bool Gui::fontInit() {
@@ -416,7 +415,7 @@ void Gui::getTextDimensions(u32 font, const char* text, u32* width_out, u32* hei
   *height_out = height;
 }
 
-void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode) {
+void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode) {   
     s32 tmpx, tmpy;
     s32 pos;
     color_t current_color;
@@ -447,7 +446,7 @@ void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageM
     }
 }
 
-void Gui::drawRectangled(s16 x, s16 y, s16 w, s16 h, color_t color) {
+void Gui::drawRectangled(s16 x, s16 y, s16 w, s16 h, color_t color) {   
     for (s32 j = y; j < y + h; j++) {
         for (s32 i = x; i < x + w; i++) {
             drawPixel(i, j, color);
@@ -534,8 +533,30 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
     }
 }
 
-void Gui::beginDraw() {
+bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, char *out_text, size_t maxLength) {
+    SwkbdConfig kbd;
+    swkbdCreate(&kbd, 0);
+    swkbdConfigMakePresetDefault(&kbd);
 
+    swkbdConfigSetInitialText(&kbd, initialText.c_str());
+    swkbdConfigSetHeaderText(&kbd, headerText.c_str());
+    swkbdConfigSetSubText(&kbd, subHeaderText.c_str());
+
+    kbd.arg.arg.stringLenMax = maxLength;
+    kbd.arg.arg.stringLenMaxExt = 1;
+    kbd.arg.arg.textDrawType = SwkbdTextDrawType_Line;
+    kbd.arg.arg.returnButtonFlag = false;
+
+    swkbdShow(&kbd, out_text, maxLength);
+    swkbdClose(&kbd);
+
+    printf("%s\n", out_text);
+
+    return std::strcmp(out_text, "") != 0;
+}
+
+void Gui::beginDraw() {
+  this->framebuffer = (u8*)framebufferBegin(&Gui::g_fb_obj, &stride);
 }
 
 void Gui::endDraw() {
@@ -548,7 +569,5 @@ void Gui::endDraw() {
   if (Gui::g_currMessageBox != nullptr)
     Gui::g_currMessageBox->draw(this);
 
-  gfxWaitForVsync();
-  gfxFlushBuffers();
-  gfxSwapBuffers();
+  framebufferEnd(&Gui::g_fb_obj);
 }

@@ -10,7 +10,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <utime.h>
-
 #include <curl/curl.h>
 
 #include "json.hpp"

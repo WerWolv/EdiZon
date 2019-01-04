@@ -30,7 +30,7 @@ typedef enum { CATEGORIES, WIDGETS } WidgetRow;
 
 class Widget {
 public:
-  Widget(ScriptParser *saveParser);
+  Widget(ScriptParser *saveParser, bool isDummy);
   virtual ~Widget();
 
   static inline u16 g_selectedWidgetIndex = 0;
@@ -50,6 +50,8 @@ public:
 
   s64 getIntegerValue();
   std::string getStringValue();
+  bool isDummy();
+
   void setIntegerValue(s64 value);
   void setStringValue(std::string value);
 
@@ -62,4 +64,5 @@ protected:
   WidgetDataType m_widgetDataType;
   std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;
+  bool m_isDummy;
 };

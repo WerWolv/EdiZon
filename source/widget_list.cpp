@@ -2,13 +2,13 @@
 
 #include "list_selector.hpp"
 
-WidgetList::WidgetList(ScriptParser *saveParser, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) :
- Widget(saveParser), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
+WidgetList::WidgetList(ScriptParser *saveParser, bool isDummy, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) :
+ Widget(saveParser, isDummy), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
   m_widgetDataType = INT;
 }
 
-WidgetList::WidgetList(ScriptParser *saveParser, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) :
- Widget(saveParser), m_listItemNames(listItemNames), m_strListItemValues(listItemValues) {
+WidgetList::WidgetList(ScriptParser *saveParser, bool isDummy, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) :
+ Widget(saveParser, isDummy), m_listItemNames(listItemNames), m_strListItemValues(listItemValues) {
   m_widgetDataType = STRING;
 }
 

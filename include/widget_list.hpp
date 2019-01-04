@@ -6,8 +6,8 @@
 
 class WidgetList : public Widget {
 public:
-  WidgetList(ScriptParser *saveParser, std::vector<std::string> listItemNames, std::vector<s32> listItemValues);
-  WidgetList(ScriptParser *saveParser, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues);
+  WidgetList(ScriptParser *saveParser, bool isDummy, std::vector<std::string> listItemNames, std::vector<s32> listItemValues);
+  WidgetList(ScriptParser *saveParser, bool isDummy, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues);
   ~WidgetList();
 
   void draw(Gui *gui, u16 x, u16 y);

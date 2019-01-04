@@ -19,9 +19,16 @@ public:
 
   s64 getValueFromSaveFile();
   std::string getStringFromSaveFile();
+
   void setValueInSaveFile(s64 value);
   void setStringInSaveFile(std::string value);
+
   void getModifiedSaveFile(std::vector<u8> &buffer);
+
+  s64 getDummyValue();
+  std::string getDummyString();
+  void setDummyValue(s64 value);
+  void setDummyString(std::string value);
 
   void setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
   void setLuaSaveFileBuffer(u8 *buffer, size_t bufferSize, std::string encoding);

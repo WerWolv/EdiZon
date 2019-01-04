@@ -6,8 +6,8 @@
 
 class WidgetSwitch : public Widget {
 public:
-  WidgetSwitch(ScriptParser *saveParser, s32 onValue, s32 offValue);
-  WidgetSwitch(ScriptParser *saveParser, std::string onValue, std::string offValue);
+  WidgetSwitch(ScriptParser *saveParser, bool isDummy, s32 onValue, s32 offValue);
+  WidgetSwitch(ScriptParser *saveParser, bool isDummy, std::string onValue, std::string offValue);
 
   ~WidgetSwitch();
 

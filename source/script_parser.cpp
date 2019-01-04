@@ -127,6 +127,19 @@ s64 ScriptParser::getValueFromSaveFile() {
   return out;
 }
 
+s64 ScriptParser::getDummyValue() {
+  s64 out;
+
+  lua_getglobal(m_luaState, "getDummyValue");
+  if(lua_pcall(m_luaState, 0, 1, 0))
+    printError(m_luaState);
+
+  out = lua_tointeger(m_luaState, -1);
+  lua_pop(m_luaState, 1);
+
+  return out;
+}
+
 
 std::string ScriptParser::getStringFromSaveFile() {
   std::string out;
@@ -141,6 +154,20 @@ std::string ScriptParser::getStringFromSaveFile() {
   return out;
 }
 
+std::string ScriptParser::getDummyString() {
+  std::string out;
+
+  lua_getglobal(m_luaState, "getDummyString");
+  if (lua_pcall(m_luaState, 0, 1, 0))
+    printError(m_luaState);
+
+  out = lua_tostring(m_luaState, -1);
+  lua_pop(m_luaState, 1);
+
+  return out;
+}
+
+
 void ScriptParser::setValueInSaveFile(s64 value) {
   lua_getglobal(m_luaState, "setValueInSaveFile");
   lua_pushinteger(m_luaState, value);
@@ -150,6 +177,20 @@ void ScriptParser::setValueInSaveFile(s64 value) {
 
 void ScriptParser::setStringInSaveFile(std::string value) {
   lua_getglobal(m_luaState, "setStringInSaveFile");
+  lua_pushstring(m_luaState, value.c_str());
+  if (lua_pcall(m_luaState, 1, 0, 0))
+    printError(m_luaState);
+}
+
+void ScriptParser::setDummyValue(s64 value) {
+  lua_getglobal(m_luaState, "setDummyValue");
+  lua_pushinteger(m_luaState, value);
+  if (lua_pcall(m_luaState, 1, 0, 0))
+    printError(m_luaState);
+}
+
+void ScriptParser::setDummyString(std::string value) {
+  lua_getglobal(m_luaState, "setDummyString");
   lua_pushstring(m_luaState, value.c_str());
   if (lua_pcall(m_luaState, 1, 0, 0))
     printError(m_luaState);

@@ -37,7 +37,7 @@ void WidgetValue::onInput(u32 kdown) {
   if (kdown & KEY_LEFT) {
     if (static_cast<s64>(m_currValue - incrementValue) > m_minValue)
         Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - incrementValue);
-    else if(m_currValue == m_minValue)
+    else if(m_currValue <= m_minValue)
       Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
     else
       Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
@@ -46,18 +46,24 @@ void WidgetValue::onInput(u32 kdown) {
   if (kdown & KEY_RIGHT) {
     if (static_cast<s64>(m_currValue + incrementValue) < m_maxValue)
       Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
-    else if(m_currValue == m_maxValue)
+    else if(m_currValue >= m_maxValue)
       Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
     else
       Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
   }
 
   if (kdown & KEY_A) {
-    char out_number[20];
-    Gui::requestKeyboardInput("Input value", "Enter a value to be set for this widget.", std::to_string(m_currValue).c_str(), SwkbdType_NumPad, out_number, 20);
+    u8 maxDigits = static_cast<u8>(std::floor(std::log10(m_maxValue)) + 1);
+
+    char out_number[maxDigits + 1];
+    Gui::requestKeyboardInput("Input value", "Enter a number for this value to be set to.", std::to_string(m_currValue).c_str(), SwkbdType_NumPad, out_number, maxDigits);
 
     if (isNumber(std::string(out_number)))
-      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, std::min(std::max(static_cast<s64>(atoi(out_number)), m_minValue), m_maxValue)));
+      Widget::setIntegerValue(
+        Widget::m_saveParser->evaluateEquation(m_writeEquation, 
+        Widget::m_saveParser->evaluateEquation(m_readEquation, 
+        std::min(std::max(static_cast<s64>(atoi(out_number)), 
+        m_minValue), m_maxValue))));
   }
   
   m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());

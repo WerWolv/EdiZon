@@ -46,19 +46,16 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
 
   m_useInsteadTries = 0;
 
-  if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
-    ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});
-
   if (ConfigParser::m_configFile.find("all") == ConfigParser::m_configFile.end()) {
     for (auto it : ConfigParser::m_configFile.items()) {
       if (it.key().find(Title::g_titles[titleId]->getTitleVersion()) != std::string::npos) {
         ConfigParser::m_configFile = ConfigParser::m_configFile[it.key()];
 
         if (ConfigParser::m_configFile == nullptr) return 2;
-        if (ConfigParser::m_configFile["saveFilePaths"] == nullptr
-            || ConfigParser::m_configFile["files"] == nullptr
-            || ConfigParser::m_configFile["filetype"] == nullptr
-            || ConfigParser::m_configFile["items"] == nullptr) return 2;
+        if (!ConfigParser::m_configFile.is_array()) return 2;
+
+        if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
+          ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});
 
         return 0;
       }
@@ -66,6 +63,12 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
     return 3;
   } else {
     ConfigParser::m_configFile = ConfigParser::m_configFile["all"];
+
+    if (!ConfigParser::m_configFile.is_array()) return 2;
+
+    if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
+      ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});
+
     return 0;
   }
 }

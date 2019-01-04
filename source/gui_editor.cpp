@@ -293,8 +293,6 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
     }
   }
 
-  std::reverse(m_saveFiles.begin(), m_saveFiles.end());
-
   fsdevUnmountDevice(SAVE_DEV);
   fsFsClose(&fs);
 

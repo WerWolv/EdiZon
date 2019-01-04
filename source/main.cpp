@@ -52,7 +52,7 @@ void initTitles() {
     Title::g_titles[saveInfo.titleID]->addUserID(saveInfo.userID);
 
     if (Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())
-      Account::g_accounts.insert({ static_cast<u128>(saveInfo.userID), new Account(saveInfo.userID) });
+      Account::g_accounts.insert(std::make_pair(static_cast<u128>(saveInfo.userID), new Account(saveInfo.userID)));
   }
 }
 
@@ -73,6 +73,9 @@ void update(void *args) {
 }
 
 int main(int argc, char** argv) {
+  void *haddr;
+  svcSetHeapSize(&haddr, 0x10000000);
+
   socketInitializeDefault();
 
 #ifdef NXLINK
@@ -88,7 +91,8 @@ int main(int argc, char** argv) {
     dup2(file, STDERR_FILENO);
   }
 
-  gfxInitDefault();
+  framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
+  framebufferMakeLinear(&Gui::g_fb_obj);
 
   setsysInitialize();
     ColorSetId colorSetId;
@@ -99,8 +103,15 @@ int main(int argc, char** argv) {
   initTitles();
 
   Handle txHandle;
-  if (R_FAILED(smRegisterService(&txHandle, "tx", false, 1)) && access("/EdiZon/.hide_sxos", F_OK) == -1)
-    Gui::g_nextGui = GUI_TX_WARNING;
+  if (R_FAILED(smRegisterService(&txHandle, "tx", false, 1)) && access("/EdiZon/.hide_sxos", F_OK) == -1) {
+    if(R_SUCCEEDED(smRegisterService(&txHandle, "rnx", false, 1))) {
+      Gui::g_nextGui = GUI_TX_WARNING;
+      smUnregisterService("rnx");
+    }
+    else {
+      Gui::g_nextGui = GUI_MAIN;
+    }
+  }
   else {
     Gui::g_nextGui = GUI_MAIN;
     smUnregisterService("tx");
@@ -229,7 +240,7 @@ int main(int argc, char** argv) {
 
   close(file);
 
-  gfxExit();
+  framebufferClose(&Gui::g_fb_obj);
 
   return 0;
 }

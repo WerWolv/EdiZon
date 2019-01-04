@@ -74,6 +74,9 @@ void GuiMain::draw() {
 
   xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
+  if (Title::g_titles.size() < 10) xOffsetNext = 0;
+  if (m_editableCount < 10 && tmpEditableOnly) xOffsetNext = 0;
+
   m_editableCount = 0;
 
   for (auto title : Title::g_titles) {

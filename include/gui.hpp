@@ -72,7 +72,7 @@ public:
   void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
-  bool requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, char *out_text, size_t maxLength);
+  static bool requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, SwkbdType type, char *out_text, size_t maxLength);
 
 protected:
   void beginDraw();

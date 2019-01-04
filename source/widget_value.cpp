@@ -26,6 +26,11 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
   gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), currTheme.selectedColor, ss.str().c_str(), ALIGNED_RIGHT);
 }
 
+bool isNumber(const std::string &line) {
+ if (line[0] == '0') return true;
+ return (atoi(line.c_str()));
+}
+
 void WidgetValue::onInput(u32 kdown) {
   u64 incrementValue = m_stepSize * g_stepSizeMultiplier;
 
@@ -47,6 +52,14 @@ void WidgetValue::onInput(u32 kdown) {
       Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
   }
 
+  if (kdown & KEY_A) {
+    char out_number[20];
+    Gui::requestKeyboardInput("Input value", "Enter a value to be set for this widget.", std::to_string(m_currValue).c_str(), SwkbdType_NumPad, out_number, 20);
+
+    if (isNumber(std::string(out_number)))
+      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, std::min(std::max(static_cast<s64>(atoi(out_number)), m_minValue), m_maxValue)));
+  }
+  
   m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 }
 

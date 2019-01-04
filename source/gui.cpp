@@ -533,7 +533,7 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
     }
 }
 
-bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, char *out_text, size_t maxLength) {
+bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, SwkbdType type, char *out_text, size_t maxLength) {
     SwkbdConfig kbd;
     swkbdCreate(&kbd, 0);
     swkbdConfigMakePresetDefault(&kbd);
@@ -546,11 +546,10 @@ bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText
     kbd.arg.arg.stringLenMaxExt = 1;
     kbd.arg.arg.textDrawType = SwkbdTextDrawType_Line;
     kbd.arg.arg.returnButtonFlag = false;
+    kbd.arg.arg.type = type;
 
     swkbdShow(&kbd, out_text, maxLength);
     swkbdClose(&kbd);
-
-    printf("%s\n", out_text);
 
     return std::strcmp(out_text, "") != 0;
 }

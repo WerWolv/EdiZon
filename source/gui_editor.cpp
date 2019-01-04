@@ -357,15 +357,13 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
       s16 res;
 
       time_t t = time(nullptr);
-      char backupName[32];
+      char backupName[33];
       std::stringstream initialText;
       initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
-
-      if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_Normal, backupName, 32)) {
+      if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32)) {
         (new Snackbar("No backup was created!"))->show();
         return;
       }
-
       if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName)))
         (new Snackbar("Successfully created backup \"" + std::string(backupName) + "\"!"))->show();
       else {

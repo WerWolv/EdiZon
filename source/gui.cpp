@@ -578,6 +578,7 @@ bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText
     kbd.arg.arg.textDrawType = SwkbdTextDrawType_Line;
     kbd.arg.arg.returnButtonFlag = false;
     kbd.arg.arg.type = type;
+    kbd.arg.arg.keySetDisableBitmask = SwkbdKeyDisableBitmask_At | SwkbdKeyDisableBitmask_Percent | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Backslash;
 
     swkbdShow(&kbd, out_text, maxLength + 1);
     swkbdClose(&kbd);

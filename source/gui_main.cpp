@@ -87,13 +87,11 @@ void GuiMain::draw() {
       if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
         Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
 
-        if (title.first != m_selected.titleId) {
-          if (ConfigParser::g_betaTitles[title.first])
-            Gui::drawImage(x - xOffset, y, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
+        if (ConfigParser::g_betaTitles[title.first])
+          Gui::drawImage(x - xOffset, y, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
-          if (y == 266 || title.first == (--Title::g_titles.end())->first)
-            Gui::drawShadow(x - xOffset, y, 256, 256);
-        }
+        if (y == 266 || title.first == (--Title::g_titles.end())->first)
+          Gui::drawShadow(x - xOffset, y, 256, 256);
       }
 
       y = y == 10 ? 266 : 10;
@@ -108,13 +106,13 @@ void GuiMain::draw() {
     Gui::endDraw();
     return;
   }
-  else if (selectionState >= TITLE_SELECT && selectedY != 0) {
+  else if (selectionState >= TITLE_SELECT) {
       Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
       Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
 
       if (ConfigParser::g_betaTitles[m_selected.titleId])
-        Gui::drawImage(selectedX, selectedY, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
+        Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
       Gui::drawShadow(selectedX - 10, selectedY - 10, 276, 276);
   }

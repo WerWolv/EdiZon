@@ -167,7 +167,6 @@ std::string ScriptParser::getDummyString() {
   return out;
 }
 
-
 void ScriptParser::setValueInSaveFile(s64 value) {
   lua_getglobal(m_luaState, "setValueInSaveFile");
   lua_pushinteger(m_luaState, value);

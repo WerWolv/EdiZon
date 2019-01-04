@@ -70,6 +70,7 @@ public:
   void getTextDimensions(u32 font, const char* text, u32* width_out, u32* height_out);
 
   void drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageMode mode);
+  void drawImage(s16 x, s16 y, s16 startx, s16 starty, s16 width, s16 height, const u8 *image, ImageMode mode);
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
   static bool requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, SwkbdType type, char *out_text, size_t maxLength);

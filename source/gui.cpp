@@ -446,6 +446,37 @@ void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageM
     }
 }
 
+void Gui::drawImage(s16 x, s16 y, s16 startx, s16 starty, s16 width, s16 height, const u8 *image, ImageMode mode) {   
+    s32 tmpx, tmpy;
+    s32 pos;
+    color_t current_color;
+
+    for (tmpy = startx; tmpy < height; tmpy++) {
+        for (tmpx = starty; tmpx < width; tmpx++) {
+            switch (mode) {
+                case IMAGE_MODE_RGB24:
+                    pos = ((tmpy*width) + tmpx) * 3;
+                    current_color = makeColor(image[pos+0], image[pos+1], image[pos+2], 255);
+                    break;
+                case IMAGE_MODE_RGBA32:
+                    pos = ((tmpy*width) + tmpx) * 4;
+                    current_color = makeColor(image[pos+0], image[pos+1], image[pos+2], image[pos+3]);
+                    break;
+                case IMAGE_MODE_BGR24:
+                    pos = ((tmpy*width) + tmpx) * 3;
+                    current_color = makeColor(image[pos+2], image[pos+1], image[pos+0], 255);
+                    break;
+                case IMAGE_MODE_ABGR32:
+                    pos = ((tmpy*width) + tmpx) * 4;
+                    current_color = makeColor(image[pos+3], image[pos+2], image[pos+1], image[pos+0]);
+                    break;
+            }
+
+            drawPixel(x+tmpx, y+tmpy, current_color);
+        }
+    }
+}
+
 void Gui::drawRectangled(s16 x, s16 y, s16 w, s16 h, color_t color) {   
     for (s32 j = y; j < y + h; j++) {
         for (s32 i = x; i < x + w; i++) {

@@ -31,8 +31,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 1
-VERSION_MINOR := 5
-VERSION_MICRO := 1
+VERSION_MINOR := 6
+VERSION_MICRO := 0
 
 APP_TITLE	:=	EdiZon
 APP_AUTHOR	:=	WerWolv

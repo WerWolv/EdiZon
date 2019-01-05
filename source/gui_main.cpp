@@ -110,14 +110,13 @@ void GuiMain::draw() {
     return;
   }
   else if (selectionState >= TITLE_SELECT) {
-      Gui::drawRectangled(selectedX - 10, selectedY - 10, 276, 276, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
-      Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.selectedButtonColor);
+      Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
 
       if (ConfigParser::g_betaTitles[m_selected.titleId])
         Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
-      Gui::drawShadow(selectedX - 10, selectedY - 10, 276, 276);
+      Gui::drawShadow(selectedX - 5, selectedY - 5, 266, 266);
   }
 
   if (selectionState == TITLE_SELECT) {
@@ -134,9 +133,8 @@ void GuiMain::draw() {
       for (u8 i = 0; i < Title::g_titles[m_selected.titleId]->getUserIDs().size(); i++)
         Gui::drawShadow(40 + i * 150, 560, 128, 128);
 
-      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 10, 550, 148, 148, currTheme.highlightColor);
-      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.selectedButtonColor);
-      Gui::drawShadow(40 + m_selected.accountIndex * 150 - 10, 550, 148, 148);
+      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.highlightColor);
+      Gui::drawShadow(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138);
 
       u16 accountX = 0;
 

@@ -113,7 +113,7 @@ void GuiEditor::draw() {
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to select one.", ALIGNED_CENTER);
         break;
       case 1:
-        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editor JSON file found. Editing is disabled.", ALIGNED_CENTER);
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editor config file found. Editing is disabled.", ALIGNED_CENTER);
         break;
       case 2:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Syntax error in config file! Editing is disabled.", ALIGNED_CENTER);

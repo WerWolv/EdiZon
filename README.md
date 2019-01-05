@@ -1,5 +1,5 @@
 # EdiZon
-<p align="center"><img src="https://raw.githubusercontent.com/thomasnet-mc/EdiZon/master/icon.jpg"><br />
+<p align="center"><img src="https://raw.githubusercontent.com/WerWolv98/EdiZon/master/icon.jpg"><br />
 	<a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
   <a href="https://travis-ci.com/WerWolv98/EdiZon"><img src="https://travis-ci.com/WerWolv98/EdiZon.svg?branch=master" alt="Build Status" /></a>
 </p>
@@ -14,7 +14,7 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
 
 To download working Editor Config and Editor Script files, visit [this repository](https://github.com/WerWolv98/EdiZon_ConfigsAndScripts/tree/master)
 
-Check out our [Wiki page](https://github.com/thomasnet-mc/EdiZon/wiki) for more information on how to build your own Editor Config and Editor Script files.
+Check out our [Wiki page](https://github.com/WerWolv98/EdiZon/wiki) for more information on how to build your own Editor Config and Editor Script files.
 
 # How to compile
 
@@ -33,4 +33,5 @@ If you need any help with the usage of EdiZon or if you want to start developing
 - [trueicecold](https://github.com/trueicecold) for batch backups and the editable-only mode
 - [onepiecefreak](https://github.com/onepiecefreak3) for the edizon debugger and LOTS of reviewing implementations
 - [Jojo](https://github.com/drdrjojo) for the Travis CI configuration and the config creator 
+- **bernv3** for the beautiful icon
 - **All config creators** for bringing this project to life!

@@ -48,7 +48,7 @@ void Gui::update() {
   currTheme.highlightColor.r = 0x27 + 0x61 * highlightMultiplier;
   currTheme.highlightColor.g = 0xA3 + 0x4F * highlightMultiplier;
   currTheme.highlightColor.b = 0xC7 + 0x29 * highlightMultiplier;
-  currTheme.highlightColor.a = 0x80 + 0x7F * highlightMultiplier;
+  currTheme.highlightColor.a = 0xC0 + 0x3F * ((highlightMultiplier * 2) - 1);
 }
 
 inline u8 Gui::blendColor(u32 src, u32 dst, u8 alpha) {

@@ -73,8 +73,15 @@ void update(void *args) {
 }
 
 int main(int argc, char** argv) {
-  void *haddr;
-  svcSetHeapSize(&haddr, 0x10000000);
+  u8 *haddr;
+  extern char *fake_heap_end;
+
+  // Setup Heap for swkbd on applets
+  Result rc = svcSetHeapSize((void**)&haddr, 0x10000000);
+  if (R_FAILED(rc))
+    fatalSimple(rc);
+  fake_heap_end = (char*) haddr + 0x10000000;
+
 
   socketInitializeDefault();
 
@@ -241,6 +248,8 @@ int main(int argc, char** argv) {
   close(file);
 
   framebufferClose(&Gui::g_fb_obj);
+
+  svcSetHeapSize((void**) &haddr, ((u8*) envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - haddr); // clean up the heap
 
   return 0;
 }

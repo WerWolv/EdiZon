@@ -17,14 +17,8 @@
 int64_t xOffset, xOffsetNext;
 bool finishedDrawing = true;
 
-enum {
-  TITLE_SELECT,
-  ACCOUNT_SELECT
-} selectionState;
-
 GuiMain::GuiMain() : Gui() {
   m_selected.accountIndex = 0;
-  selectionState = TITLE_SELECT;
 
   if (Title::g_titles.size() != 0)
     xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
@@ -109,17 +103,15 @@ void GuiMain::draw() {
     Gui::endDraw();
     return;
   }
-  else if (selectionState >= TITLE_SELECT) {
-      Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, selectionState == TITLE_SELECT ? currTheme.highlightColor : currTheme.selectedColor);
+  else {
+      Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.highlightColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
 
       if (ConfigParser::g_betaTitles[m_selected.titleId])
         Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
       Gui::drawShadow(selectedX - 5, selectedY - 5, 266, 266);
-  }
 
-  if (selectionState == TITLE_SELECT) {
     Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
     if (tmpEditableOnly)
@@ -128,21 +120,6 @@ void GuiMain::draw() {
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Editable titles     \uE0E5 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
   }
 
-  if (selectionState >= ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
-
-      for (u8 i = 0; i < Title::g_titles[m_selected.titleId]->getUserIDs().size(); i++)
-        Gui::drawShadow(40 + i * 150, 560, 128, 128);
-
-      Gui::drawRectangled(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138, currTheme.highlightColor);
-      Gui::drawShadow(40 + m_selected.accountIndex * 150 - 5, 555, 138, 138);
-
-      u16 accountX = 0;
-
-      for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {
-        Gui::drawImage(40 + accountX, 560, 128, 128, Account::g_accounts[userID]->getProfileImage(), IMAGE_MODE_RGB24);
-        accountX += 150;
-      }
-  }
   finishedDrawing = true;
 
   Gui::endDraw();
@@ -154,168 +131,135 @@ void GuiMain::onInput(u32 kdown) {
   if (Title::g_titles.size() == 0) return;
 
   if (kdown & KEY_LEFT) {
-    if (selectionState == TITLE_SELECT) {
-      if (static_cast<s16>(m_selected.titleIndex - 2) >= 0)
-        m_selected.titleIndex -= 2;
-    } else if (selectionState == ACCOUNT_SELECT) {
-      if (static_cast<s16>(m_selected.accountIndex - 1) >= 0)
-        m_selected.accountIndex--;
-    }
+    if (static_cast<s16>(m_selected.titleIndex - 2) >= 0)
+      m_selected.titleIndex -= 2;
   } else if (kdown & KEY_RIGHT) {
-    if (selectionState == TITLE_SELECT) {
-      if (static_cast<u16>(m_selected.titleIndex + 2) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
-        m_selected.titleIndex += 2;
-    } else if (selectionState == ACCOUNT_SELECT) {
-      if (static_cast<u16>(m_selected.accountIndex + 1) < Title::g_titles[m_selected.titleId]->getUserIDs().size())
-        m_selected.accountIndex++;
-    }
+    if (static_cast<u16>(m_selected.titleIndex + 2) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
+      m_selected.titleIndex += 2;
   } else if (kdown & KEY_UP) {
-    if (selectionState == TITLE_SELECT) {
-      if ((m_selected.titleIndex % 2) == 1) {
+    if ((m_selected.titleIndex % 2) == 1) {
           m_selected.titleIndex--;
-      }
     }
   } else if (kdown & KEY_DOWN) {
-    if (selectionState == TITLE_SELECT) {
-      if ((m_selected.titleIndex % 2) == 0) {
-        if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
-          m_selected.titleIndex++;
-      }
+    if ((m_selected.titleIndex % 2) == 0) {
+      if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
+        m_selected.titleIndex++;
     }
   }
 
   if (kdown & KEY_A) {
-    if (selectionState == TITLE_SELECT)
-      selectionState = ACCOUNT_SELECT;
-    else if (selectionState == ACCOUNT_SELECT && Title::g_titles[m_selected.titleId]->getUserIDs().size() > 0) {
+    u128 userID = Gui::requestPlayerSelection();
+    std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
+
+    if(userID == 0x00)
+      return;
+
+    if (std::find(users.begin(), users.end(), userID) != users.end()) {
       Title::g_currTitle = Title::g_titles[m_selected.titleId];
-      Account::g_currAccount = Account::g_accounts[Title::g_titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]];
+      Account::g_currAccount = Account::g_accounts[userID];
       Gui::g_nextGui = GUI_EDITOR;
-    }
+    } else (new Snackbar("No save file for this user available!"))->show();
   }
 
-  if (selectionState == TITLE_SELECT) {
-    if (kdown & KEY_L) {
-      m_editableOnly = !m_editableOnly;
-      m_selected.titleIndex = 0;
-    }
+  if (kdown & KEY_L) {
+    m_editableOnly = !m_editableOnly;
+    m_selected.titleIndex = 0;
+  }
 
-    if (kdown & KEY_X) {
-      time_t t = time(nullptr);
-      char backupName[33];
-      std::stringstream initialText;
-      initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
+  if (kdown & KEY_X) {
+    time_t t = time(nullptr);
+    char backupName[33];
+    std::stringstream initialText;
+    initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
 
-      if (batchClicked) {
-        bool batchFailed = false;
-        (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
-          if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32)) {
-            (new Snackbar("No backup created!"))->show();
-            return;
-          }
-
-          if (selection) {
-            s16 res;
-            u16 failed_titles = 0;
-            for (auto title : Title::g_titles) {
-              for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
-                if((res = backupSave(title.first, userID, true, backupName))) {
-                  batchFailed = true;
-                  failed_titles++;
-                }
-              }
-              if (!batchFailed)
-                (new Snackbar("Successfully created backups!"))->show();
-              else {
-                std::stringstream errorMessage;
-                errorMessage << "Failed to backup " << failed_titles << " titles!";
-                (new Snackbar(errorMessage.str()))->show();
-              }
-            }
-          }
-        })->show();
-      }
-      else {
-        bool batchFailed = false;
-        s16 res;
-
-        if (!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32)) {
+    if (batchClicked) {
+      bool batchFailed = false;
+      (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
+        if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32)) {
           (new Snackbar("No backup created!"))->show();
           return;
         }
 
-        for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {
-          if((res = backupSave(m_selected.titleId, userID, true, backupName))) {
-            batchFailed = true;
+        if (selection) {
+          s16 res;
+          u16 failed_titles = 0;
+          for (auto title : Title::g_titles) {
+            for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
+              if((res = backupSave(title.first, userID, true, backupName))) {
+                batchFailed = true;
+                failed_titles++;
+              }
+            }
+            if (!batchFailed)
+              (new Snackbar("Successfully created backups!"))->show();
+            else {
+              std::stringstream errorMessage;
+              errorMessage << "Failed to backup " << failed_titles << " titles!";
+              (new Snackbar(errorMessage.str()))->show();
+            }
           }
         }
+      })->show();
+    }
+    else {
+      bool batchFailed = false;
+      s16 res;
 
-        if (!batchFailed)
-          (new Snackbar("Successfully created backup!"))->show();
-        else {
-          switch(res) {
-            case 1: (new Snackbar("Failed to mount save file!"))->show(); break;
-            case 2: (new Snackbar("A backup with this name already exists!"))->show(); break;
-            case 3: (new Snackbar("Failed to create backup!"))->show(); break;
-          }
-        }      
+      if (!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32)) {
+        (new Snackbar("No backup created!"))->show();
+        return;
       }
-    }
 
-    if (kdown & KEY_MINUS) {
-      (new MessageBox("Checking for updates...", MessageBox::NONE))->show();
-      GuiMain::g_shouldUpdate = true;
+      for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {
+        if((res = backupSave(m_selected.titleId, userID, true, backupName))) {
+          batchFailed = true;
+        }
+      }
+
+      if (!batchFailed)
+        (new Snackbar("Successfully created backup!"))->show();
+      else {
+        switch(res) {
+          case 1: (new Snackbar("Failed to mount save file!"))->show(); break;
+          case 2: (new Snackbar("A backup with this name already exists!"))->show(); break;
+          case 3: (new Snackbar("Failed to create backup!"))->show(); break;
+        }
+      }      
     }
+  }
+
+  if (kdown & KEY_MINUS) {
+    (new MessageBox("Checking for updates...", MessageBox::NONE))->show();
+    GuiMain::g_shouldUpdate = true;
   }
 
   batchClicked = (kdown & KEY_R) > 0;
-
-  if (kdown & KEY_B) {
-    if (selectionState == ACCOUNT_SELECT) {
-        selectionState = TITLE_SELECT;
-        m_selected.accountIndex = 0;
-    }
-  }
 }
 
 void GuiMain::onTouch(touchPosition &touch) {
   if (Title::g_titles.size() == 0) return;
 
-  switch (selectionState) {
-    case TITLE_SELECT: {
-      u8 x = floor((touch.px + xOffset) / 256.0F);
-      u8 y = floor(touch.py / 256.0F);
-      u8 title = y + x * 2;
+  u8 x = floor((touch.px + xOffset) / 256.0F);
+  u8 y = floor(touch.py / 256.0F);
+  u8 title = y + x * 2;
 
-      if (y <= 1 && title < Title::g_titles.size()) {
-        if (m_editableOnly && title > (m_editableCount - 1)) break;
-          if (m_selected.titleIndex == title) {
-            Title::g_currTitle = Title::g_titles[m_selected.titleId];
-            selectionState = ACCOUNT_SELECT;
-          }
-          m_selected.titleIndex = title;
-        }
-      break;
-    }
-    case ACCOUNT_SELECT: {
-      u8 account = floor((touch.px - 40) / 150.0F);
+  if (y <= 1 && title < Title::g_titles.size()) {
+    if (m_editableOnly && title > (m_editableCount - 1)) return;
+      if (m_selected.titleIndex == title) {
+        u128 userID = Gui::requestPlayerSelection();
+        std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
 
-      if (account < Title::g_titles[m_selected.titleId]->getUserIDs().size() && touch.py > 560 && touch.py < (560 + 128)) {
-        if (m_selected.accountIndex == account) {
-          m_selected.userId = Title::g_titles[m_selected.titleId]->getUserIDs()[account];
+        if(userID == 0x00)
+          return;
+
+        if (std::find(users.begin(), users.end(), userID) != users.end()) {
           Title::g_currTitle = Title::g_titles[m_selected.titleId];
-          Account::g_currAccount = Account::g_accounts[Title::g_titles[m_selected.titleId]->getUserIDs()[m_selected.accountIndex]];
+          Account::g_currAccount = Account::g_accounts[userID];
           Gui::g_nextGui = GUI_EDITOR;
-        }
-        m_selected.accountIndex = account;
-      } else {
-        selectionState = TITLE_SELECT;
-        m_selected.accountIndex = 0;
+        } else (new Snackbar("No save file for this user available!"))->show();
       }
-
-      break;
+      m_selected.titleIndex = title;
     }
-  }
 }
 
 void GuiMain::onGesture(touchPosition &startPosition, touchPosition &endPosition) {

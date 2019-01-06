@@ -587,6 +587,67 @@ bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText
     return std::strcmp(out_text, "") != 0;
 }
 
+u128 Gui::requestPlayerSelection() {
+    struct UserReturnData{
+        u64 result;
+        u128 UID;
+    } PACKED;
+
+    struct UserReturnData outdata; 
+
+    AppletHolder aph;
+    AppletStorage ast;
+    AppletStorage hast1;
+    LibAppletArgs args;
+
+    u8 indata[0xA0] = { 0 };
+    indata[0x96] = 1;
+
+    appletCreateLibraryApplet(&aph, AppletId_playerSelect, LibAppletMode_AllForeground);
+    libappletArgsCreate(&args, 0);
+    libappletArgsPush(&args, &aph);
+
+    appletCreateStorage(&hast1, 0xA0);
+
+    appletStorageWrite(&hast1, 0, indata, 0xA0);
+    appletHolderPushInData(&aph, &hast1);
+    appletHolderStart(&aph);
+
+    while(appletHolderWaitInteractiveOut(&aph));
+
+    appletHolderJoin(&aph);
+    appletHolderPopOutData(&aph, &ast);
+    appletStorageRead(&ast, 0, &outdata, 24);
+
+    return outdata.UID;
+}
+
+void Gui::requestErrorMessage(Result result) {
+    AppletHolder aph;
+    AppletStorage ast;
+    AppletStorage hast1;
+    LibAppletArgs args;
+    u8 indata[20] = { 0 };
+
+    *(Result*)&indata[16] = result;
+
+    appletCreateLibraryApplet(&aph, AppletId_error, LibAppletMode_AllForeground);
+    libappletArgsCreate(&args, 0);
+    libappletArgsPush(&args, &aph);
+
+    appletCreateStorage(&hast1, 20);
+
+    appletStorageWrite(&hast1, 0, indata, 20);
+    appletHolderPushInData(&aph, &hast1);
+
+    appletHolderStart(&aph);
+
+    while(appletHolderWaitInteractiveOut(&aph)) consoleUpdate(NULL);
+
+    appletHolderJoin(&aph);
+    appletHolderPopOutData(&aph, &ast);
+}
+
 void Gui::beginDraw() {
   this->framebuffer = (u8*)framebufferBegin(&Gui::g_fb_obj, &stride);
 }

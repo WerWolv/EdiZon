@@ -74,6 +74,8 @@ public:
   void drawShadow(s16 x, s16 y, s16 width, s16 height);
 
   static bool requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, SwkbdType type, char *out_text, size_t maxLength);
+  static u128 requestPlayerSelection();
+  static void requestErrorMessage(Result result);
 
 protected:
   void beginDraw();

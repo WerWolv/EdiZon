@@ -619,6 +619,10 @@ u128 Gui::requestPlayerSelection() {
     appletHolderPopOutData(&aph, &ast);
     appletStorageRead(&ast, 0, &outdata, 24);
 
+    appletHolderClose(&aph);
+    appletStorageClose(&ast);
+    appletStorageClose(&hast1);
+
     return outdata.UID;
 }
 
@@ -646,6 +650,10 @@ void Gui::requestErrorMessage(Result result) {
 
     appletHolderJoin(&aph);
     appletHolderPopOutData(&aph, &ast);
+
+    appletHolderClose(&aph);
+    appletStorageClose(&ast);
+    appletStorageClose(&hast1);
 }
 
 void Gui::beginDraw() {

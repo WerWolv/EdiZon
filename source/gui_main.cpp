@@ -171,18 +171,18 @@ void GuiMain::onInput(u32 kdown) {
       bool batchFailed = false;
       (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
       
-      char backupName[33];
-      time_t t = time(nullptr);
-      std::stringstream initialText;
-      initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
-
-        if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
-          return;
-        
+        char backupName[33];
+        time_t t = time(nullptr);
+        std::stringstream initialText;
+        initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");        
 
         if (selection) {
+          if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
+            return;
+
           s16 res;
           u16 failed_titles = 0;
+          
           for (auto title : Title::g_titles) {
             for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
               if((res = backupSave(title.first, userID, true, backupName))) {
@@ -190,6 +190,7 @@ void GuiMain::onInput(u32 kdown) {
                 failed_titles++;
               }
             }
+
             if (!batchFailed)
               (new Snackbar("Successfully created backups!"))->show();
             else {

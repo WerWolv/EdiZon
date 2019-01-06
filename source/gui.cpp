@@ -613,7 +613,7 @@ u128 Gui::requestPlayerSelection() {
     appletHolderPushInData(&aph, &hast1);
     appletHolderStart(&aph);
 
-    while(appletHolderWaitInteractiveOut(&aph));
+    while (appletHolderWaitInteractiveOut(&aph));
 
     appletHolderJoin(&aph);
     appletHolderPopOutData(&aph, &ast);
@@ -646,7 +646,7 @@ void Gui::requestErrorMessage(Result result) {
 
     appletHolderStart(&aph);
 
-    while(appletHolderWaitInteractiveOut(&aph)) consoleUpdate(NULL);
+    while (appletHolderWaitInteractiveOut(&aph));
 
     appletHolderJoin(&aph);
     appletHolderPopOutData(&aph, &ast);

@@ -115,9 +115,9 @@ void GuiMain::draw() {
     Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
     if (tmpEditableOnly)
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 All titles     \uE0E5 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 All titles     \uE0E5 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
     else
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Editable titles     \uE0E5 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 Ok", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 Editable titles     \uE0E5 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
   }
 
   finishedDrawing = true;

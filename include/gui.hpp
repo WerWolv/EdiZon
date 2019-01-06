@@ -23,7 +23,7 @@ extern "C" {
 #define fontHuge 4
 #define font24 3
 #define font20 2
-#define font14 0
+#define font14 1
 
 enum gui_t {
   GUI_INVALID,

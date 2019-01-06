@@ -132,7 +132,7 @@ void GuiEditor::draw() {
     ssMultiplier << Widget::g_stepSizeMultiplier;
 
     Gui::drawTextAligned(font20, 50, Gui::g_framebuffer_height - 55, currTheme.textColor, ssMultiplier.str().c_str(), ALIGNED_LEFT);
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE105 Increase multiplier     \uE0E2 Apply changes     \uE0E1 Cancel     \uE0E0 Ok", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE105 Increase multiplier     \uE0E2 Apply changes     \uE0E1 Cancel     \uE0E0 OK", ALIGNED_RIGHT);
   }
 
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {

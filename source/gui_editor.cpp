@@ -110,7 +110,7 @@ void GuiEditor::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E2 Backup     \uE0E3 Restore     \uE0E1 Back", ALIGNED_RIGHT);
     switch (m_configFileResult) {
       case 0:
-        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to select one.", ALIGNED_CENTER);
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to edit one.", ALIGNED_CENTER);
         break;
       case 1:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editor config file found. Editing is disabled.", ALIGNED_CENTER);

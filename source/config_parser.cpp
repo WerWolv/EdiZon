@@ -5,6 +5,7 @@
 #include "widget_value.hpp"
 #include "widget_list.hpp"
 #include "widget_string.hpp"
+#include "widget_comment.hpp"
 
 #include <sstream>
 #include <fstream>
@@ -133,6 +134,14 @@ void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParse
       if (itemWidget["minLength"].is_number() && itemWidget["maxLength"].is_number()) {
         widgets[item["category"]].push_back({ item["name"], 
           new WidgetString(&scriptParser, isDummy, itemWidget["minLength"].get<u8>(), itemWidget["maxLength"].get<u8>()) });
+      }
+    }
+    else if (itemWidget["type"] == "comment") {
+      if (itemWidget["comment"] == nullptr) continue;
+
+      if (itemWidget["comment"].is_string()) {
+        widgets[item["category"]].push_back({ item["name"], 
+          new WidgetComment(&scriptParser, itemWidget["comment"].get<std::string>()) });
       }
     }
 

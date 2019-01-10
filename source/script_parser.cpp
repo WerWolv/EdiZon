@@ -199,8 +199,10 @@ void ScriptParser::getModifiedSaveFile(std::vector<u8> &buffer) {
   std::vector<u8> encoded;
 
   lua_getglobal(m_luaState, "getModifiedSaveFile");
-  if (lua_pcall(m_luaState, 0, 1, 0))
+  if (lua_pcall(m_luaState, 0, 1, 0)) {
     printError(m_luaState);
+    return;
+  }
 
   lua_pushnil(m_luaState);
 

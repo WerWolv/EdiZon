@@ -530,10 +530,14 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
           m_scriptParser.getModifiedSaveFile(buffer);
 
-          if(!storeSaveFile(&buffer[0], buffer.size(), Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
-            (new Snackbar("Successfully injected modified values!"))->show();
-          else
+          if(buffer.empty())
             (new Snackbar("Injection of modified values failed!"))->show();
+          else {
+            if(!storeSaveFile(&buffer[0], buffer.size(), Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()))
+              (new Snackbar("Successfully injected modified values!"))->show();
+            else
+              (new Snackbar("Injection of modified values failed!"))->show();
+          }
 
           GuiEditor::g_currSaveFile.clear();
           GuiEditor::g_currSaveFileName = "";

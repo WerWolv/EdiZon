@@ -251,6 +251,8 @@ void GuiMain::onTouch(touchPosition &touch) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;
       if (m_selected.titleIndex == title) {
         u128 userID = Gui::requestPlayerSelection();
+
+        Title::g_currTitle = Title::g_titles[m_selected.titleId];
         std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
 
         if(userID == 0x00)
@@ -260,8 +262,9 @@ void GuiMain::onTouch(touchPosition &touch) {
           Title::g_currTitle = Title::g_titles[m_selected.titleId];
           Account::g_currAccount = Account::g_accounts[userID];
           Gui::g_nextGui = GUI_EDITOR;
-        } else (new Snackbar("No save file for this user available!"))->show();
+        } else (new Snackbar("No save file for this user available!"))->show();      
       }
+
       m_selected.titleIndex = title;
     }
 }

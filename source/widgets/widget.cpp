@@ -1,6 +1,6 @@
-#include "widget.hpp"
+#include "widgets/widget.hpp"
 
-#include "gui_editor.hpp"
+#include "guis/gui_editor.hpp"
 
 #include <iostream>
 

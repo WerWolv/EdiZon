@@ -14,8 +14,6 @@
 
 #include "json.hpp"
 
-#include "gui.hpp"
-
 #define EDIZON_URL "http://werwolv.net"
 
 using json = nlohmann::json;

@@ -8,7 +8,7 @@
 #include <map>
 #include <set>
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 #include "script_parser.hpp"
 
 #define WIDGET_WIDTH      900

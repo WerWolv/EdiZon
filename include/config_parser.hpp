@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "widget.hpp"
+#include "widgets/widget.hpp"
 #include "types.h"
 #include "json.hpp"
 

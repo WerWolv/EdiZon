@@ -1,6 +1,6 @@
 #pragma once
 
-#include "widget.hpp"
+#include "widgets/widget.hpp"
 
 #include <switch.h>
 

@@ -1,4 +1,4 @@
-#include "gui_tx_warning.hpp"
+#include "guis/gui_tx_warning.hpp"
 
 GuiTXWarning::GuiTXWarning() : Gui() {
   hideWarning = false;

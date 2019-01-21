@@ -1,5 +1,4 @@
-#include "gui_editor.hpp"
-#include "gui_main.hpp"
+#include "guis/gui_editor.hpp"
 
 #include "title.hpp"
 #include "save.hpp"

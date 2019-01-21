@@ -1,4 +1,4 @@
-#include "widget_comment.hpp"
+#include "widgets/widget_comment.hpp"
 
 WidgetComment::WidgetComment(ScriptParser *saveParser, std::string text) :
  Widget(saveParser, true), m_text(text) {

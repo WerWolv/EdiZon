@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 
 MessageBox::MessageBox(std::string message, MessageBox::MessageBoxOptions options) : m_message(message), m_options(options) {
   m_selectedOption = 0;

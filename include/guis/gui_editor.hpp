@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 #include "widget.hpp"
 #include "json.hpp"
 

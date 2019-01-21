@@ -1,6 +1,6 @@
 #include "snackbar.hpp"
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 
 #include <cmath>
 

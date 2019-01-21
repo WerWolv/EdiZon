@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 
 float deltaOffset = 0;
 

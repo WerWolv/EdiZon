@@ -8,10 +8,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "gui.hpp"
-#include "gui_main.hpp"
-#include "gui_editor.hpp"
-#include "gui_tx_warning.hpp"
+#include "guis/gui.hpp"
+#include "guis/gui_main.hpp"
+#include "guis/gui_editor.hpp"
+#include "guis/gui_tx_warning.hpp"
 
 #include "update_manager.hpp"
 

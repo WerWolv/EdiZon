@@ -93,6 +93,10 @@ bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
      << std::hex << titleID << "/";
     mkdir(ss.str().c_str(), 0700);
 
+    std::string titleName = ss.str();
+    titleName += Title::g_titles[titleID]->getTitleName();
+    fclose(fopen(titleName.c_str(), "ab+"));
+
     if (isInject)
       ss << injectFolder << "/";
     else

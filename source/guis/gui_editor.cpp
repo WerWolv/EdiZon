@@ -111,7 +111,7 @@ void GuiEditor::draw() {
     Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, m_textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
     Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, ssTitleId.str().c_str(), ALIGNED_CENTER);
 
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6 Next title     \uE0E7 Next user     \uE0E2 Backup     \uE0E3 Restore     \uE0E1 Back", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6 Next title     \uE0E7 Next user     \uE0E2 Backup     \uE0E3 Restore     \uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
     switch (m_configFileResult) {
       case 0:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to edit one.", ALIGNED_CENTER);
@@ -138,8 +138,8 @@ void GuiEditor::draw() {
     if (ConfigParser::g_currConfigAuthor != "")
       Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, std::string("Config created by " + ConfigParser::g_currConfigAuthor).c_str(), ALIGNED_CENTER);
     
-    Gui::drawTextAligned(font20, 50, Gui::g_framebuffer_height - 55, currTheme.textColor, ssMultiplier.str().c_str(), ALIGNED_LEFT);
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE105 Increase multiplier     \uE0E2 Apply changes     \uE0E1 Cancel     \uE0E0 OK", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, 50, Gui::g_framebuffer_height - 50, currTheme.textColor, ssMultiplier.str().c_str(), ALIGNED_LEFT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE105 Increase multiplier     \uE0E2 Apply changes     \uE0EF Exit     \uE0E1 Cancel     \uE0E0 OK", ALIGNED_RIGHT);
   }
 
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
@@ -418,7 +418,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     if (kdown & KEY_Y) {
       updateBackupList();
 
-      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0E1  Back", m_backupTitles))->setInputAction([&](u32 k, u16 selectedItem){
+      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0EF Exit     \uE0E1  Back", m_backupTitles))->setInputAction([&](u32 k, u16 selectedItem){
         if (k & KEY_A) {
           if (m_backupTitles.size() != 0) {
               (new MessageBox("Are you sure you want to inject this backup?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {

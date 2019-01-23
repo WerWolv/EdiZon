@@ -117,7 +117,7 @@ void GuiMain::draw() {
 
     buttonHintStr  = tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";
     buttonHintStr += m_backupAll ? "(\uE0E7) + \uE0E2 Backup all     " : "(\uE0E7) + \uE0E2 Backup     ";
-    buttonHintStr += "\uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 OK";
+    buttonHintStr += "\uE0F0 Update     \uE0EF Exit     \uE0E1 Back     \uE0E0 OK";
 
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
 

@@ -69,14 +69,14 @@ GuiEditor::~GuiEditor() {
       for(auto widget : widgets)
         delete widget.widget;
 
-    GuiEditor::g_currSaveFile.clear();
-
     delete m_scriptParser;
   }
 
   GuiEditor::g_currSaveFile.clear();
   GuiEditor::g_currSaveFileName = "";
+  ConfigParser::g_currConfigAuthor = "";
   Widget::g_selectedCategory = "";
+
   m_backupTitles.clear();
   m_backupPaths.clear();
 
@@ -91,7 +91,7 @@ void GuiEditor::draw() {
   Gui::beginDraw();
 
   std::stringstream ssTitleId;
-  ssTitleId << "0x" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+  ssTitleId << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 
@@ -103,13 +103,14 @@ void GuiEditor::draw() {
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 128);
 
   Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), 10, m_textColor, Title::g_currTitle->getTitleName().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, m_textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, ssTitleId.str().c_str(), ALIGNED_CENTER);
 
   Gui::drawRectangle(0, Gui::g_framebuffer_height - 73, Gui::g_framebuffer_width, 73, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
   if (GuiEditor::g_currSaveFileName == "") {
+    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, m_textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, ssTitleId.str().c_str(), ALIGNED_CENTER);
+
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6 Next title     \uE0E7 Next user     \uE0E2 Backup     \uE0E3 Restore     \uE0E1 Back", ALIGNED_RIGHT);
     switch (m_configFileResult) {
       case 0:
@@ -134,6 +135,9 @@ void GuiEditor::draw() {
     ssMultiplier << "\uE074 : x";
     ssMultiplier << Widget::g_stepSizeMultiplier;
 
+    if (ConfigParser::g_currConfigAuthor != "")
+      Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, std::string("Config created by " + ConfigParser::g_currConfigAuthor).c_str(), ALIGNED_CENTER);
+    
     Gui::drawTextAligned(font20, 50, Gui::g_framebuffer_height - 55, currTheme.textColor, ssMultiplier.str().c_str(), ALIGNED_LEFT);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE105 Increase multiplier     \uE0E2 Apply changes     \uE0E1 Cancel     \uE0E0 OK", ALIGNED_RIGHT);
   }
@@ -350,6 +354,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
                 GuiEditor::g_currSaveFile.clear();
                 GuiEditor::g_currSaveFileName = "";
+                ConfigParser::g_currConfigAuthor = "";
 
                 for (auto const& [category, widgets] : m_widgets)
                   for(auto widget : widgets)
@@ -370,6 +375,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
               (new Snackbar("Failed to load save file! Is it empty?"))->show();
               GuiEditor::g_currSaveFile.clear();
               GuiEditor::g_currSaveFileName = "";
+              ConfigParser::g_currConfigAuthor = "";
 
               for (auto const& [category, widgets] : m_widgets)
                 for(auto widget : widgets)
@@ -521,6 +527,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
             GuiEditor::g_currSaveFile.clear();
             GuiEditor::g_currSaveFileName = "";
+            ConfigParser::g_currConfigAuthor = "";
 
             for (auto const& [category, widgets] : m_widgets)
               for(auto widget : widgets)
@@ -576,6 +583,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           m_scriptParser->deinitialize();
           GuiEditor::g_currSaveFile.clear();
           GuiEditor::g_currSaveFileName = "";
+          ConfigParser::g_currConfigAuthor = "";
           Widget::g_widgetPage = 0;
 
           for (auto const& [category, widgets] : m_widgets)

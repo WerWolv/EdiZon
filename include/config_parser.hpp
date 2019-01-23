@@ -27,6 +27,7 @@ public:
 
     static inline std::unordered_map<u64, bool> g_editableTitles;
     static inline std::unordered_map<u64, bool> g_betaTitles;
+    static inline std::string g_currConfigAuthor = "";
 
     template<typename T>
     static inline T getOptionalValue(json j, std::string key, T elseVal) {

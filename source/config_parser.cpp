@@ -51,6 +51,9 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter *
 
   m_useInsteadTries = 0;
 
+  if (ConfigParser::m_configFile.find("author") != ConfigParser::m_configFile.end())
+    ConfigParser::g_currConfigAuthor = ConfigParser::m_configFile["author"];
+
   if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
     ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});
 

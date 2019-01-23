@@ -113,10 +113,14 @@ void GuiMain::draw() {
 
     Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
-    if (tmpEditableOnly)
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6 All titles     \uE0E7 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
-    else
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6 Editable titles     \uE0E7 + \uE0E2 Backup all     \uE0E2 Backup     \uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+    std::string buttonHintStr = "";
+
+    buttonHintStr  = tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";
+    buttonHintStr += m_backupAll ? "(\uE0E7) + \uE0E2 Backup all     " : "(\uE0E7) + \uE0E2 Backup     ";
+    buttonHintStr += "\uE0EF Exit     \uE0F0 Update     \uE0E1 Back     \uE0E0 OK";
+
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
+
   }
 
   finishedDrawing = true;
@@ -125,8 +129,6 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
-  static bool batchClicked = false;
-
   if (Title::g_titles.size() == 0) return;
 
   if (kdown & KEY_LEFT) {
@@ -166,7 +168,7 @@ void GuiMain::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_X) {
-    if (batchClicked) {
+    if (m_backupAll) {
       bool batchFailed = false;
       (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
       
@@ -236,7 +238,7 @@ void GuiMain::onInput(u32 kdown) {
     GuiMain::g_shouldUpdate = true;
   }
 
-  batchClicked = (kdown & KEY_ZR) > 0;
+  m_backupAll = (kdown & KEY_ZR) > 0;
 }
 
 void GuiMain::onTouch(touchPosition &touch) {

@@ -30,5 +30,6 @@ private:
   } m_selected;
 
   bool m_editableOnly = false;
+  bool m_backupAll = false;
   u16 m_editableCount = 0;
 };

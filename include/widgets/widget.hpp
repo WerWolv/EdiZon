@@ -9,7 +9,7 @@
 #include <set>
 
 #include "guis/gui.hpp"
-#include "script_parser.hpp"
+#include "scripting/interpreter.hpp"
 
 #define WIDGET_WIDTH      900
 #define WIDGET_HEIGHT     65
@@ -30,7 +30,7 @@ typedef enum { CATEGORIES, WIDGETS } WidgetRow;
 
 class Widget {
 public:
-  Widget(ScriptParser *saveParser, bool isDummy);
+  Widget(Interpreter *saveParser, bool isDummy);
   virtual ~Widget();
 
   static inline u16 g_selectedWidgetIndex = 0;
@@ -60,7 +60,7 @@ public:
   static inline u16 g_stepSizeMultiplier = 1;
 
 protected:
-  ScriptParser *m_saveParser;
+  Interpreter *m_saveParser;
   WidgetDataType m_widgetDataType;
   std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;

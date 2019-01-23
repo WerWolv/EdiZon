@@ -6,7 +6,7 @@
 
 class WidgetValue : public Widget {
 public:
-  WidgetValue(ScriptParser *saveParser, bool isDummy, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize);
+  WidgetValue(Interpreter *saveParser, bool isDummy, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize);
   ~WidgetValue();
 
   void draw(Gui *gui, u16 x, u16 y);

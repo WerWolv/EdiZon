@@ -14,15 +14,19 @@
 #include <iostream>
 #include <regex>
 #include <iterator>
+#include <locale>
+
+#include "lua_interpreter.hpp"
+#include "python_interpreter.hpp"
 
 s8 ConfigParser::hasConfig(u64 titleId) {
     std::stringstream path;
     path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << titleId << ".json";
 
-    return ConfigParser::loadConfigFile(titleId, path.str());
+    return ConfigParser::loadConfigFile(titleId, path.str(), nullptr);
 }
 
-s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
+s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter **interpreter) {
   std::ifstream file(filepath.c_str());
   if (file.fail())
     return 1;
@@ -42,13 +46,25 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
   if (ConfigParser::m_configFile.find("useInstead") != ConfigParser::m_configFile.end()) {
     std::stringstream path;
     path << CONFIG_ROOT << ConfigParser::m_configFile["useInstead"].get<std::string>();
-    return ConfigParser::loadConfigFile(titleId, path.str());
+    return ConfigParser::loadConfigFile(titleId, path.str(), interpreter);
   }
 
   m_useInsteadTries = 0;
 
   if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
     ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});
+
+  if (interpreter != nullptr) {
+    if (ConfigParser::m_configFile.find("scriptLanguage") != ConfigParser::m_configFile.end()) {
+      std::string language = ConfigParser::m_configFile["scriptLanguage"];
+
+      std::transform(language.begin(), language.end(), language.begin(), ::tolower);
+
+      if (language == "lua") *interpreter = new LuaInterpreter();
+      else if (language == "py" || language == "python") *interpreter = new PythonInterpreter(); 
+      else return 2;
+    } else return 2;
+  }
 
   if (ConfigParser::m_configFile.find("all") == ConfigParser::m_configFile.end()) {
     for (auto it : ConfigParser::m_configFile.items()) {
@@ -78,7 +94,7 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath) {
   }
 }
 
-void ConfigParser::createWidgets(WidgetItems &widgets, ScriptParser &scriptParser, u8 configIndex) {
+void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &scriptParser, u8 configIndex) {
   std::set<std::string> tempCategories;
   bool isDummy = false;
 

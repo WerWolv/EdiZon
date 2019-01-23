@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-Widget::Widget(ScriptParser *saveParser, bool isDummy) : m_saveParser(saveParser), m_isDummy(isDummy) {
+Widget::Widget(Interpreter *saveParser, bool isDummy) : m_saveParser(saveParser), m_isDummy(isDummy) {
   Widget::g_stepSizeMultiplier = 1;
 }
 
@@ -72,19 +72,19 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
 }
 
 s64 Widget::getIntegerValue() {
-  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  m_saveParser->setArgs(m_intArgs, m_strArgs);
 
   return m_isDummy ? m_saveParser->getDummyValue() : m_saveParser->getValueFromSaveFile();
 }
 
 std::string Widget::getStringValue() {
-  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  m_saveParser->setArgs(m_intArgs, m_strArgs);
 
   return m_isDummy ? m_saveParser->getDummyString() : m_saveParser->getStringFromSaveFile();
 }
 
 void Widget::setIntegerValue(s64 value) {
-  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  m_saveParser->setArgs(m_intArgs, m_strArgs);
 
   if (Widget::isDummy()) 
     m_saveParser->setDummyValue(value);
@@ -92,7 +92,7 @@ void Widget::setIntegerValue(s64 value) {
 }
 
 void Widget::setStringValue(std::string value) {
-  m_saveParser->setLuaArgs(m_intArgs, m_strArgs);
+  m_saveParser->setArgs(m_intArgs, m_strArgs);
 
   if (Widget::isDummy()) 
     m_saveParser->setDummyString(value);

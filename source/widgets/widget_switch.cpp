@@ -1,11 +1,11 @@
 #include "widgets/widget_switch.hpp"
 
-WidgetSwitch::WidgetSwitch(ScriptParser *saveParser, bool isDummy, s32 onValue, s32 offValue) :
+WidgetSwitch::WidgetSwitch(Interpreter *saveParser, bool isDummy, s32 onValue, s32 offValue) :
  Widget(saveParser, isDummy), m_intOnValue(onValue), m_intOffValue(offValue) {
   m_widgetDataType = INT;
 }
 
-WidgetSwitch::WidgetSwitch(ScriptParser *saveParser, bool isDummy, std::string onValue, std::string offValue) :
+WidgetSwitch::WidgetSwitch(Interpreter *saveParser, bool isDummy, std::string onValue, std::string offValue) :
  Widget(saveParser, isDummy), m_strOnValue(onValue), m_strOffValue(offValue){
   m_widgetDataType = STRING;
 }

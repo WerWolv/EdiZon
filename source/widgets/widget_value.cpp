@@ -4,7 +4,7 @@
 
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(ScriptParser *saveParser, bool isDummy, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize) :
+WidgetValue::WidgetValue(Interpreter *saveParser, bool isDummy, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize) :
  Widget(saveParser, isDummy), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
   m_widgetDataType = INT;
 

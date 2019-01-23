@@ -6,7 +6,7 @@
 
 class WidgetComment : public Widget {
 public:
-  WidgetComment(ScriptParser *saveParser, std::string text);
+  WidgetComment(Interpreter *saveParser, std::string text);
 
   ~WidgetComment();
 

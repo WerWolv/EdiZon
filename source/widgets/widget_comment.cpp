@@ -1,6 +1,6 @@
 #include "widgets/widget_comment.hpp"
 
-WidgetComment::WidgetComment(ScriptParser *saveParser, std::string text) :
+WidgetComment::WidgetComment(Interpreter *saveParser, std::string text) :
  Widget(saveParser, true), m_text(text) {
   m_widgetDataType = STRING;
 }

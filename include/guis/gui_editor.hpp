@@ -45,7 +45,7 @@ private:
 
   s8 m_configFileResult;
 
-  ScriptParser m_scriptParser;
+  Interpreter *m_scriptParser;
 
   void updateSaveFileList(std::vector<std::string> saveFilePath, std::string files, u8 configIndex);
 };

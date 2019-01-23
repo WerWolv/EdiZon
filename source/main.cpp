@@ -72,6 +72,15 @@ void update(void *args) {
   }
 }
 
+void createFolders() {
+  mkdir("/EdiZon", 0777);
+  mkdir("/EdiZon/restore", 0777);
+  mkdir("/EdiZon/batch", 0777);
+  mkdir("/EdiZon/editor", 0777);
+  mkdir("/EdiZon/editor/scripts", 0777);
+  mkdir("/EdiZon/editor/scripts/lib", 0777);
+}
+
 int main(int argc, char** argv) {
   u8 *haddr;
   extern char *fake_heap_end;
@@ -108,6 +117,8 @@ int main(int argc, char** argv) {
   setsysExit();
 
   initTitles();
+
+  createFolders();
 
   Handle txHandle;
   if (R_FAILED(smRegisterService(&txHandle, "tx", false, 1)) && access("/EdiZon/.hide_sxos", F_OK) == -1) {

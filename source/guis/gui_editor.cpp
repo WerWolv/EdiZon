@@ -169,6 +169,22 @@ void GuiEditor::updateBackupList() {
 
   std::stringstream path;
 
+  path << "/EdiZon/restore";
+  if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
+    while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
+      metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/" + std::string(ent_timestamp->d_name) + "/edizon_save_metadata.json");
+      if (metadataUsername.empty())
+        metadataUsername = "By an unknown user [/restore]";
+      else
+        metadataUsername = "By " + metadataUsername + " [/restore]";
+
+      backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str() + "/" + std::string(ent_timestamp->d_name)));
+    }
+    closedir(dir_titles);
+  }
+
+  path.clear();
+
   //Read root saves
   path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
   if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
@@ -183,6 +199,8 @@ void GuiEditor::updateBackupList() {
     }
     closedir(dir_titles);
   }
+
+  path.clear();
 
   //Read batch saves
   if ((dir_batch = opendir("/EdiZon/batch")) != nullptr) {
@@ -225,19 +243,15 @@ std::string GuiEditor::readMetaDataUsername(std::string path) {
   json metadata_json;
 
   std::ifstream metadata_file (path);
-  if (metadata_file.is_open())
-  {
+
+  if (metadata_file.is_open()) {
     metadata_file >> metadata_json;
     metadata_file.close();
     try {
       return metadata_json["user_name"].get<std::string>();
-    } catch (json::parse_error& e) {
-	  }
+    } catch (json::parse_error& e) { }
   }
-  else
-  {
-    printf("Unable to open metadata file\n");
-  }
+
   return "";
 }
 

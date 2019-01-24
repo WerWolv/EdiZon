@@ -79,8 +79,10 @@ s64 LuaInterpreter::getValueFromSaveFile() {
   s64 out;
 
   lua_getglobal(m_luaState, "getValueFromSaveFile");
-  if(lua_pcall(m_luaState, 0, 1, 0))
+  if (lua_pcall(m_luaState, 0, 1, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function getValueFromSaveFile!\n");
+  }
 
   out = lua_tointeger(m_luaState, -1);
   lua_pop(m_luaState, 1);
@@ -92,8 +94,10 @@ s64 LuaInterpreter::getDummyValue() {
   s64 out;
 
   lua_getglobal(m_luaState, "getDummyValue");
-  if(lua_pcall(m_luaState, 0, 1, 0))
+  if (lua_pcall(m_luaState, 0, 1, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function getDummyValue!\n");
+  }
 
   out = lua_tointeger(m_luaState, -1);
   lua_pop(m_luaState, 1);
@@ -106,8 +110,10 @@ std::string LuaInterpreter::getStringFromSaveFile() {
   std::string out;
 
   lua_getglobal(m_luaState, "getStringFromSaveFile");
-  if (lua_pcall(m_luaState, 0, 1, 0))
+  if (lua_pcall(m_luaState, 0, 1, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function getStringFromSaveFile!\n");
+  }
 
   out = lua_tostring(m_luaState, -1);
   lua_pop(m_luaState, 1);
@@ -119,8 +125,10 @@ std::string LuaInterpreter::getDummyString() {
   std::string out;
 
   lua_getglobal(m_luaState, "getDummyString");
-  if (lua_pcall(m_luaState, 0, 1, 0))
+  if (lua_pcall(m_luaState, 0, 1, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function getDummyString!\n");
+  }
 
   out = lua_tostring(m_luaState, -1);
   lua_pop(m_luaState, 1);
@@ -131,29 +139,37 @@ std::string LuaInterpreter::getDummyString() {
 void LuaInterpreter::setValueInSaveFile(s64 value) {
   lua_getglobal(m_luaState, "setValueInSaveFile");
   lua_pushinteger(m_luaState, value);
-  if (lua_pcall(m_luaState, 1, 0, 0))
+  if (lua_pcall(m_luaState, 1, 0, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function setValueInSaveFile!\n");
+  }
 }
 
 void LuaInterpreter::setStringInSaveFile(std::string value) {
   lua_getglobal(m_luaState, "setStringInSaveFile");
   lua_pushstring(m_luaState, value.c_str());
-  if (lua_pcall(m_luaState, 1, 0, 0))
+  if (lua_pcall(m_luaState, 1, 0, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function setStringInSaveFile!\n");
+  }
 }
 
 void LuaInterpreter::setDummyValue(s64 value) {
   lua_getglobal(m_luaState, "setDummyValue");
   lua_pushinteger(m_luaState, value);
-  if (lua_pcall(m_luaState, 1, 0, 0))
+  if (lua_pcall(m_luaState, 1, 0, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function setDummyValue!\n");
+  }
 }
 
 void LuaInterpreter::setDummyString(std::string value) {
   lua_getglobal(m_luaState, "setDummyString");
   lua_pushstring(m_luaState, value.c_str());
-  if (lua_pcall(m_luaState, 1, 0, 0))
+  if (lua_pcall(m_luaState, 1, 0, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function setDummyString!\n");
+  }
 }
 
 void LuaInterpreter::getModifiedSaveFile(std::vector<u8> &buffer) {
@@ -162,6 +178,7 @@ void LuaInterpreter::getModifiedSaveFile(std::vector<u8> &buffer) {
   lua_getglobal(m_luaState, "getModifiedSaveFile");
   if (lua_pcall(m_luaState, 0, 1, 0)) {
     printError(m_luaState);
+    printf("Error while calling Lua function getModifiedSaveFile!\n");
     return;
   }
 

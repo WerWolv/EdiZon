@@ -113,7 +113,10 @@ void PythonInterpreter::deinitialize() {
 s64 PythonInterpreter::getValueFromSaveFile() {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "getValueFromSaveFile");
 
-  if (func == nullptr) return 0;
+  if (func == nullptr) {
+    printf("Failed to call python function getValueFromSaveFile!\n");
+    return 0;
+  }
 
 	PyObject *result = PyObject_CallObject(func, nullptr);
 
@@ -130,8 +133,10 @@ s64 PythonInterpreter::getValueFromSaveFile() {
 s64 PythonInterpreter::getDummyValue() {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "getDummyValue");
 
-  if (func == nullptr) return 0;
-
+  if (func == nullptr) {
+    printf("Failed to call python function getDummyValue!\n");
+    return 0;
+  }
 	PyObject *result = PyObject_CallObject(func, nullptr);
 
   if (PyErr_Occurred() != nullptr) {
@@ -148,8 +153,10 @@ s64 PythonInterpreter::getDummyValue() {
 std::string PythonInterpreter::getStringFromSaveFile() {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "getStringFromSaveFile");
 
-  if (func == nullptr) return "NULL";
-
+  if (func == nullptr) {
+    printf("Failed to call python function getStringFromSaveFile!\n");
+    return "NULL";
+  }
 	PyObject *result = PyObject_CallObject(func, nullptr);
 
   if (PyErr_Occurred() != nullptr) {
@@ -165,8 +172,10 @@ std::string PythonInterpreter::getStringFromSaveFile() {
 std::string PythonInterpreter::getDummyString() {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "getDummyString");
 
-  if (func == nullptr) return "NULL";
-
+  if (func == nullptr) {
+    printf("Failed to call python function getDummyString!\n");
+    return "NULL";
+  }
 	PyObject *result = PyObject_CallObject(func, nullptr);
 
   if (PyErr_Occurred() != nullptr) {
@@ -182,7 +191,10 @@ std::string PythonInterpreter::getDummyString() {
 void PythonInterpreter::setValueInSaveFile(s64 value) {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "setValueInSaveFile");
 
-  if (func == nullptr) return;
+  if (func == nullptr) {
+    printf("Failed to call python function setValueInSaveFile!\n");
+    return;
+  }
 
 	PyObject_CallObject(func, PyTuple_Pack(1, PyLong_FromLong(value)));
 
@@ -195,7 +207,10 @@ void PythonInterpreter::setValueInSaveFile(s64 value) {
 void PythonInterpreter::setStringInSaveFile(std::string value) {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "setStringInSaveFile");
 
-  if (func == nullptr) return;
+  if (func == nullptr) {
+    printf("Failed to call python function setStringInSaveFile!\n");
+    return;
+  }
 
 	PyObject_CallObject(func, PyTuple_Pack(1, PyUnicode_FromString(value.c_str())));
 
@@ -208,7 +223,10 @@ void PythonInterpreter::setStringInSaveFile(std::string value) {
 void PythonInterpreter::setDummyValue(s64 value) {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "setDummyValue");
 
-  if (func == nullptr) return;
+  if (func == nullptr) {
+    printf("Failed to call python function setDummyValue!\n");
+    return;
+  }
 
 	PyObject_CallObject(func, PyTuple_Pack(1, PyLong_FromLong(value)));
 
@@ -221,7 +239,10 @@ void PythonInterpreter::setDummyValue(s64 value) {
 void PythonInterpreter::setDummyString(std::string value) {
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "setDummyString");
 
-  if (func == nullptr) return;
+  if (func == nullptr) {
+    printf("Failed to call python function setDummyString!\n");
+    return;
+  }
 
 	PyObject_CallObject(func, PyTuple_Pack(1, PyUnicode_FromString(value.c_str())));
 
@@ -236,7 +257,10 @@ void PythonInterpreter::getModifiedSaveFile(std::vector<u8> &buffer) {
 
 	PyObject *func = PyObject_GetAttrString(m_mainObject, "getModifiedSaveFile");
 
-  if (func == nullptr) return;
+  if (func == nullptr) {
+    printf("Failed to call python function getModifiedSaveFile!\n");
+    return;
+  }
 
 	PyObject *result = PyObject_CallObject(func, nullptr);
   if (PyErr_Occurred() != nullptr) {

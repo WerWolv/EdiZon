@@ -30,6 +30,8 @@ public:
   void setDummyValue(s64 value);
   void setDummyString(std::string value);
 
+  std::string callFunction(std::string funcName);
+
   PyObject *py_getSaveFileBuffer(PyObject *self, PyObject *args);
   PyObject *py_getSaveFileString(PyObject *self, PyObject *args);
   PyObject *py_getStrArgs(PyObject *self, PyObject *args);

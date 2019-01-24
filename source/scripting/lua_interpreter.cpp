@@ -206,6 +206,19 @@ void LuaInterpreter::getModifiedSaveFile(std::vector<u8> &buffer) {
   }
 }
 
+std::string LuaInterpreter::callFunction(std::string funcName) {
+  lua_getglobal(m_luaState, funcName.c_str());
+  if (lua_pcall(m_luaState, 0, 1, 0)) {
+    printError(m_luaState);
+    printf("Error while calling Lua function %s!\n", funcName.c_str());
+  }
+
+  std::string out = lua_tostring(m_luaState, -1);
+  lua_pop(m_luaState, 1);
+
+  return out;
+} 
+
 int LuaInterpreter::lua_getSaveFileBuffer(lua_State *state) {
   lua_createtable(state, m_bufferSize, 0);
 

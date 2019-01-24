@@ -1,11 +1,12 @@
 #include "config_parser.hpp"
 #include "title.hpp"
 
-#include "widget_switch.hpp"
-#include "widget_value.hpp"
-#include "widget_list.hpp"
-#include "widget_string.hpp"
-#include "widget_comment.hpp"
+#include "widgets/widget_switch.hpp"
+#include "widgets/widget_value.hpp"
+#include "widgets/widget_list.hpp"
+#include "widgets/widget_string.hpp"
+#include "widgets/widget_comment.hpp"
+#include "widgets/widget_button.hpp"
 
 #include <sstream>
 #include <fstream>
@@ -161,6 +162,14 @@ void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter,
       if (itemWidget["comment"].is_string()) {
         widgets[item["category"]].push_back({ item["name"], 
           new WidgetComment(&interpreter, itemWidget["comment"].get<std::string>()) });
+      }
+    }
+    else if (itemWidget["type"] == "button") {
+      if (itemWidget["function"] == nullptr) continue;
+
+      if (itemWidget["function"].is_string()) {
+        widgets[item["category"]].push_back({ item["name"], 
+          new WidgetButton(&interpreter, itemWidget["function"].get<std::string>()) });
       }
     }
 

@@ -166,7 +166,7 @@ std::string PythonInterpreter::getStringFromSaveFile() {
 
   if (result == nullptr) return "NULL";
 
-  return PyBytes_AsString(result);
+  return std::string(PyBytes_AsString(PyUnicode_AsEncodedString(result, "utf-8", "~E~")));
 }
 
 std::string PythonInterpreter::getDummyString() {
@@ -185,7 +185,7 @@ std::string PythonInterpreter::getDummyString() {
 
   if (result == nullptr) return "NULL";
 
-  return PyBytes_AsString(result);
+  return std::string(PyBytes_AsString(PyUnicode_AsEncodedString(result, "utf-8", "~E~")));
 }
 
 void PythonInterpreter::setValueInSaveFile(s64 value) {
@@ -297,6 +297,26 @@ void PythonInterpreter::getModifiedSaveFile(std::vector<u8> &buffer) {
       break;
   }
 }
+
+std::string PythonInterpreter::callFunction(std::string funcName) {
+	PyObject *func = PyObject_GetAttrString(m_mainObject, funcName.c_str());
+
+  if (func == nullptr) {
+    printf("Failed to call python function %s!\n", funcName.c_str());
+    return "";
+  }
+
+	PyObject *result = PyObject_CallObject(func, nullptr);
+
+  if (PyErr_Occurred() != nullptr) {
+    PyErr_Print();
+    printf("\n");
+  }
+
+  if (result == nullptr) return "";
+
+  return std::string(PyBytes_AsString(PyUnicode_AsEncodedString(result, "utf-8", "~E~")));
+} 
 
 PyObject *PythonInterpreter::py_getSaveFileBuffer(PyObject *self, PyObject *args) {
   return PyByteArray_FromStringAndSize((char*)(&m_buffer[0]), m_bufferSize);

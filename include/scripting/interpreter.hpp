@@ -26,10 +26,12 @@ public:
   virtual void setDummyValue(s64 value) = 0;
   virtual void setDummyString(std::string value) = 0;
 
+  virtual std::string callFunction(std::string funcName) = 0;
+
   void setArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs);
   void setSaveFileBuffer(u8 *buffer, size_t bufferSize, std::string encoding);
 
-  virtual double evaluateEquation(std::string equation, s64 value);
+  double evaluateEquation(std::string equation, s64 value);
 
 protected:
   std::string m_filetype;

@@ -32,6 +32,8 @@ public:
   void setDummyValue(s64 value);
   void setDummyString(std::string value);
 
+  std::string callFunction(std::string funcName);
+
   int lua_getSaveFileBuffer(lua_State *state);
   int lua_getSaveFileString(lua_State *state);
   int lua_getStrArgs(lua_State *state);

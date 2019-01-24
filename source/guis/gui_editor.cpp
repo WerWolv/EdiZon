@@ -187,7 +187,7 @@ void GuiEditor::updateBackupList() {
     closedir(dir_titles);
   }
 
-  path.clear();
+  path.str("");
 
   //Read root saves
   path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
@@ -203,8 +203,6 @@ void GuiEditor::updateBackupList() {
     }
     closedir(dir_titles);
   }
-
-  path.clear();
 
   //Read batch saves
   if ((dir_batch = opendir("/EdiZon/batch")) != nullptr) {
@@ -234,7 +232,10 @@ void GuiEditor::updateBackupList() {
     closedir(dir_batch);
   }
 
+  
+
   for (auto [title, path] : backups) {
+    printf("%s\n", path.c_str());
     m_backupTitles.push_back(title);
     m_backupPaths.push_back(path);
   }

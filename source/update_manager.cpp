@@ -109,6 +109,7 @@ Updates UpdateManager::checkUpdate() {
   mkdir("/EdiZon/editor", 0777);
   mkdir("/EdiZon/editor/scripts", 0777);
   mkdir("/EdiZon/editor/scripts/lib", 0777);
+  mkdir("/EdiZon/editor/scripts/lib/python3.5", 0777);
 
   Updates updatedFile = NONE;
 

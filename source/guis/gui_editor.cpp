@@ -354,7 +354,6 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
                 GuiEditor::g_currSaveFile.clear();
                 GuiEditor::g_currSaveFileName = "";
-                ConfigParser::g_currConfigAuthor = "";
 
                 for (auto const& [category, widgets] : m_widgets)
                   for(auto widget : widgets)
@@ -375,7 +374,6 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
               (new Snackbar("Failed to load save file! Is it empty?"))->show();
               GuiEditor::g_currSaveFile.clear();
               GuiEditor::g_currSaveFileName = "";
-              ConfigParser::g_currConfigAuthor = "";
 
               for (auto const& [category, widgets] : m_widgets)
                 for(auto widget : widgets)
@@ -527,7 +525,6 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
             GuiEditor::g_currSaveFile.clear();
             GuiEditor::g_currSaveFileName = "";
-            ConfigParser::g_currConfigAuthor = "";
 
             for (auto const& [category, widgets] : m_widgets)
               for(auto widget : widgets)
@@ -583,7 +580,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           m_scriptParser->deinitialize();
           GuiEditor::g_currSaveFile.clear();
           GuiEditor::g_currSaveFileName = "";
-          ConfigParser::g_currConfigAuthor = "";
+
           Widget::g_widgetPage = 0;
 
           for (auto const& [category, widgets] : m_widgets)

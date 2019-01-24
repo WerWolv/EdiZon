@@ -1,7 +1,7 @@
 #include "widgets/widget_string.hpp"
 
-WidgetString::WidgetString(Interpreter *saveParser, bool isDummy, u8 minLength, u8 maxLength) :
- Widget(saveParser, isDummy), m_minLength(minLength), m_maxLength(maxLength) {
+WidgetString::WidgetString(Interpreter *interpreter, bool isDummy, u8 minLength, u8 maxLength) :
+ Widget(interpreter, isDummy), m_minLength(minLength), m_maxLength(maxLength) {
   m_widgetDataType = STRING;
 }
 

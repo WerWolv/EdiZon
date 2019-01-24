@@ -23,7 +23,7 @@ public:
     static s8 hasConfig(u64 titleId);
     static s8 loadConfigFile(u64 titleId, std::string filepath, Interpreter **interpreter);
     static void unloadConfigFile();
-    static void createWidgets(WidgetItems &widgets, Interpreter &scriptParser, u8 configIndex);
+    static void createWidgets(WidgetItems &widgets, Interpreter &interpreter, u8 configIndex);
 
     static inline std::unordered_map<u64, bool> g_editableTitles;
     static inline std::unordered_map<u64, bool> g_betaTitles;

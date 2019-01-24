@@ -4,8 +4,8 @@
 
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(Interpreter *saveParser, bool isDummy, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize) :
- Widget(saveParser, isDummy), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
+WidgetValue::WidgetValue(Interpreter *interpreter, bool isDummy, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize) :
+ Widget(interpreter, isDummy), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
   m_widgetDataType = INT;
 
   m_currValue = 0;
@@ -21,7 +21,7 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
   ss << m_currValue;
 
   if (m_currValue == 0)
-    m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
+    m_currValue = Widget::m_interpreter->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 
   gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), currTheme.selectedColor, ss.str().c_str(), ALIGNED_RIGHT);
 }
@@ -36,20 +36,20 @@ void WidgetValue::onInput(u32 kdown) {
 
   if (kdown & KEY_LEFT) {
     if (static_cast<s64>(m_currValue - incrementValue) > m_minValue)
-        Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) - incrementValue);
+        Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_currValue) - incrementValue);
     else if(m_currValue <= m_minValue)
-      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
+      Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_maxValue));
     else
-      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
+      Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_minValue));
   }
 
   if (kdown & KEY_RIGHT) {
     if (static_cast<s64>(m_currValue + incrementValue) < m_maxValue)
-      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
+      Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
     else if(m_currValue >= m_maxValue)
-      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_minValue));
+      Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_minValue));
     else
-      Widget::setIntegerValue(Widget::m_saveParser->evaluateEquation(m_writeEquation, m_maxValue));
+      Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_maxValue));
   }
 
   if (kdown & KEY_A) {
@@ -60,13 +60,13 @@ void WidgetValue::onInput(u32 kdown) {
 
     if (isNumber(std::string(out_number)))
       Widget::setIntegerValue(
-        Widget::m_saveParser->evaluateEquation(m_writeEquation, 
-        Widget::m_saveParser->evaluateEquation(m_readEquation, 
+        Widget::m_interpreter->evaluateEquation(m_writeEquation, 
+        Widget::m_interpreter->evaluateEquation(m_readEquation, 
         std::min(std::max(static_cast<s64>(atoi(out_number)), 
         m_minValue), m_maxValue))));
   }
   
-  m_currValue = Widget::m_saveParser->evaluateEquation(m_readEquation, Widget::getIntegerValue());
+  m_currValue = Widget::m_interpreter->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 }
 
 void WidgetValue::onTouch(touchPosition &touch) {

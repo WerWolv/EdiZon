@@ -30,7 +30,7 @@ typedef enum { CATEGORIES, WIDGETS } WidgetRow;
 
 class Widget {
 public:
-  Widget(Interpreter *saveParser, bool isDummy);
+  Widget(Interpreter *interpreter, bool isDummy);
   virtual ~Widget();
 
   static inline u16 g_selectedWidgetIndex = 0;
@@ -60,7 +60,7 @@ public:
   static inline u16 g_stepSizeMultiplier = 1;
 
 protected:
-  Interpreter *m_saveParser;
+  Interpreter *m_interpreter;
   WidgetDataType m_widgetDataType;
   std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;

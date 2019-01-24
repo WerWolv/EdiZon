@@ -60,7 +60,7 @@ GuiEditor::GuiEditor() : Gui() {
   std::stringstream path;
   path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
 
-  m_configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str(), &m_scriptParser);
+  m_configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str(), &m_interpreter);
 }
 
 GuiEditor::~GuiEditor() {
@@ -69,7 +69,7 @@ GuiEditor::~GuiEditor() {
       for(auto widget : widgets)
         delete widget.widget;
 
-    delete m_scriptParser;
+    delete m_interpreter;
   }
 
   GuiEditor::g_currSaveFile.clear();
@@ -347,10 +347,10 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].fileName.c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              m_scriptParser->setSaveFileBuffer(&g_currSaveFile[0], length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
-              ConfigParser::createWidgets(m_widgets, *m_scriptParser, this->m_saveFiles[selectedItem].configIndex);
-              if(!m_scriptParser->initialize(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["filetype"])) {
-                m_scriptParser->deinitialize();
+              m_interpreter->setSaveFileBuffer(&g_currSaveFile[0], length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
+              ConfigParser::createWidgets(m_widgets, *m_interpreter, this->m_saveFiles[selectedItem].configIndex);
+              if(!m_interpreter->initialize(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["filetype"])) {
+                m_interpreter->deinitialize();
 
                 GuiEditor::g_currSaveFile.clear();
                 GuiEditor::g_currSaveFileName = "";
@@ -521,7 +521,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
       if (kdown & KEY_B) {
         (new MessageBox("Are you sure you want to discard your changes?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
           if (selection) {
-            m_scriptParser->deinitialize();
+            m_interpreter->deinitialize();
 
             GuiEditor::g_currSaveFile.clear();
             GuiEditor::g_currSaveFileName = "";
@@ -566,7 +566,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         if (selection) {
           std::vector<u8> buffer;
 
-          m_scriptParser->getModifiedSaveFile(buffer);
+          m_interpreter->getModifiedSaveFile(buffer);
 
           if(buffer.empty())
             (new Snackbar("Injection of modified values failed!"))->show();
@@ -577,7 +577,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
               (new Snackbar("Injection of modified values failed!"))->show();
           }
 
-          m_scriptParser->deinitialize();
+          m_interpreter->deinitialize();
           GuiEditor::g_currSaveFile.clear();
           GuiEditor::g_currSaveFileName = "";
 

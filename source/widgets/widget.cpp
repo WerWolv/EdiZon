@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-Widget::Widget(Interpreter *saveParser, bool isDummy) : m_saveParser(saveParser), m_isDummy(isDummy) {
+Widget::Widget(Interpreter *interpreter, bool isDummy) : m_interpreter(interpreter), m_isDummy(isDummy) {
   Widget::g_stepSizeMultiplier = 1;
 }
 
@@ -72,31 +72,31 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
 }
 
 s64 Widget::getIntegerValue() {
-  m_saveParser->setArgs(m_intArgs, m_strArgs);
+  m_interpreter->setArgs(m_intArgs, m_strArgs);
 
-  return m_isDummy ? m_saveParser->getDummyValue() : m_saveParser->getValueFromSaveFile();
+  return m_isDummy ? m_interpreter->getDummyValue() : m_interpreter->getValueFromSaveFile();
 }
 
 std::string Widget::getStringValue() {
-  m_saveParser->setArgs(m_intArgs, m_strArgs);
+  m_interpreter->setArgs(m_intArgs, m_strArgs);
 
-  return m_isDummy ? m_saveParser->getDummyString() : m_saveParser->getStringFromSaveFile();
+  return m_isDummy ? m_interpreter->getDummyString() : m_interpreter->getStringFromSaveFile();
 }
 
 void Widget::setIntegerValue(s64 value) {
-  m_saveParser->setArgs(m_intArgs, m_strArgs);
+  m_interpreter->setArgs(m_intArgs, m_strArgs);
 
   if (Widget::isDummy()) 
-    m_saveParser->setDummyValue(value);
-  else m_saveParser->setValueInSaveFile(value);
+    m_interpreter->setDummyValue(value);
+  else m_interpreter->setValueInSaveFile(value);
 }
 
 void Widget::setStringValue(std::string value) {
-  m_saveParser->setArgs(m_intArgs, m_strArgs);
+  m_interpreter->setArgs(m_intArgs, m_strArgs);
 
   if (Widget::isDummy()) 
-    m_saveParser->setDummyString(value);
-  else m_saveParser->setStringInSaveFile(value);
+    m_interpreter->setDummyString(value);
+  else m_interpreter->setStringInSaveFile(value);
 }
 
 void Widget::setLuaArgs(std::vector<s32> intArgs, std::vector<std::string> strArgs) {

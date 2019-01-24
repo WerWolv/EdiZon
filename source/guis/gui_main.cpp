@@ -67,8 +67,8 @@ void GuiMain::draw() {
 
   xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
-  if (Title::g_titles.size() < 10) xOffsetNext = 0;
-  if (m_editableCount < 10 && tmpEditableOnly) xOffsetNext = 0;
+  if (Title::g_titles.size() <= 10) xOffsetNext = 0;
+  if (m_editableCount <= 10 && tmpEditableOnly) xOffsetNext = 0;
 
   m_editableCount = 0;
 
@@ -115,7 +115,7 @@ void GuiMain::draw() {
 
     std::string buttonHintStr = "";
 
-    buttonHintStr  = tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";
+    buttonHintStr  = !tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";
     buttonHintStr += m_backupAll ? "(\uE0E7) + \uE0E2 Backup all     " : "(\uE0E7) + \uE0E2 Backup     ";
     buttonHintStr += "\uE0F0 Update     \uE0EF Exit     \uE0E1 Back     \uE0E0 OK";
 
@@ -169,9 +169,9 @@ void GuiMain::onInput(u32 kdown) {
 
   if (kdown & KEY_X) {
     if (m_backupAll) {
-      bool batchFailed = false;
       (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
-      
+        bool batchFailed = false;
+
         char backupName[33];
         time_t t = time(nullptr);
         std::stringstream initialText;

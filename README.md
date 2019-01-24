@@ -33,6 +33,11 @@ If you need any help with the usage of EdiZon or if you want to start developing
 - [trueicecold](https://github.com/trueicecold) for batch backups and the editable-only mode
 - [onepiecefreak](https://github.com/onepiecefreak3) for the edizon debugger and LOTS of reviewing implementations
 - [Jojo](https://github.com/drdrjojo) for the Travis CI configuration and the config creator 
-- [nx-python](https://github.com/nx-python) for their python port to the switch
+- [Lua](https://www.lua.org/) for their scripting language
+- [Python](https://www.python.org/) and [nx-python](https://github.com/nx-python) for their scripting language respectively their python port to the switch
 - **bernv3** for the beautiful icon
 - **All config creators** for bringing this project to life!
+
+<br>
+<p align="center"><img src="https://www.lua.org/images/logo.gif">
+<img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg"><p>

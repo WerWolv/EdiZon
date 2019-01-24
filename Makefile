@@ -41,9 +41,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	$(notdir $(CURDIR))
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/lua source/widgets source/guis source/scripting
+SOURCES		:=	source source/widgets source/guis source/scripting libs/lua/source
 DATA		:=	data
-INCLUDES	:=	include include/lua include/widgets include/guis libs/nxpy/include/nxpy include/scripting
+INCLUDES	:=	include include/lua include/widgets include/guis include/scripting libs/nxpy/include libs/lua/include
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 

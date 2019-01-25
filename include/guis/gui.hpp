@@ -103,3 +103,5 @@ private:
 
 #define COLOR_WHITE makeColor(255, 255, 255, 255)
 #define COLOR_BLACK makeColor(0, 0, 0, 255)
+
+extern void requestDraw();

@@ -74,11 +74,17 @@ void update(void *args) {
 
 void createFolders() {
   mkdir("/EdiZon", 0777);
+  mkdir("/EdiZon/tmp", 0777);
   mkdir("/EdiZon/restore", 0777);
   mkdir("/EdiZon/batch", 0777);
   mkdir("/EdiZon/editor", 0777);
   mkdir("/EdiZon/editor/scripts", 0777);
   mkdir("/EdiZon/editor/scripts/lib", 0777);
+}
+
+void requestDraw() {
+  if (currGui != nullptr)
+    currGui->draw();
 }
 
 int main(int argc, char** argv) {
@@ -225,6 +231,9 @@ int main(int argc, char** argv) {
       Gui::g_currMessageBox->hide();
 
       UpdateManager updateManager;
+
+      (new MessageBox("Updating configs and EdiZon...\n \nThis may take a while.", MessageBox::OKAY))->show();
+      requestDraw();
 
       switch (updateManager.checkUpdate()) {
         case NONE: (new MessageBox("Latest configs and scripts are already installed!", MessageBox::OKAY))->show(); break;

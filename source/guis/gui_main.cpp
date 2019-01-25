@@ -13,7 +13,7 @@
 #include <sstream>
 #include <math.h>
 
-int64_t xOffset, xOffsetNext;
+s64 xOffset, xOffsetNext;
 bool finishedDrawing = true;
 
 GuiMain::GuiMain() : Gui() {

@@ -20,7 +20,7 @@ using json = nlohmann::json;
 
 extern char* g_edizonPath;
 
-CURL *curl;
+static CURL *curl;
 
 UpdateManager::UpdateManager() {
   curl_global_init(CURL_GLOBAL_DEFAULT);

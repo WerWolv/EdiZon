@@ -8,6 +8,8 @@
 #include "scripting/lua_interpreter.hpp"
 #include "scripting/python_interpreter.hpp"
 
+#include "upload_manager.hpp"
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -56,10 +58,8 @@ GuiEditor::GuiEditor() : Gui() {
   Widget::g_selectedWidgetIndex = 0;
   Widget::g_selectedCategory = "";
 
-
   std::stringstream path;
   path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
-
   m_configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str(), &m_interpreter);
 }
 
@@ -79,6 +79,7 @@ GuiEditor::~GuiEditor() {
 
   m_backupTitles.clear();
   m_backupPaths.clear();
+  m_backupFolderNames.clear();
 
   m_saveFiles.clear();
 }
@@ -170,12 +171,15 @@ void GuiEditor::updateBackupList() {
 
   m_backupTitles.clear();
   m_backupPaths.clear();
+  m_backupFolderNames.clear();
 
   std::stringstream path;
 
   path << "/EdiZon/restore";
   if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
     while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
+      if (ent_timestamp->d_type != DT_DIR) continue;
+
       metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/" + std::string(ent_timestamp->d_name) + "/edizon_save_metadata.json");
       if (metadataUsername.empty())
         metadataUsername = "By an unknown user [/restore]";
@@ -193,6 +197,8 @@ void GuiEditor::updateBackupList() {
   path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
   if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
     while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
+      if (ent_timestamp->d_type != DT_DIR) continue;
+
       metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/" + std::string(ent_timestamp->d_name) + "/edizon_save_metadata.json");
       if (metadataUsername.empty())
         metadataUsername = "By an unknown user";
@@ -211,6 +217,8 @@ void GuiEditor::updateBackupList() {
       path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name);
       if ((dir_users = opendir(path.str().c_str())) != nullptr) {
         while ((ent_user = readdir(dir_users)) != nullptr) {
+          if (ent_user->d_type != DT_DIR) continue;
+
           path.str("");
           path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name) << "/" << std::string(ent_user->d_name) << "/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
           if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
@@ -222,6 +230,7 @@ void GuiEditor::updateBackupList() {
               metadataUsername = "By " + metadataUsername + " [B]";
 
             backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str()));
+            m_backupFolderNames.push_back(std::string(ent_timestamp->d_name));
 
             closedir(dir_titles);
           }
@@ -235,13 +244,13 @@ void GuiEditor::updateBackupList() {
   
 
   for (auto [title, path] : backups) {
-    printf("%s\n", path.c_str());
     m_backupTitles.push_back(title);
     m_backupPaths.push_back(path);
   }
 
   std::reverse(m_backupTitles.begin(), m_backupTitles.end());
   std::reverse(m_backupPaths.begin(), m_backupPaths.end());
+  std::reverse(m_backupFolderNames.begin(), m_backupFolderNames.end());
 }
 
 std::string GuiEditor::readMetaDataUsername(std::string path) {
@@ -417,18 +426,18 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     if (kdown & KEY_Y) {
       updateBackupList();
 
-      (new ListSelector("Restore Backup", "\uE0E0  Restore     \uE0E2  Delete      \uE0EF Exit     \uE0E1  Back", m_backupTitles))->setInputAction([&](u32 k, u16 selectedItem){
+      (new ListSelector("Restore Backup", "\uE0F0  Upload     \uE0E0  Restore     \uE0E2  Delete      \uE0EF Exit     \uE0E1  Back", m_backupTitles))->setInputAction([&](u32 k, u16 selectedItem){
         if (k & KEY_A) {
           if (m_backupTitles.size() != 0) {
               (new MessageBox("Are you sure you want to inject this backup?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
                 if (selection) {
                   s16 res;
 
-                  if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), m_backupPaths[Gui::Gui::g_currListSelector->selectedItem].c_str())))
+                  if(!(res = restoreSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), m_backupPaths[Gui::g_currListSelector->selectedItem].c_str())))
                     (new Snackbar("Successfully restored backup!"))->show();
                   else (new Snackbar("An error occured while restoring the backup! Error " + std::to_string(res)))->show();
 
-                  Gui::Gui::g_currListSelector->hide();
+                  Gui::g_currListSelector->hide();
                 }
               })->show();
           }
@@ -436,11 +445,32 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
         if (k & KEY_X) {
           std::stringstream path;
-          deleteDirRecursively(m_backupPaths[Gui::Gui::g_currListSelector->selectedItem].c_str(), false);
+          deleteDirRecursively(m_backupPaths[Gui::g_currListSelector->selectedItem].c_str(), false);
           updateBackupList();
 
-          if (Gui::Gui::g_currListSelector->selectedItem == m_backupTitles.size() && Gui::Gui::g_currListSelector->selectedItem > 0)
-            Gui::Gui::g_currListSelector->selectedItem--;
+          if (Gui::g_currListSelector->selectedItem == m_backupTitles.size() && Gui::g_currListSelector->selectedItem > 0)
+            Gui::g_currListSelector->selectedItem--;
+        }
+
+        if (k & KEY_MINUS) {
+          UploadManager um;
+          printf("1\n");
+          (new MessageBox("Uploading savefile...\n \nThis may take a while.", MessageBox::NONE))->show();
+          printf("2\n");
+          requestDraw();
+printf("3\n");
+          std::string retURL = um.upload(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem]);
+printf("4\n");
+          if (retURL != "") {
+            std::string messageBoxStr = "Upload finished!\n \n";
+            messageBoxStr += retURL;
+
+            (new MessageBox(messageBoxStr.c_str(), MessageBox::OKAY))->show();
+          } 
+          else
+            (new MessageBox("Upload failed!", MessageBox::OKAY))->show(); 
+
+          Gui::g_currListSelector->hide();
         }
       })->show();
     }

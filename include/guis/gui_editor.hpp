@@ -37,6 +37,7 @@ private:
   std::vector<u8> m_titleIcon;
 
   std::vector<std::string> m_backupTitles;
+  std::vector<std::string> m_backupFolderNames;
   std::vector<std::string> m_backupPaths;
   std::vector<SaveFile> m_saveFiles;
 

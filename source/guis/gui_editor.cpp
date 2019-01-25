@@ -187,6 +187,7 @@ void GuiEditor::updateBackupList() {
         metadataUsername = "By " + metadataUsername + " [/restore]";
 
       backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str() + "/" + std::string(ent_timestamp->d_name)));
+      m_backupFolderNames.push_back(std::string(ent_timestamp->d_name));
     }
     closedir(dir_titles);
   }
@@ -206,6 +207,7 @@ void GuiEditor::updateBackupList() {
         metadataUsername = "By " + metadataUsername;
 
       backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str() + "/" + std::string(ent_timestamp->d_name)));
+      m_backupFolderNames.push_back(std::string(ent_timestamp->d_name));
     }
     closedir(dir_titles);
   }
@@ -454,13 +456,12 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
         if (k & KEY_MINUS) {
           UploadManager um;
-          printf("1\n");
+
           (new MessageBox("Uploading savefile...\n \nThis may take a while.", MessageBox::NONE))->show();
-          printf("2\n");
           requestDraw();
-printf("3\n");
+
           std::string retURL = um.upload(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem]);
-printf("4\n");
+
           if (retURL != "") {
             std::string messageBoxStr = "Upload finished!\n \n";
             messageBoxStr += retURL;

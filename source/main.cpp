@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
 
       UpdateManager updateManager;
 
-      (new MessageBox("Updating configs and EdiZon...\n \nThis may take a while.", MessageBox::OKAY))->show();
+      (new MessageBox("Updating configs and EdiZon...\n \nThis may take a while.", MessageBox::NONE))->show();
       requestDraw();
 
       switch (updateManager.checkUpdate()) {

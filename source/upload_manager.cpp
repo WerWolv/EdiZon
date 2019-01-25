@@ -34,7 +34,6 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, std::string* s)
 }
 
 std::vector<std::string> listFiles(const std::string &path) {
-
   std::vector<std::string> paths;
     if (auto dir = opendir(path.c_str())) {
         while (auto f = readdir(dir)) {

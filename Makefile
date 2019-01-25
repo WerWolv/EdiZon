@@ -31,8 +31,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 2
-VERSION_MINOR := 0
-VERSION_MICRO := 1
+VERSION_MINOR := 1
+VERSION_MICRO := 0
 
 APP_TITLE	:=	EdiZon
 APP_AUTHOR	:=	WerWolv
@@ -41,9 +41,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	$(notdir $(CURDIR))
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/widgets source/guis source/scripting libs/lua/source libs/nanojpeg/source
+SOURCES		:=	source source/widgets source/guis source/scripting libs/lua/source libs/nanojpeg/source libs/tar/source
 DATA		:=	data
-INCLUDES	:=	include include/lua include/widgets include/guis include/scripting libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include
+INCLUDES	:=	include include/lua include/widgets include/guis include/scripting libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/tar/include
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 

@@ -44,6 +44,6 @@ void GuiTXWarning::onTouch(touchPosition &touch) {
     hideWarning = !hideWarning;
 }
 
-void GuiTXWarning::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
+void GuiTXWarning::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
 
 }

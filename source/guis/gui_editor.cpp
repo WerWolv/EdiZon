@@ -679,6 +679,6 @@ void GuiEditor::onTouch(touchPosition &touch) {
   }
 }
 
-void GuiEditor::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
+void GuiEditor::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
 
 }

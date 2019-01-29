@@ -34,11 +34,9 @@ static bool updateThreadRunning = false;
 static Mutex mutexCurrGui;
 static Gui* currGui = nullptr;
 static u32 inputTicker = 0;
-static u8 touchCntOld = 0, touchCnt = 0;
+
 static u32 kheld = 0, kheldOld = 0;
 static u32 kdown = 0;
-static touchPosition touch;
-static touchPosition touchEnd;
 
 void initTitles() {
   std::vector<FsSaveDataInfo> saveInfoList;
@@ -149,8 +147,6 @@ int main(int argc, char** argv) {
   updateThreadRunning = true;
   Threads::create(&update);
 
-  touchCntOld = hidTouchCount();
-
   while (appletMainLoop()) {
     hidScanInput();
     kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
@@ -199,28 +195,36 @@ int main(int argc, char** argv) {
       }
     }
 
-    touchCnt = hidTouchCount();
-
-    if (touchCnt > touchCntOld)
-      hidTouchRead(&touch, 0);
-
-    if (touchCnt < touchCntOld) {
-      if (Gui::g_currMessageBox != nullptr)
-        Gui::g_currMessageBox->onTouch(touch);
-      else if (Gui::g_currListSelector != nullptr)
-        Gui::g_currListSelector->onTouch(touch);
-      else {
-        currGui->onTouch(touchEnd);
-        currGui->onGesture(touch, touchEnd);
-      }
-    }
-
-    hidTouchRead(&touchEnd, 0);
-
-    touchCntOld = touchCnt;
-
     if (kheld != kheldOld)
       inputTicker = 0;
+
+    static touchPosition touchPosStart, touchPosCurr, touchPosOld;
+    static u8 touchCount, touchCountOld;
+    static bool touchHappend = false;
+
+    touchCount = hidTouchCount();
+
+    if (touchCount > 0)
+      hidTouchRead(&touchPosCurr, 0);
+
+    if(touchCount > 0 && touchCountOld == 0)
+      hidTouchRead(&touchPosStart, 0);
+
+    if (abs(static_cast<s16>(touchPosStart.px - touchPosCurr.px)) < 50 && abs(static_cast<s16>(touchPosStart.py - touchPosCurr.py)) < 50) {
+      if (touchCount == 0 && touchCountOld > 0) {
+        touchHappend = true;
+        currGui->onTouch(touchPosCurr);
+      }
+    } else if (touchCount > 0) {
+      currGui->onGesture(touchPosStart, touchPosCurr, false);
+    }
+
+    if (touchCount == 0 && touchCountOld > 0 && !touchHappend)
+      currGui->onGesture(touchPosStart, touchPosCurr, true);
+
+    touchCountOld = touchCount;
+    touchPosOld = touchPosCurr;
+    touchHappend = false;
 
     kheldOld = kheld;
 

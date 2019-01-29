@@ -12,15 +12,15 @@
 #include <string>
 #include <sstream>
 #include <math.h>
+#include <stdlib.h>
+#include <numeric>
 
-s64 xOffset, xOffsetNext;
-bool finishedDrawing = true;
+static s64 xOffset, xOffsetNext;
+static bool finishedDrawing = true;
+static s64 startOffset = 0;
 
 GuiMain::GuiMain() : Gui() {
   m_selected.accountIndex = 0;
-
-  if (Title::g_titles.size() != 0)
-    xOffset = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
 
   for (auto title : Title::g_titles) {
     if (ConfigParser::hasConfig(title.first) == 0) {
@@ -40,16 +40,22 @@ void GuiMain::update() {
     double deltaOffset = xOffsetNext - xOffset;
     double scrollSpeed = deltaOffset / 40.0F;
 
+    if (xOffset < 0 || ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) <= 10) xOffsetNext = xOffset = 0;
+    if (xOffset > static_cast<s32>(std::ceil((((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size() + 1) / 2) - 5) * 256))
+      xOffsetNext = xOffset = (std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size() + 1) / 2) - 5) * 256;
+
     if (xOffsetNext > xOffset)
       xOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
     else
       xOffset += floor((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
+
+    startOffset = xOffsetNext;
   }
 }
 
 void GuiMain::draw() {
-  int64_t x = 0, y = 10, currItem = 0;
-  int64_t selectedX = 0, selectedY = 0;
+  s64 x = 0, y = 10, currItem = 0;
+  s64 selectedX = 0, selectedY = 0;
   bool tmpEditableOnly = m_editableOnly;
 
   Gui::beginDraw();
@@ -65,10 +71,8 @@ void GuiMain::draw() {
     return;
   }
 
-  xOffsetNext = m_selected.titleIndex > 5 ? m_selected.titleIndex > Title::g_titles.size() - 5 ? 256 * (ceil((Title::g_titles.size() - (Title::g_titles.size() >= 10 ? 11.0F : 9.0F)) / 2.0F) + (Title::g_titles.size() > 10 && Title::g_titles.size() % 2 == 1 ? 1 : 0)) : 256 * ceil((m_selected.titleIndex - 5.0F) / 2.0F) : 0;
-
-  if (Title::g_titles.size() <= 10) xOffsetNext = 0;
-  if (m_editableCount <= 10 && tmpEditableOnly) xOffsetNext = 0;
+ /* if (Title::g_titles.size() <= 10) xOffsetNext = 0;
+  if (m_editableCount <= 10 && tmpEditableOnly) xOffsetNext = 0;*/
 
   m_editableCount = 0;
 
@@ -147,6 +151,16 @@ void GuiMain::onInput(u32 kdown) {
         m_selected.titleIndex++;
     }
   }
+
+  if (kdown != 0x00 && kdown != KEY_TOUCH) {
+    if ((m_selected.titleIndex / 2) * 256 - xOffsetNext < 0 || (m_selected.titleIndex / 2) * 256 - xOffsetNext > 1280) {
+      m_selected.titleIndex = std::ceil(xOffset / 256 + 1) * 2;
+    } else {
+      if ((m_selected.titleIndex / 2 + 2) * 256 > 1280 + xOffsetNext) xOffsetNext = (m_selected.titleIndex / 2 - 3) * 256;
+      if ((m_selected.titleIndex / 2 - 1) * 256 < xOffsetNext) xOffsetNext = (m_selected.titleIndex / 2 - 1) * 256;
+    }
+  }
+
 
   if (kdown & KEY_A) {
     u128 userID = Gui::requestPlayerSelection();
@@ -242,13 +256,16 @@ void GuiMain::onInput(u32 kdown) {
 }
 
 void GuiMain::onTouch(touchPosition &touch) {
-  if (Title::g_titles.size() == 0) return;
+  if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
 
   u8 x = floor((touch.px + xOffset) / 256.0F);
   u8 y = floor(touch.py / 256.0F);
   u8 title = y + x * 2;
 
-  if (y <= 1 && title < Title::g_titles.size()) {
+  if ((x + 1) * 256 > 1280 + xOffset) xOffsetNext = (x - 4) * 256;
+  if ((x - 1) * 256 < xOffset) xOffsetNext = x * 256;
+
+  if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;
       if (m_selected.titleIndex == title) {
         u128 userID = Gui::requestPlayerSelection();
@@ -263,14 +280,48 @@ void GuiMain::onTouch(touchPosition &touch) {
           Title::g_currTitle = Title::g_titles[m_selected.titleId];
           Account::g_currAccount = Account::g_accounts[userID];
           Gui::g_nextGui = GUI_EDITOR;
-        } else (new Snackbar("No save file for this user available!"))->show();      
+        } else (new Snackbar("No save file available for this user!"))->show();      
       }
 
       m_selected.titleIndex = title;
     }
 }
 
-void GuiMain::onGesture(touchPosition &startPosition, touchPosition &endPosition) {
-  if (Title::g_titles.size() == 0) return;
+inline s8 sign(s32 value) {
+  return (value > 0) - (value < 0); 
+}
 
+void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition, bool finish) {
+  static std::vector<s32> positions;
+  static touchPosition oldPosition;
+
+  if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
+
+  if (finish) {
+    s32 velocity = std::accumulate(positions.begin(), positions.end(), 0) / static_cast<s32>(positions.size());
+    
+    xOffsetNext = xOffset + velocity * 1.5F;
+    xOffsetNext = std::min(std::max<s32>(xOffsetNext, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5)));
+
+    startOffset = xOffsetNext;
+
+    positions.clear();
+    oldPosition = {0};
+  }
+  else {
+    xOffset = startOffset + (static_cast<s32>(startPosition.px) - static_cast<s32>(currPosition.px));
+    xOffset = std::min(std::max<s32>(xOffset, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5)));
+    xOffsetNext = xOffset;
+  }
+
+  if (oldPosition.px != 0x00) {
+    s32 pos = static_cast<s32>(oldPosition.px) - static_cast<s32>(currPosition.px);
+    if (std::abs(pos) < 400)
+      positions.push_back(pos);
+  }
+
+  if (positions.size() > 10)
+    positions.erase(positions.begin());
+
+  oldPosition = currPosition;
 }

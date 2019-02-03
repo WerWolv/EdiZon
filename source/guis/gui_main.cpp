@@ -38,11 +38,7 @@ void GuiMain::update() {
 
   if (xOffset != xOffsetNext && finishedDrawing) {
     double deltaOffset = xOffsetNext - xOffset;
-    double scrollSpeed = deltaOffset / 40.0F;
-
-    if (xOffset < 0 || ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) <= 10) xOffsetNext = xOffset = 0;
-    if (xOffset > static_cast<s32>(std::ceil((((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size() + 1) / 2) - 5) * 256))
-      xOffsetNext = xOffset = (std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size() + 1) / 2) - 5) * 256;
+    double scrollSpeed = deltaOffset / 30.0F;
 
     if (xOffsetNext > xOffset)
       xOffset += ceil((abs(deltaOffset) > scrollSpeed) ? scrollSpeed : deltaOffset);
@@ -134,6 +130,13 @@ void GuiMain::draw() {
 
 void GuiMain::onInput(u32 kdown) {
   if (Title::g_titles.size() == 0) return;
+  
+  if (kdown != 0x00 && kdown != KEY_TOUCH) {
+    if ((m_selected.titleIndex / 2 + 1) * 256 < xOffset || (m_selected.titleIndex / 2) * 256 > xOffset + 5 * 256) {
+      m_selected.titleIndex = std::ceil(xOffset / 256.0F) * 2;
+      return;
+    }
+  }
 
   if (kdown & KEY_LEFT) {
     if (static_cast<s16>(m_selected.titleIndex - 2) >= 0)
@@ -152,15 +155,13 @@ void GuiMain::onInput(u32 kdown) {
     }
   }
 
-  if (kdown != 0x00 && kdown != KEY_TOUCH) {
-    if ((m_selected.titleIndex / 2) * 256 - xOffsetNext < 0 || (m_selected.titleIndex / 2) * 256 - xOffsetNext > 1280) {
-      m_selected.titleIndex = std::ceil(xOffset / 256 + 1) * 2;
-    } else {
-      if ((m_selected.titleIndex / 2 + 2) * 256 > 1280 + xOffsetNext) xOffsetNext = (m_selected.titleIndex / 2 - 3) * 256;
-      if ((m_selected.titleIndex / 2 - 1) * 256 < xOffsetNext) xOffsetNext = (m_selected.titleIndex / 2 - 1) * 256;
-    }
-  }
+  if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
+    if (m_selected.titleIndex / 2 - (xOffset / 256) > 3)
+      xOffsetNext = std::min(static_cast<u32>((m_selected.titleIndex / 2 - 3) * 256), static_cast<u32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5) * 256));
 
+    if (m_selected.titleIndex / 2 - (xOffset / 256) < 1)
+      xOffsetNext = std::max((m_selected.titleIndex / 2 - 1) * 256, 0);
+  }
 
   if (kdown & KEY_A) {
     u128 userID = Gui::requestPlayerSelection();
@@ -179,6 +180,7 @@ void GuiMain::onInput(u32 kdown) {
   if (kdown & KEY_ZL) {
     m_editableOnly = !m_editableOnly;
     m_selected.titleIndex = 0;
+    xOffsetNext = 0;
   }
 
   if (kdown & KEY_X) {
@@ -262,9 +264,6 @@ void GuiMain::onTouch(touchPosition &touch) {
   u8 y = floor(touch.py / 256.0F);
   u8 title = y + x * 2;
 
-  if ((x + 1) * 256 > 1280 + xOffset) xOffsetNext = (x - 4) * 256;
-  if ((x - 1) * 256 < xOffset) xOffsetNext = x * 256;
-
   if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;
       if (m_selected.titleIndex == title) {
@@ -300,8 +299,7 @@ void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition,
   if (finish) {
     s32 velocity = std::accumulate(positions.begin(), positions.end(), 0) / static_cast<s32>(positions.size());
     
-    xOffsetNext = xOffset + velocity * 1.5F;
-    xOffsetNext = std::min(std::max<s32>(xOffsetNext, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5)));
+    xOffsetNext = std::min(std::max<s32>(xOffset + velocity * 1.5F, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5)));
 
     startOffset = xOffsetNext;
 

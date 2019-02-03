@@ -112,22 +112,22 @@ void GuiEditor::draw() {
     Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 50, m_textColor, Title::g_currTitle->getTitleAuthor().c_str(), ALIGNED_CENTER);
     Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, ssTitleId.str().c_str(), ALIGNED_CENTER);
 
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6 Next title     \uE0E7 Next user     \uE0E2 Backup     \uE0E3 Restore     \uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6 Next game     \uE0E7 Next user     \uE0E2 Backup     \uE0E3 Restore     \uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
     switch (m_configFileResult) {
       case 0:
-        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No save file loaded. Press \uE0F0 to edit one.", ALIGNED_CENTER);
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Press \uE0F0 to load and edit your save file.", ALIGNED_CENTER);
         break;
       case 1:
-        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editor config file found. Editing is disabled.", ALIGNED_CENTER);
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No config for this game was found. Editing is disabled.", ALIGNED_CENTER);
         break;
       case 2:
         Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Syntax error in config file! Editing is disabled.", ALIGNED_CENTER);
         break;
       case 3:
-        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Config file isn't compatible with your game version. Editing is disabled.", ALIGNED_CENTER);
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "The config isn't compatible with your game's version. Editing is disabled.", ALIGNED_CENTER);
         break;
       case 4:
-        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "Config file loading redirected more than 5 times. Editing is disabled.", ALIGNED_CENTER);
+        Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "The config redirected more than 5 times. Editing is disabled.", ALIGNED_CENTER);
         break;
     }
 
@@ -146,6 +146,7 @@ void GuiEditor::draw() {
   if (m_widgets[Widget::g_selectedCategory].size() > WIDGETS_PER_PAGE) {
     for (u8 page = 0; page < Widget::g_widgetPageCnt[Widget::g_selectedCategory]; page++) {
       Gui::drawRectangle((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 , 608, 20, 20, currTheme.separatorColor);
+      
       if (page == Widget::g_widgetPage)
         Gui::drawRectangled((Gui::g_framebuffer_width / 2) - Widget::g_widgetPageCnt[Widget::g_selectedCategory] * 15 + page * 30 + 4, 612, 12, 12, currTheme.highlightColor);
     }
@@ -356,13 +357,20 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           Widget::g_selectedCategory = "";
           Widget::g_selectedRow = CATEGORIES;
           Widget::g_categoryYOffset = 0;
+          
+          (new MessageBox("Starting up editor...", MessageBox::NONE))->show();
+          requestDraw();
+          Gui::g_currMessageBox->hide();
+          
           GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].fileName.c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
               m_interpreter->setSaveFileBuffer(&g_currSaveFile[0], length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
               ConfigParser::createWidgets(m_widgets, *m_interpreter, this->m_saveFiles[selectedItem].configIndex);
+
               if(!m_interpreter->initialize(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["filetype"])) {
                 m_interpreter->deinitialize();
+                Gui::g_currMessageBox->hide();
 
                 GuiEditor::g_currSaveFile.clear();
                 GuiEditor::g_currSaveFileName = "";
@@ -378,7 +386,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
                 Gui::g_currListSelector->hide();
                 return;
               }
-
+              
               if (ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()])
                 (new MessageBox("Please create a backup before using this beta config.", MessageBox::OKAY))->show();
             }

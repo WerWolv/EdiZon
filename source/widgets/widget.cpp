@@ -79,7 +79,7 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
     currWidgets[Widget::g_selectedWidgetIndex].widget->onInput(kdown);
 
   if (Widget::g_selectedRow == CATEGORIES) {
-    if (kdown & KEY_A || kdown & KEY_RIGHT) {
+    if (kdown & KEY_A || kdown & KEY_LSTICK_RIGHT || kdown & KEY_RSTICK_RIGHT) {
       Widget::g_selectedRow = WIDGETS;
       Widget::g_selectedWidgetIndex = Widget::g_widgetPage * WIDGETS_PER_PAGE;
     }

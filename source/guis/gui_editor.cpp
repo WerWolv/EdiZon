@@ -361,7 +361,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           (new MessageBox("Starting up editor...", MessageBox::NONE))->show();
           requestDraw();
           Gui::g_currMessageBox->hide();
-          
+
           GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].fileName.c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
@@ -540,18 +540,18 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         Widget::g_selectedWidgetIndex = WIDGETS_PER_PAGE * Widget::g_widgetPage ;
       }
 
-      if (kdown & KEY_B) {
+      if (kdown & KEY_B || kdown & KEY_LSTICK_LEFT || kdown & KEY_RSTICK_LEFT) {
         Widget::g_selectedRow = CATEGORIES;
         Widget::g_selectedWidgetIndex = std::distance(Widget::g_categories.begin(), std::find(Widget::g_categories.begin(), Widget::g_categories.end(), Widget::g_selectedCategory));
       }
 
-      if (kdown & KEY_UP) {
+      if (kdown & KEY_LSTICK_UP || kdown & KEY_RSTICK_UP) {
         if (Widget::g_selectedWidgetIndex > 0)
           Widget::g_selectedWidgetIndex--;
         Widget::g_widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
       }
 
-      if (kdown & KEY_DOWN) {
+      if (kdown & KEY_LSTICK_DOWN || kdown & KEY_RSTICK_DOWN) {
         if (Widget::g_selectedWidgetIndex < m_widgets[Widget::g_selectedCategory].size() - 1)
           Widget::g_selectedWidgetIndex++;
         Widget::g_widgetPage = floor(Widget::g_selectedWidgetIndex / WIDGETS_PER_PAGE);
@@ -578,7 +578,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         return;
       }
 
-      if (kdown & KEY_UP) {
+      if (kdown & KEY_LSTICK_UP || kdown & KEY_RSTICK_UP) {
         if (Widget::g_selectedWidgetIndex > 0) {
           Widget::g_selectedWidgetIndex--;
 
@@ -589,7 +589,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         Widget::g_widgetPage = 0;
       }
 
-      if (kdown & KEY_DOWN) {
+      if (kdown & KEY_LSTICK_DOWN || kdown & KEY_RSTICK_DOWN) {
         if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 1) {
           Widget::g_selectedWidgetIndex++;
 

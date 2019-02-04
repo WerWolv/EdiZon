@@ -33,7 +33,7 @@ bool isNumber(const std::string &line) {
 void WidgetValue::onInput(u32 kdown) {
   u64 incrementValue = m_stepSize * g_stepSizeMultiplier;
 
-  if (kdown & KEY_LEFT) {
+  if (kdown & KEY_DLEFT) {
     if (static_cast<s64>(m_currValue - incrementValue) > m_minValue)
         Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_currValue) - incrementValue);
     else if(m_currValue <= m_minValue)
@@ -42,7 +42,7 @@ void WidgetValue::onInput(u32 kdown) {
       Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_minValue));
   }
 
-  if (kdown & KEY_RIGHT) {
+  if (kdown & KEY_DRIGHT) {
     if (static_cast<s64>(m_currValue + incrementValue) < m_maxValue)
       Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
     else if(m_currValue >= m_maxValue)

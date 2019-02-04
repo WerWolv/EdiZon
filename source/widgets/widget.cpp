@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+static s32 tooltipCnt = 0;
+
 Widget::Widget(Interpreter *interpreter, bool isDummy) : m_interpreter(interpreter), m_isDummy(isDummy) {
   Widget::g_stepSizeMultiplier = 1;
 }
@@ -13,6 +15,8 @@ Widget::~Widget() {
 }
 
 void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end) {
+  static u16 oldWidgetIndex = 0;
+
   if (Widget::g_categories.empty() || widgets.empty()) return;
   if (widgets.find(Widget::g_selectedCategory) == widgets.end()) return;
 
@@ -34,22 +38,38 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
   if (currWidgets.size() <= 0) return;
 
   u16 widgetInset = (Gui::g_framebuffer_width - WIDGET_WIDTH) / 2.0F;
+  u16 widgetY = y;
 
   for (;start < end; start++) {
     if (start > currWidgets.size() - 1) break;
 
     if (start == Widget::g_selectedWidgetIndex && Widget::g_selectedRow == WIDGETS) {
-      gui->drawRectangled(widgetInset + X_OFFSET, y, WIDGET_WIDTH - 1, WIDGET_HEIGHT, currTheme.highlightColor);
-      gui->drawRectangle(widgetInset + 5 + X_OFFSET, y + 5, WIDGET_WIDTH - 12, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
-      gui->drawShadow(widgetInset + X_OFFSET, y, WIDGET_WIDTH, WIDGET_HEIGHT);
+      gui->drawRectangled(widgetInset + X_OFFSET, widgetY, WIDGET_WIDTH - 1, WIDGET_HEIGHT, currTheme.highlightColor);
+      gui->drawRectangle(widgetInset + 5 + X_OFFSET, widgetY + 5, WIDGET_WIDTH - 12, WIDGET_HEIGHT - 10, currTheme.selectedButtonColor);
+      gui->drawShadow(widgetInset + X_OFFSET, widgetY, WIDGET_WIDTH, WIDGET_HEIGHT);
     }
 
-    gui->drawTextAligned(font20, widgetInset + 50 + X_OFFSET, y + (WIDGET_HEIGHT / 2.0F) - 13, currTheme.textColor, currWidgets[start].title.c_str(), ALIGNED_LEFT);
-    gui->drawRectangle(widgetInset + 30 + X_OFFSET, y + WIDGET_HEIGHT + (WIDGET_SEPARATOR / 2) - 1, WIDGET_WIDTH - 60, 1, currTheme.separatorColor);
-    currWidgets[start].widget->draw(gui, widgetInset + 50 + X_OFFSET, y - 13);
+    gui->drawTextAligned(font20, widgetInset + 50 + X_OFFSET, widgetY + (WIDGET_HEIGHT / 2.0F) - 13, currTheme.textColor, currWidgets[start].title.c_str(), ALIGNED_LEFT);
+    gui->drawRectangle(widgetInset + 30 + X_OFFSET, widgetY + WIDGET_HEIGHT + (WIDGET_SEPARATOR / 2) - 1, WIDGET_WIDTH - 60, 1, currTheme.separatorColor);
+    currWidgets[start].widget->draw(gui, widgetInset + 50 + X_OFFSET, widgetY - 13);
 
-    y += WIDGET_HEIGHT + WIDGET_SEPARATOR;
+    widgetY += WIDGET_HEIGHT + WIDGET_SEPARATOR;
   }
+
+  if (Widget::g_selectedRow == WIDGETS) {
+    if (Widget::g_selectedWidgetIndex != oldWidgetIndex)
+      tooltipCnt = 0;
+    else if (tooltipCnt < (3 * 60 + 0xFF))
+      tooltipCnt = std::min(tooltipCnt + 8, 3 * 60 + 0xFF);
+
+    if (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE) > 3)
+      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 3 * 60), true);
+    else
+      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 3 * 60), false);
+  } else tooltipCnt = 0;
+
+  oldWidgetIndex = Widget::g_selectedWidgetIndex;
+
 }
 
 void Widget::handleInput(u32 kdown, WidgetItems &widgets) {

@@ -185,9 +185,10 @@ void Gui::drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph) {
 
   for (u32 j = 0; j < glyph->height; j ++) {
       for (u32 i = 0; i < glyph->width; i ++) {
-          clr.a = data[i];
-          if (!clr.a) continue;
-          drawPixel(x+i, y+j, clr);
+          color_t pixelColor = clr;
+          pixelColor.a = data[i] * (static_cast<float>(clr.a) / 0xFF);
+          if (!pixelColor.a) continue;
+          drawPixel(x+i, y+j, pixelColor);
       }
       data += glyph->pitch;
   }
@@ -289,7 +290,6 @@ void Gui::drawText_(u32 font, s16 x, s16 y, color_t clr, const char* text, s32 m
           if (!fontLoadGlyph(&glyph, font, '?'))
               continue;
       }
-
       drawGlyph(x, y, clr, &glyph);
       x += glyph.advance;
   }
@@ -516,7 +516,10 @@ void Gui::drawShadow(s16 x, s16 y, s16 width, s16 height) {
   }
 }
 
-void Gui::drawTooltip(s16 x, s16 y, const char *text, color_t backgroundColor, color_t textColor, bool flipped) {
+void Gui::drawTooltip(s16 x, s16 y, const char *text, color_t backgroundColor, color_t textColor, u8 alpha, bool flipped) {
+    backgroundColor.a = alpha;
+    textColor.a = alpha;
+
     s16 tipX, tipY;
     for (tipY = 0; tipY < 20; tipY++) {
         for (tipX = x - tipY; tipX < x + tipY; tipX++) {

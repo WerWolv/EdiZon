@@ -119,7 +119,7 @@ void GuiMain::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
 
     if (m_selected.titleIndex != -1)
-      Gui::drawTooltip(selectedX + 128, 266, Title::g_titles[m_selected.titleId]->getTitleName().c_str(), currTheme.tooltipColor, Gui::makeColor(0x27, 0xA3, 0xC7, 0xFF), m_selected.titleIndex % 2);
+      Gui::drawTooltip(selectedX + 128, 266, Title::g_titles[m_selected.titleId]->getTitleName().c_str(), currTheme.tooltipColor, Gui::makeColor(0x27, 0xA3, 0xC7, 0xFF), 0xFF, m_selected.titleIndex % 2);
   }
 
   finishedDrawing = true;

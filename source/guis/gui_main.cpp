@@ -20,8 +20,6 @@ static bool finishedDrawing = true;
 static s64 startOffset = 0;
 
 GuiMain::GuiMain() : Gui() {
-  m_selected.accountIndex = 0;
-
   for (auto title : Title::g_titles) {
     if (ConfigParser::hasConfig(title.first) == 0) {
       ConfigParser::g_editableTitles.insert({title.first, true});
@@ -67,9 +65,6 @@ void GuiMain::draw() {
     return;
   }
 
- /* if (Title::g_titles.size() <= 10) xOffsetNext = 0;
-  if (m_editableCount <= 10 && tmpEditableOnly) xOffsetNext = 0;*/
-
   m_editableCount = 0;
 
   for (auto title : Title::g_titles) {
@@ -103,6 +98,7 @@ void GuiMain::draw() {
     return;
   }
   else {
+    if (m_selected.titleIndex != -1) {
       Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.highlightColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
 
@@ -110,6 +106,7 @@ void GuiMain::draw() {
         Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
       Gui::drawShadow(selectedX - 5, selectedY - 5, 266, 266);
+    }
 
     Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
@@ -121,6 +118,8 @@ void GuiMain::draw() {
 
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
 
+    if (m_selected.titleIndex != -1)
+      Gui::drawTooltip(selectedX + 128, 266, Title::g_titles[m_selected.titleId]->getTitleName().c_str(), currTheme.tooltipColor, Gui::makeColor(0x27, 0xA3, 0xC7, 0xFF), m_selected.titleIndex % 2);
   }
 
   finishedDrawing = true;
@@ -131,8 +130,8 @@ void GuiMain::draw() {
 void GuiMain::onInput(u32 kdown) {
   if (Title::g_titles.size() == 0) return;
   
-  if (kdown != 0x00 && kdown != KEY_TOUCH) {
-    if ((m_selected.titleIndex / 2 + 1) * 256 < xOffset || (m_selected.titleIndex / 2) * 256 > xOffset + 5 * 256) {
+  if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_A | KEY_X)) {
+    if (m_selected.titleIndex == -1 || (m_selected.titleIndex / 2 + 1) * 256 < xOffset || (m_selected.titleIndex / 2) * 256 > xOffset + 6 * 256) {
       m_selected.titleIndex = std::ceil(xOffset / 256.0F) * 2;
       return;
     }
@@ -293,6 +292,8 @@ inline s8 sign(s32 value) {
 void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition, bool finish) {
   static std::vector<s32> positions;
   static touchPosition oldPosition;
+
+  m_selected.titleIndex = -1;
 
   if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
 

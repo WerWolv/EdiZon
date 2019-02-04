@@ -22,8 +22,7 @@ public:
 
 private:
   static inline struct {
-    u8 titleIndex;
-    u8 accountIndex;
+    s16 titleIndex;
 
     u64 titleId;
     u128 userId;

@@ -20,8 +20,7 @@ void WidgetValue::draw(Gui *gui, u16 x, u16 y) {
   std::stringstream ss;
   ss << m_currValue;
 
-  if (m_currValue == 0)
-    m_currValue = Widget::m_interpreter->evaluateEquation(m_readEquation, Widget::getIntegerValue());
+  m_currValue = Widget::m_interpreter->evaluateEquation(m_readEquation, Widget::getIntegerValue());
 
   gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), currTheme.selectedColor, ss.str().c_str(), ALIGNED_RIGHT);
 }

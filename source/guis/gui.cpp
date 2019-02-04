@@ -516,6 +516,28 @@ void Gui::drawShadow(s16 x, s16 y, s16 width, s16 height) {
   }
 }
 
+void Gui::drawTooltip(s16 x, s16 y, const char *text, color_t backgroundColor, color_t textColor, bool flipped) {
+    s16 tipX, tipY;
+    for (tipY = 0; tipY < 20; tipY++) {
+        for (tipX = x - tipY; tipX < x + tipY; tipX++) {
+            if(tipX >= 0 && tipX < 1280 && tipY >= 0 && tipY <= 1280)
+                Gui::drawPixel(tipX, (flipped ? -tipY : tipY) + y, backgroundColor);
+            else continue;
+        }
+    }
+
+    tipY += y;
+
+    u32 textWidth, textHeight;
+    Gui::getTextDimensions(font14, text, &textWidth, &textHeight);
+
+    s16 overlapRight = std::max(static_cast<s32>((tipX + textWidth - 20)) - 1280, 0);
+    s16 overlapLeft = std::min(tipX - 50 - overlapRight, 0);
+
+    Gui::drawRectangled(tipX - 50 - overlapRight - overlapLeft, flipped ? tipY - textHeight - 69 : tipY, textWidth + 30, textHeight + 30, backgroundColor);
+    Gui::drawTextAligned(font14, tipX - 35 + static_cast<s32>(textWidth) / 2 - overlapRight - overlapLeft, flipped ? tipY - textHeight - 59 : tipY + 10, textColor, text, ALIGNED_CENTER);
+}
+
 inline u8 getPixel(u8* in, size_t src_width, size_t src_height, u16 x, u16 y, s32 channel) {
     if (x < src_width && y < src_height)
         return in[(x * 3 * src_width) + (3 * y) + channel];
@@ -527,7 +549,7 @@ void Gui::resizeImage(u8* in, u8* out, size_t src_width, size_t src_height, size
     const float tx = static_cast<float>(src_width) / dest_width;
     const float ty = static_cast<float>(src_height) / dest_height;
     const s32 channels = 3;
-    const std::size_t row_stride = dest_width * channels;
+    const size_t row_stride = dest_width * channels;
 
     u8 C[5] = { 0 };
 

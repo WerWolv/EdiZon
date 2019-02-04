@@ -59,13 +59,13 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
   if (Widget::g_selectedRow == WIDGETS) {
     if (Widget::g_selectedWidgetIndex != oldWidgetIndex)
       tooltipCnt = 0;
-    else if (tooltipCnt < (3 * 60 + 0xFF))
-      tooltipCnt = std::min(tooltipCnt + 8, 3 * 60 + 0xFF);
+    else if (tooltipCnt < (8 * 60 + 0xFF))
+      tooltipCnt = std::min(tooltipCnt + 16, 8 * 60 + 0xFF);
 
     if (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE) > 3)
-      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 3 * 60), true);
+      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), true);
     else
-      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 3 * 60), false);
+      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), false);
   } else tooltipCnt = 0;
 
   oldWidgetIndex = Widget::g_selectedWidgetIndex;

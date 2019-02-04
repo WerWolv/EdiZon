@@ -96,7 +96,7 @@ void GuiEditor::draw() {
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 
-  Widget::drawWidgets(this, m_widgets, 150, Widget::g_widgetPage * WIDGETS_PER_PAGE, (Widget::g_widgetPage + 1) * WIDGETS_PER_PAGE);
+  Widget::drawWidgets(this, m_widgets, Widget::g_widgetPage * WIDGETS_PER_PAGE, (Widget::g_widgetPage + 1) * WIDGETS_PER_PAGE);
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 128, m_dominantColor);
   Gui::drawImage(0, 0, 128, 128, &m_titleIcon[0], IMAGE_MODE_RGB24);
@@ -640,8 +640,6 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 }
 
 void GuiEditor::onTouch(touchPosition &touch) {
-  //s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * Widget::g_widgetPage;
-
   if (GuiEditor::g_currSaveFileName == "") {
     if (touch.px < 128 && touch.py < 128) {
       Title *nextTitle = nullptr;
@@ -684,6 +682,9 @@ void GuiEditor::onTouch(touchPosition &touch) {
         Gui::g_nextGui = GUI_EDITOR;
       } else nextAccount = nullptr;
     }
+  } else {
+      //s8 widgetTouchPos = floor((touch.py - 150) / (static_cast<float>(WIDGET_HEIGHT) + WIDGET_SEPARATOR)) + WIDGETS_PER_PAGE * Widget::g_widgetPage;
+    Widget::handleTouch(touch, m_widgets);
   }
 }
 

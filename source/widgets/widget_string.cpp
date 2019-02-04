@@ -32,5 +32,10 @@ void WidgetString::onInput(u32 kdown) {
 }
 
 void WidgetString::onTouch(touchPosition &touch) {
+  char out_string[m_maxLength + 1];
+  Gui::requestKeyboardInput("Input string value", "Enter a string for this value to be set to.", Widget::getStringValue(), SwkbdType_Normal, out_string, m_maxLength);
 
+  if (std::strlen(out_string) > m_minLength)
+    Widget::setStringValue(out_string);
+  else (new Snackbar("Input string has to be longer than " + std::to_string(m_minLength) + " characters!"))->show();
 }

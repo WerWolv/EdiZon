@@ -14,7 +14,7 @@ Widget::~Widget() {
   Widget::g_stepSizeMultiplier = 1;
 }
 
-void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 end) {
+void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 start, u16 end) {
   static u16 oldWidgetIndex = 0;
 
   if (Widget::g_categories.empty() || widgets.empty()) return;
@@ -22,15 +22,15 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
 
   ptrdiff_t categoryIndex = std::find(Widget::g_categories.begin(), Widget::g_categories.end(), Widget::g_selectedCategory) - Widget::g_categories.begin() - g_categoryYOffset;
   if (Widget::g_selectedRow == CATEGORIES) {
-    gui->drawRectangled(25, y + 4 + 60 * categoryIndex, 310, 55, currTheme.highlightColor);
-    gui->drawRectangle(30, y + 9 + 60 * categoryIndex, 300, 45, currTheme.selectedButtonColor);
-    gui->drawShadow(25, y + 4 + 60 * categoryIndex, 310, 55);
+    gui->drawRectangled(25, 150 + 4 + 60 * categoryIndex, 310, 55, currTheme.highlightColor);
+    gui->drawRectangle(30, 150 + 9 + 60 * categoryIndex, 300, 45, currTheme.selectedButtonColor);
+    gui->drawShadow(25, 150 + 4 + 60 * categoryIndex, 310, 55);
   }
 
-  gui->drawRectangle(37, y + 13 + 60 * categoryIndex, 4, 35, currTheme.selectedColor);
+  gui->drawRectangle(37, 150 + 13 + 60 * categoryIndex, 4, 35, currTheme.selectedColor);
 
   for (u8 i = 0; i < Widget::g_categories.size(); i++) {
-    gui->drawText(font20, 50, y + 15 + 60 * (i - g_categoryYOffset), Widget::g_categories[i] == Widget::g_selectedCategory ? currTheme.selectedColor : currTheme.textColor, Widget::g_categories[i].c_str());
+    gui->drawText(font20, 50, 150 + 15 + 60 * (i - g_categoryYOffset), Widget::g_categories[i] == Widget::g_selectedCategory ? currTheme.selectedColor : currTheme.textColor, Widget::g_categories[i].c_str());
   }
 
   std::vector<WidgetItem> &currWidgets = widgets[Widget::g_selectedCategory];
@@ -38,7 +38,7 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
   if (currWidgets.size() <= 0) return;
 
   u16 widgetInset = (Gui::g_framebuffer_width - WIDGET_WIDTH) / 2.0F;
-  u16 widgetY = y;
+  u16 widgetY = 150;
 
   for (;start < end; start++) {
     if (start > currWidgets.size() - 1) break;
@@ -63,9 +63,9 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 y, u16 start, u16 e
       tooltipCnt = std::min(tooltipCnt + 16, 8 * 60 + 0xFF);
 
     if (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE) > 3)
-      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), true);
+      gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), true);
     else
-      gui->drawTooltip(widgetInset + X_OFFSET + 200, y + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), false);
+      gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), false);
   } else tooltipCnt = 0;
 
   oldWidgetIndex = Widget::g_selectedWidgetIndex;
@@ -88,6 +88,33 @@ void Widget::handleInput(u32 kdown, WidgetItems &widgets) {
   if (kdown & KEY_RSTICK) {
     if (g_stepSizeMultiplier == 10000) g_stepSizeMultiplier = 1;
     else g_stepSizeMultiplier *= 10;
+  }
+}
+
+void Widget::handleTouch(touchPosition &touch, WidgetItems &widgets) {
+  std::vector<WidgetItem> &currWidgets = widgets[Widget::g_selectedCategory];
+  
+  u16 widgetInset = (Gui::g_framebuffer_width - WIDGET_WIDTH) / 2.0F;
+
+  if (touch.px > 30 && touch.px < 330) { /* Touch of categories area */
+    u8 categoryIndex = std::floor((touch.py - 159) / 60.0F);
+
+    Widget::g_selectedRow = CATEGORIES;
+
+    if (Widget::g_selectedCategory == Widget::g_categories[categoryIndex])
+      Widget::g_selectedRow = WIDGETS;
+    else if (categoryIndex < Widget::g_categories.size())
+      Widget::g_selectedCategory = Widget::g_categories[categoryIndex];
+
+  } else if (touch.px > widgetInset + X_OFFSET && touch.px < widgetInset + X_OFFSET + WIDGET_WIDTH
+            && touch.py > 150 && touch.py < 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * WIDGETS_PER_PAGE) { /* Touch of widgets area */
+    u16 widgetIndex = std::min(static_cast<u32>((touch.py - 150) / (WIDGET_HEIGHT + WIDGET_SEPARATOR) + Widget::g_widgetPage * WIDGETS_PER_PAGE), static_cast<u32>(currWidgets.size()));
+    
+    Widget::g_selectedRow = WIDGETS;
+
+    if (Widget::g_selectedWidgetIndex != widgetIndex)
+      Widget::g_selectedWidgetIndex = widgetIndex;
+    else currWidgets[widgetIndex].widget->onTouch(touch);
   }
 }
 

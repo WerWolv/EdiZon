@@ -28,5 +28,5 @@ void WidgetComment::onInput(u32 kdown) {
 }
 
 void WidgetComment::onTouch(touchPosition &touch) {
-
+  (new MessageBox(m_text, MessageBox::OKAY))->show();
 }

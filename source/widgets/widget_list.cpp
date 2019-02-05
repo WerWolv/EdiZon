@@ -2,13 +2,13 @@
 
 #include "list_selector.hpp"
 
-WidgetList::WidgetList(Interpreter *interpreter, bool isDummy, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) :
- Widget(interpreter, isDummy), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
+WidgetList::WidgetList(Interpreter *interpreter, bool isDummy, std::string tooltip, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) :
+ Widget(interpreter, isDummy, tooltip), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {
   m_widgetDataType = INT;
 }
 
-WidgetList::WidgetList(Interpreter *interpreter, bool isDummy, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) :
- Widget(interpreter, isDummy), m_listItemNames(listItemNames), m_strListItemValues(listItemValues) {
+WidgetList::WidgetList(Interpreter *interpreter, bool isDummy, std::string tooltip, std::vector<std::string> listItemNames, std::vector<std::string> listItemValues) :
+ Widget(interpreter, isDummy, tooltip), m_listItemNames(listItemNames), m_strListItemValues(listItemValues) {
   m_widgetDataType = STRING;
 }
 

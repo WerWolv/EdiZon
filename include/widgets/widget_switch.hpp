@@ -6,8 +6,8 @@
 
 class WidgetSwitch : public Widget {
 public:
-  WidgetSwitch(Interpreter *interpreter, bool isDummy, s32 onValue, s32 offValue);
-  WidgetSwitch(Interpreter *interpreter, bool isDummy, std::string onValue, std::string offValue);
+  WidgetSwitch(Interpreter *interpreter, bool isDummy, std::string tooltip, s32 onValue, s32 offValue);
+  WidgetSwitch(Interpreter *interpreter, bool isDummy, std::string tooltip, std::string onValue, std::string offValue);
 
   ~WidgetSwitch();
 

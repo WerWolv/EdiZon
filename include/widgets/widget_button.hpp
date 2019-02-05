@@ -6,7 +6,7 @@
 
 class WidgetButton : public Widget {
 public:
-  WidgetButton(Interpreter *interpreter, std::string funcName);
+  WidgetButton(Interpreter *interpreter, std::string tooltip, std::string funcName);
 
   ~WidgetButton();
 

@@ -6,7 +6,7 @@
 
 static s32 tooltipCnt = 0;
 
-Widget::Widget(Interpreter *interpreter, bool isDummy) : m_interpreter(interpreter), m_isDummy(isDummy) {
+Widget::Widget(Interpreter *interpreter, bool isDummy, std::string tooltip) : m_interpreter(interpreter), m_isDummy(isDummy), m_tooltip(tooltip) {
   Widget::g_stepSizeMultiplier = 1;
 }
 
@@ -62,11 +62,13 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 start, u16 end) {
     else if (tooltipCnt < (8 * 60 + 0xFF))
       tooltipCnt = std::min(tooltipCnt + 16, 8 * 60 + 0xFF);
 
-    if (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE) > 3)
-      gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), true);
-    else
-      gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), "afasdfhasdkfhaskjdfhaksjdfhkasjdfhkjasdfhkjasdfhkasfdkjhsakdfhkasjd\n asdasdasdasdasd", currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), false);
-  } else tooltipCnt = 0;
+      if (currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip != "") {
+        if (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE) > 3)
+          gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip.c_str(), currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), true);
+        else
+          gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip.c_str(), currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), false);   
+      }
+    } else tooltipCnt = 0;
 
   oldWidgetIndex = Widget::g_selectedWidgetIndex;
 

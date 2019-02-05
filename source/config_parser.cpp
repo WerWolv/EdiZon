@@ -100,27 +100,32 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter *
 
 void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter, u8 configIndex) {
   std::set<std::string> tempCategories;
-  bool isDummy = false;
 
   if (ConfigParser::m_configFile == nullptr) return;
 
   if (!ConfigParser::m_configFile.is_array()) return;
 
   for (auto item : ConfigParser::m_configFile[configIndex]["items"]) {
+    bool isDummy = false;
+    std::string tooltip = "";
+
     if (item["name"] == nullptr || item["category"] == nullptr || item["intArgs"] == nullptr || item["strArgs"] == nullptr) continue;
+
+    if (item["dummy"] != nullptr)
+      isDummy = item["dummy"].get<bool>();
+    
+    if (item["tooltip"] != nullptr)
+      tooltip = item["tooltip"];
 
     auto itemWidget = item["widget"];
     if (itemWidget == nullptr) continue;
     if (itemWidget["type"] == nullptr) continue;
 
-    if (item["dummy"] != nullptr)
-      isDummy = item["dummy"].get<bool>();
-
     if (itemWidget["type"] == "int") {
       if (itemWidget["minValue"] == nullptr || itemWidget["maxValue"] == nullptr) continue;
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
       widgets[item["category"]].push_back({ item["name"],
-        new WidgetValue(&interpreter, isDummy,
+        new WidgetValue(&interpreter, isDummy, tooltip,
           ConfigParser::getOptionalValue<std::string>(itemWidget, "readEquation", "value"),
           ConfigParser::getOptionalValue<std::string>(itemWidget, "writeEquation", "value"),
           itemWidget["minValue"], itemWidget["maxValue"],
@@ -131,29 +136,29 @@ void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter,
       if (itemWidget["onValue"] == itemWidget["offValue"]) continue;
       if(itemWidget["onValue"].is_number() && itemWidget["offValue"].is_number()) {
         widgets[item["category"]].push_back({ item["name"],
-          new WidgetSwitch(&interpreter, isDummy, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
+          new WidgetSwitch(&interpreter, isDummy, tooltip, itemWidget["onValue"].get<s32>(), itemWidget["offValue"].get<s32>()) });
       }
       else if(itemWidget["onValue"].is_string() && itemWidget["offValue"].is_string())
         widgets[item["category"]].push_back({ item["name"],
-          new WidgetSwitch(&interpreter, isDummy, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
+          new WidgetSwitch(&interpreter, isDummy, tooltip, itemWidget["onValue"].get<std::string>(), itemWidget["offValue"].get<std::string>()) });
     }
     else if (itemWidget["type"] == "list") {
       if (itemWidget["listItemNames"] == nullptr || itemWidget["listItemValues"] == nullptr) continue;
 
       if (itemWidget["listItemValues"][0].is_number()) {
         widgets[item["category"]].push_back({ item["name"],
-          new WidgetList(&interpreter, isDummy, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
+          new WidgetList(&interpreter, isDummy, tooltip, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<s32>>()) });
       }
       else if (itemWidget["listItemValues"][0].is_string())
         widgets[item["category"]].push_back({ item["name"], 
-          new WidgetList(&interpreter, isDummy, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
+          new WidgetList(&interpreter, isDummy, tooltip, itemWidget["listItemNames"], itemWidget["listItemValues"].get<std::vector<std::string>>()) });
     } 
     else if (itemWidget["type"] == "string") {
       if (itemWidget["minLength"] == nullptr || itemWidget["maxLength"] == nullptr) continue;
 
       if (itemWidget["minLength"].is_number() && itemWidget["maxLength"].is_number()) {
         widgets[item["category"]].push_back({ item["name"], 
-          new WidgetString(&interpreter, isDummy, itemWidget["minLength"].get<u8>(), itemWidget["maxLength"].get<u8>()) });
+          new WidgetString(&interpreter, isDummy, tooltip, itemWidget["minLength"].get<u8>(), itemWidget["maxLength"].get<u8>()) });
       }
     }
     else if (itemWidget["type"] == "comment") {
@@ -161,7 +166,7 @@ void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter,
 
       if (itemWidget["comment"].is_string()) {
         widgets[item["category"]].push_back({ item["name"], 
-          new WidgetComment(&interpreter, itemWidget["comment"].get<std::string>()) });
+          new WidgetComment(&interpreter, tooltip, itemWidget["comment"].get<std::string>()) });
       }
     }
     else if (itemWidget["type"] == "button") {
@@ -169,7 +174,7 @@ void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter,
 
       if (itemWidget["function"].is_string()) {
         widgets[item["category"]].push_back({ item["name"], 
-          new WidgetButton(&interpreter, itemWidget["function"].get<std::string>()) });
+          new WidgetButton(&interpreter, tooltip, itemWidget["function"].get<std::string>()) });
       }
     }
 

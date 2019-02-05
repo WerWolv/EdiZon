@@ -1,7 +1,7 @@
 #include "widgets/widget_button.hpp"
 
-WidgetButton::WidgetButton(Interpreter *interpreter, std::string funcName) :
- Widget(interpreter, false), m_funcName(funcName) {
+WidgetButton::WidgetButton(Interpreter *interpreter, std::string tooltip, std::string funcName) :
+ Widget(interpreter, false, tooltip), m_funcName(funcName) {
   m_widgetDataType = STRING;
 
   m_displayText = "";

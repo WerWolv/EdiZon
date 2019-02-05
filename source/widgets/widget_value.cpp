@@ -4,8 +4,8 @@
 
 #define ACCELERATION_DELAY 50
 
-WidgetValue::WidgetValue(Interpreter *interpreter, bool isDummy, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize) :
- Widget(interpreter, isDummy), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
+WidgetValue::WidgetValue(Interpreter *interpreter, bool isDummy, std::string tooltip, std::string readEquation, std::string writeEquation, s64 minValue, s64 maxValue, u64 stepSize) :
+ Widget(interpreter, isDummy, tooltip), m_readEquation(readEquation), m_writeEquation(writeEquation), m_minValue(minValue), m_maxValue(maxValue), m_stepSize(stepSize) {
   m_widgetDataType = INT;
 
   m_currValue = 0;

@@ -6,7 +6,7 @@
 
 class WidgetComment : public Widget {
 public:
-  WidgetComment(Interpreter *interpreter, std::string text);
+  WidgetComment(Interpreter *interpreter, std::string tooltip, std::string text);
 
   ~WidgetComment();
 

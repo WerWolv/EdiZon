@@ -30,7 +30,7 @@ typedef enum { CATEGORIES, WIDGETS } WidgetRow;
 
 class Widget {
 public:
-  Widget(Interpreter *interpreter, bool isDummy);
+  Widget(Interpreter *interpreter, bool isDummy, std::string tooltip);
   virtual ~Widget();
 
   static inline u16 g_selectedWidgetIndex = 0;
@@ -66,4 +66,5 @@ protected:
   std::vector<s32> m_intArgs;
   std::vector<std::string> m_strArgs;
   bool m_isDummy;
+  std::string m_tooltip;
 };

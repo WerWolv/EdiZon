@@ -19,18 +19,20 @@ WidgetList::~WidgetList() {
 void WidgetList::draw(Gui *gui, u16 x, u16 y) {
   std::stringstream ss;
   if (m_widgetDataType == INT) {
-    if (std::find(m_intListItemValues.begin(), m_intListItemValues.end(), Widget::getIntegerValue()) != m_intListItemValues.end()) {
-      ptrdiff_t pos = find(m_intListItemValues.begin(), m_intListItemValues.end(), Widget::getIntegerValue()) - m_intListItemValues.begin();
+    s64 intValue = Widget::getIntegerValue();
+    if (std::find(m_intListItemValues.begin(), m_intListItemValues.end(), intValue) != m_intListItemValues.end()) {
+      ptrdiff_t pos = find(m_intListItemValues.begin(), m_intListItemValues.end(), intValue) - m_intListItemValues.begin();
       ss << m_listItemNames[pos];
     } else {
-      ss << "Unknown value: " << Widget::getIntegerValue();
+      ss << "Unknown value: " << intValue;
     }
   } else if (m_widgetDataType == STRING) {
-    if (std::find(m_strListItemValues.begin(), m_strListItemValues.end(), Widget::getStringValue()) != m_strListItemValues.end()) {
-      ptrdiff_t pos = find(m_strListItemValues.begin(), m_strListItemValues.end(), Widget::getStringValue()) - m_strListItemValues.begin();
+    std::string strValue = Widget::getStringValue();
+    if (std::find(m_strListItemValues.begin(), m_strListItemValues.end(), strValue) != m_strListItemValues.end()) {
+      ptrdiff_t pos = find(m_strListItemValues.begin(), m_strListItemValues.end(), strValue) - m_strListItemValues.begin();
       ss << m_listItemNames[pos];
     } else {
-      ss << "Unknown value: " << Widget::getStringValue();
+      ss << "Unknown value: " << strValue;
     }
   }
 

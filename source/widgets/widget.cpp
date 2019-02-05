@@ -62,13 +62,13 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 start, u16 end) {
     else if (tooltipCnt < (8 * 60 + 0xFF))
       tooltipCnt = std::min(tooltipCnt + 16, 8 * 60 + 0xFF);
 
-      if (currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip != "") {
-        if (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE) > 3)
-          gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip.c_str(), currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), true);
-        else
-          gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip.c_str(), currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), false);   
-      }
-    } else tooltipCnt = 0;
+    if (currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip != "") {
+      if (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE) > 3)
+        gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * (Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)), currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip.c_str(), currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), true);
+      else
+        gui->drawTooltip(widgetInset + X_OFFSET + 200, 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * ((Widget::g_selectedWidgetIndex % static_cast<u8>(WIDGETS_PER_PAGE)) + 1), currWidgets[Widget::g_selectedWidgetIndex].widget->m_tooltip.c_str(), currTheme.tooltipColor, currTheme.textColor, std::max(0, tooltipCnt - 8 * 60), false);   
+    }
+  } else tooltipCnt = 0;
 
   oldWidgetIndex = Widget::g_selectedWidgetIndex;
 
@@ -99,14 +99,22 @@ void Widget::handleTouch(touchPosition &touch, WidgetItems &widgets) {
   u16 widgetInset = (Gui::g_framebuffer_width - WIDGET_WIDTH) / 2.0F;
 
   if (touch.px > 30 && touch.px < 330) { /* Touch of categories area */
-    u8 categoryIndex = std::floor((touch.py - 159) / 60.0F);
+    u8 categoryIndex = std::floor((touch.py - 159) / 60.0F) + g_categoryYOffset;
 
     Widget::g_selectedRow = CATEGORIES;
 
     if (Widget::g_selectedCategory == Widget::g_categories[categoryIndex])
       Widget::g_selectedRow = WIDGETS;
-    else if (categoryIndex < Widget::g_categories.size())
+    else if (categoryIndex < Widget::g_categories.size()) {
       Widget::g_selectedCategory = Widget::g_categories[categoryIndex];
+      Widget::g_selectedWidgetIndex = categoryIndex;
+    }
+
+    if (Widget::g_selectedWidgetIndex < Widget::g_categories.size() - 7 && Widget::g_categoryYOffset != 0)
+      Widget::g_categoryYOffset--;
+    
+    if (Widget::g_selectedWidgetIndex > 6 && Widget::g_categoryYOffset < Widget::g_categories.size() - 8)
+      Widget::g_categoryYOffset++;
 
   } else if (touch.px > widgetInset + X_OFFSET && touch.px < widgetInset + X_OFFSET + WIDGET_WIDTH
             && touch.py > 150 && touch.py < 150 + (WIDGET_HEIGHT + WIDGET_SEPARATOR) * WIDGETS_PER_PAGE) { /* Touch of widgets area */

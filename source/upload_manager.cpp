@@ -50,7 +50,7 @@ std::vector<std::string> listFiles(const std::string &path) {
     return paths;
 }
 
-std::string UploadManager::upload(std::string path, std::string fileName) {
+std::string UploadManager::upload(std::string path, std::string fileName, u64 tid) {
   if (gethostid() == INADDR_LOOPBACK) return "";
   if (!this->zip(listFiles(path))) return "";
 

@@ -368,6 +368,9 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
               m_interpreter->setSaveFileBuffer(&g_currSaveFile[0], length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
               ConfigParser::createWidgets(m_widgets, *m_interpreter, this->m_saveFiles[selectedItem].configIndex);
 
+              if (ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["startupMessage"] != nullptr)
+                (new MessageBox(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["startupMessage"], MessageBox::OKAY))->show();
+
               if(!m_interpreter->initialize(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["filetype"])) {
                 m_interpreter->deinitialize();
                 Gui::g_currMessageBox->hide();
@@ -386,9 +389,6 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
                 Gui::g_currListSelector->hide();
                 return;
               }
-              
-              if (ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()])
-                (new MessageBox("Please create a backup before using this beta config.", MessageBox::OKAY))->show();
             }
             else {
               (new Snackbar("Failed to load save file! Is it empty?"))->show();
@@ -468,7 +468,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           (new MessageBox("Uploading savefile...\n \nThis may take a while.", MessageBox::NONE))->show();
           requestDraw();
 
-          std::string retURL = um.upload(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem]);
+          std::string retURL = um.upload(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem], Title::g_currTitle->getTitleID());
 
           if (retURL != "") {
             std::string messageBoxStr = "Upload finished!\n \n";
@@ -602,7 +602,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     }
     /* Categories and widgets row */
     if (kdown & KEY_X) {
-      (new MessageBox("Are you sure you want to edit these values?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
+      (new MessageBox(ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()] ? "Do you want to apply these changes? \n Make sure you have a working backup of your \n save data as this config is still in beta!" :"Do you want to apply these changes?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         if (selection) {
           std::vector<u8> buffer;
 

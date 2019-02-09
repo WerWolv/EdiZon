@@ -34,18 +34,18 @@ void WidgetValue::onInput(u32 kdown) {
   u64 incrementValue = m_stepSize * g_stepSizeMultiplier;
 
   if (kdown & KEY_DLEFT) {
-    if (static_cast<s64>(m_currValue - incrementValue) > m_minValue)
+    if (static_cast<s64>(m_currValue - incrementValue) >= m_minValue)
         Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_currValue) - incrementValue);
-    else if(m_currValue <= m_minValue)
+    else if(m_currValue < m_minValue)
       Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_maxValue));
     else
       Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_minValue));
   }
 
   if (kdown & KEY_DRIGHT) {
-    if (static_cast<s64>(m_currValue + incrementValue) < m_maxValue)
+    if (static_cast<s64>(m_currValue + incrementValue) <= m_maxValue)
       Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_currValue) + incrementValue);
-    else if(m_currValue >= m_maxValue)
+    else if(m_currValue > m_maxValue)
       Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_minValue));
     else
       Widget::setIntegerValue(Widget::m_interpreter->evaluateEquation(m_writeEquation, m_maxValue));

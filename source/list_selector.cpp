@@ -107,6 +107,10 @@ void ListSelector::onTouch(touchPosition &touch) {
   }
 }
 
+void ListSelector::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
+
+}
+
 void ListSelector::show() {
   if (Gui::g_currListSelector != nullptr)
     delete Gui::g_currListSelector;

@@ -6,6 +6,7 @@
 
 MessageBox::MessageBox(std::string message, MessageBox::MessageBoxOptions options) : m_message(message), m_options(options) {
   m_selectedOption = 0;
+  m_progress = -1;
 
   m_selectionAction = [](s8 selection){};
 }
@@ -39,6 +40,12 @@ void MessageBox::draw(Gui *gui) {
     gui->drawRectangle(250 + ((Gui::g_framebuffer_width - 490) / 2), Gui::g_framebuffer_height - 260, (Gui::g_framebuffer_width - 500) / 2 - 6, 80, currTheme.selectedButtonColor);
     gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height - 237, currTheme.selectedColor, "No                                            Yes", ALIGNED_CENTER);
   }
+
+  if (m_progress >= 0) {
+    gui->drawRectangle(350, Gui::g_framebuffer_height - 300, Gui::g_framebuffer_width - 700, 10, currTheme.separatorColor);
+    gui->drawRectangle(350, Gui::g_framebuffer_height - 300, ((Gui::g_framebuffer_width - 700) / 100.0F) * m_progress, 10, currTheme.selectedColor);
+  }
+
 }
 
 void MessageBox::onInput(u32 kdown) {
@@ -82,6 +89,16 @@ void MessageBox::onTouch(touchPosition &touch) {
     }
   }
 }
+
+void MessageBox::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
+
+}
+
+void MessageBox::setProgress(s8 progress) {
+  this->m_progress = std::min((s8)100, progress);
+  requestDraw();
+}
+
 
 void MessageBox::show() {
   if (Gui::g_currMessageBox != nullptr)

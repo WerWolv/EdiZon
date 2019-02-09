@@ -22,6 +22,9 @@ public:
   void draw(Gui *gui);
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
+  void onGesture(touchPosition startPosition, touchPosition endPosition, bool finish);
+  
+  void setProgress(s8 progress);
 
   void show();
   void hide();
@@ -31,5 +34,6 @@ private:
   MessageBoxOptions m_options;
 
   u8 m_selectedOption;
+  s8 m_progress;
   std::function<void(s8)> m_selectionAction;
 };

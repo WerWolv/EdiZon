@@ -1,6 +1,6 @@
 #include "update_manager.hpp"
 
-#include <cstdio>
+#include "gui.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -9,12 +9,18 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <utime.h>
 #include <curl/curl.h>
+#include <string.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <filesystem>
 
 #include "json.hpp"
+#include "sha256.h"
 
-#define EDIZON_URL "http://werwolv.net"
+#define API_VERSION "v2"
+
+#define EDIZON_URL "http://api.edizon.werwolv.net/" API_VERSION
 
 using json = nlohmann::json;
 
@@ -49,6 +55,59 @@ void deleteFile(std::string path) {
   printf("Deleting %s.\n", path.c_str());
 
   remove(path.c_str());
+  
+}
+
+void mkPath(std::string s, mode_t mode) {
+  char *str = new char[s.size() + 2];
+  strcpy(str, s.c_str());
+  strcat(str, "/");
+
+  char *delim = strchr(str + 1, '/');
+
+  do {
+    *delim = '\0';
+
+    mkdir(str, mode);
+
+    *delim = '/';
+    delim = strchr(delim + 1, '/');
+  } while (delim != nullptr);
+}
+
+char* barray2hexstr (const unsigned char* data, size_t datalen) {
+  size_t final_len = datalen * 2;
+  char* chrs = (char *) malloc((final_len + 1) * sizeof(*chrs));
+  unsigned int j = 0;
+
+  for(j = 0; j < datalen; j++) {
+    chrs[2 * j] = (data[j] >> 4) + 48;
+    chrs[2 * j + 1] = (data[j] & 15 ) + 48;
+    if (chrs[2 * j] > 57) chrs[2 * j] += 7;
+    if (chrs[2 * j + 1] > 57) chrs[2 * j + 1] += 7;
+  }
+  chrs[2 * j] = '\0';
+
+  return chrs;
+}
+
+char *dirname (char *path) {
+  static const char dot[] = ".";
+  char *last_slash;
+
+  last_slash = path != NULL ? strrchr (path, '/') : NULL;
+
+  if (last_slash == path)
+    ++last_slash;
+  else if (last_slash != NULL && last_slash[1] == '\0')
+    last_slash = (char*)memchr (path, last_slash - path, '/');
+
+  if (last_slash != NULL)
+    last_slash[0] = '\0';
+  else
+    path = (char *) dot;
+
+  return path;
 }
 
 void updateFile(std::string path) {
@@ -59,13 +118,14 @@ void updateFile(std::string path) {
 
   FILE* fp;
 
-  if (path.compare("/EdiZon/EdiZon.nro") == 0) {
-    deleteFile(g_edizonPath);
-    mkdir("/switch/EdiZon", 0777);
-    path = "/switch/EdiZon/EdiZon.nro";
-  }
+  char *cPath = new char[path.length() + 1];
+  strcpy(cPath, path.c_str());
+  
+  mkPath(dirname(cPath), 0777);
 
   fp = fopen(path.c_str(), "wb");
+
+  delete[] cPath;
 
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -74,10 +134,26 @@ void updateFile(std::string path) {
 
   CURLcode res = curl_easy_perform(curl);
 
-  if (res != CURLE_OK)
-    printf("Update download CURL perform failed: %s\n", curl_easy_strerror(res));
-
   fclose(fp);
+
+  if (res != CURLE_OK) {
+    printf("Update download CURL perform failed: %s\n", curl_easy_strerror(res));
+    deleteFile(path.c_str());
+  }
+}
+
+void deleteRemovedFiles(char *path) {
+  DIR* dir;
+  struct dirent *ent;
+    if((dir=opendir(path)) != NULL){
+      while (( ent = readdir(dir)) != NULL){
+        if(ent->d_type == DT_DIR && strcmp(ent->d_name, ".") != 0  && strcmp(ent->d_name, "..") != 0){
+          printf("%s\n", ent->d_name);
+          deleteRemovedFiles(ent->d_name);
+        }
+      }
+      closedir(dir);
+    }
 }
 
 Updates UpdateManager::checkUpdate() {
@@ -87,7 +163,7 @@ Updates UpdateManager::checkUpdate() {
   CURLcode res;
   std::string str;
 
-  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/EdiZon/versionlist.php");
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/versionlist.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToString);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &str);
 
@@ -104,67 +180,71 @@ Updates UpdateManager::checkUpdate() {
   }
 
   json remote = json::parse(str);
-
-  mkdir("/EdiZon", 0777);
-  mkdir("/EdiZon/editor", 0777);
-  mkdir("/EdiZon/editor/scripts", 0777);
-  mkdir("/EdiZon/editor/scripts/lib", 0777);
-  mkdir("/EdiZon/editor/scripts/lib/python3.5", 0777);
-
   Updates updatedFile = NONE;
 
-	std::ifstream i("/EdiZon/editor/update.json");
+  u32 fileCnt = std::distance(remote.begin(), remote.end());
+  u32 progress = 0;
 
-	if (!i.is_open()) {
-		printf("Update file didn't exist, will create it.\n");
-		for (json::iterator it = remote.begin(); it != remote.end(); ++it)
-			updateFile(it.key());
-		updatedFile = EDIZON;
-	}
-	else {
-		std::string buf;
-		std::getline(i, buf);
-		if (buf.size() == 0)
-      return ERROR;
+	for (json::iterator iter = remote.begin(); iter != remote.end(); ++iter) {
+    FILE *fp = fopen(iter.key().c_str(), "rb");
 
-    if (buf.compare(0, 1, "{") != 0) {
-      printf("Invalid update file on SD card!\n");
-      deleteFile("/EdiZon/editor/update.json");
-      return ERROR;
+    progress++;
+
+    if (fp != nullptr) {
+      char *content;
+      size_t fileSize;
+      u8 fileHash[0x20];
+
+      if (Gui::g_currMessageBox != nullptr)
+        Gui::g_currMessageBox->setProgress((static_cast<float>(progress) / fileCnt) * 100);
+
+      fseek(fp, 0, SEEK_END);
+      fileSize = ftell(fp);
+      rewind(fp);
+
+      content = new char[fileSize];
+
+      fread(content, 1, fileSize, fp);
+
+      struct sha256_state sha_ctx;
+      sha256_init(&sha_ctx);
+      sha256_update(&sha_ctx, (u8 *)content, fileSize);
+      sha256_finalize(&sha_ctx);
+      sha256_finish(&sha_ctx, fileHash);
+
+      delete[] content;
+      fclose(fp);
+
+      char *fileHashStr = barray2hexstr(fileHash, 0x20);
+
+      if (strcmp(fileHashStr, iter.value().get<std::string>().c_str()) == 0) {
+        free(fileHashStr);
+        continue;
+      }
+
+      free(fileHashStr);
     }
 
-		auto local = json::parse(buf);
-		i.close();
+    updateFile(iter.key());
+    
+    if (updatedFile == NONE)
+      updatedFile = EDITOR;
 
-		for (json::iterator it = remote.begin(); it != remote.end(); ++it) {
-			if (local.find(it.key()) == local.end() || local[it.key()] < remote[it.key()]) {
-				updateFile(it.key());
+    if (iter.key().find("EdiZon.nro") != std::string::npos)
+      updatedFile = EDIZON;
+  }
 
-        if (it.key().compare("/EdiZon/EdiZon.nro") == 0)
-				    updatedFile = EDIZON;
+  std::filesystem::recursive_directory_iterator end;
+  for (std::filesystem::recursive_directory_iterator it("/EdiZon/editor"); it != end; ++it) {
+    if (remote[it->path().c_str()] == nullptr) {
+      if (!it->is_directory()) {
+        deleteFile(it->path().c_str());
 
-        if (updatedFile != EDIZON)
+        if (updatedFile == NONE)
           updatedFile = EDITOR;
-			}
-		}
-
-		for (json::iterator it = local.begin(); it != local.end(); ++it) {
-			if (remote.find(it.key()) == remote.end())
-				deleteFile(it.key());
-		}
-	}
-
-	if (updatedFile) {
-		printf("Writing updated file to SD.\n");
-		std::ofstream o("/EdiZon/editor/update.json");
-
-		if (o.is_open()) {
-			o << str;
-			o.close();
-		}
-		else
-			printf("Error while opening the output file for update.\n");
-	}
+      }
+    }
+  }
 
   return updatedFile;
 }

@@ -41,9 +41,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	$(notdir $(CURDIR))
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/widgets source/guis source/scripting libs/lua/source libs/nanojpeg/source libs/tar/source
+SOURCES		:=	source source/widgets source/guis source/scripting libs/lua/source libs/nanojpeg/source libs/tar/source libs/sha256/source
 DATA		:=	data
-INCLUDES	:=	include include/lua include/widgets include/guis include/scripting libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/tar/include
+INCLUDES	:=	include include/lua include/widgets include/guis include/scripting libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/tar/include libs/sha256/include
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
@@ -65,7 +65,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-no-as-needed,-Map,$(notdir $*.map)
 
-LIBS	:=  -lpython3.5 -lnx -lcurl -lz `freetype-config --libs`
+LIBS	:=  -lpython3.5 -lnx -lcurl -lz -lstdc++fs `freetype-config --libs`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

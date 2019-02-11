@@ -167,7 +167,8 @@ void GuiEditor::updateBackupList() {
   struct dirent *ent_timestamp;
   struct dirent *ent_user;
 
-  std::map<std::string, std::string> backups;
+  std::vector<std::string> backups;
+
   std::string metadataUsername;
 
   m_backupTitles.clear();
@@ -187,28 +188,9 @@ void GuiEditor::updateBackupList() {
       else
         metadataUsername = "By " + metadataUsername + " [/restore]";
 
-      backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str() + "/" + std::string(ent_timestamp->d_name)));
-      m_backupFolderNames.push_back(std::string(ent_timestamp->d_name));
-    }
-    closedir(dir_titles);
-  }
-
-  path.str("");
-
-  //Read root saves
-  path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
-  if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
-    while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
-      if (ent_timestamp->d_type != DT_DIR) continue;
-
-      metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/" + std::string(ent_timestamp->d_name) + "/edizon_save_metadata.json");
-      if (metadataUsername.empty())
-        metadataUsername = "By an unknown user";
-      else
-        metadataUsername = "By " + metadataUsername;
-
-      backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str() + "/" + std::string(ent_timestamp->d_name)));
-      m_backupFolderNames.push_back(std::string(ent_timestamp->d_name));
+      backups.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
+      backups.push_back(path.str() + "/" + std::string(ent_timestamp->d_name));
+      backups.push_back(std::string(ent_timestamp->d_name));
     }
     closedir(dir_titles);
   }
@@ -232,8 +214,9 @@ void GuiEditor::updateBackupList() {
             else
               metadataUsername = "By " + metadataUsername + " [B]";
 
-            backups.insert(std::make_pair(std::string(ent_timestamp->d_name) +  ", " + metadataUsername, path.str()));
-            m_backupFolderNames.push_back(std::string(ent_timestamp->d_name));
+            backups.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
+            backups.push_back(path.str());
+            backups.push_back(std::string(ent_timestamp->d_name));
 
             closedir(dir_titles);
           }
@@ -244,16 +227,38 @@ void GuiEditor::updateBackupList() {
     closedir(dir_batch);
   }
 
-  
+    path.str("");
 
-  for (auto [title, path] : backups) {
-    m_backupTitles.push_back(title);
-    m_backupPaths.push_back(path);
+  //Read root saves
+  path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+  if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
+    while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
+      if (ent_timestamp->d_type != DT_DIR) continue;
+
+      metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/" + std::string(ent_timestamp->d_name) + "/edizon_save_metadata.json");
+      if (metadataUsername.empty())
+        metadataUsername = "By an unknown user";
+      else
+        metadataUsername = "By " + metadataUsername;
+
+      backups.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
+      backups.push_back(path.str() + "/" + std::string(ent_timestamp->d_name));
+      backups.push_back(std::string(ent_timestamp->d_name));
+    }
+    closedir(dir_titles);
+  }
+
+  
+  for (auto iter = backups.begin(); iter != backups.end();) {
+    m_backupTitles.push_back(*iter++);
+    m_backupPaths.push_back(*iter++);
+    m_backupFolderNames.push_back(*iter++);
   }
 
   std::reverse(m_backupTitles.begin(), m_backupTitles.end());
   std::reverse(m_backupPaths.begin(), m_backupPaths.end());
   std::reverse(m_backupFolderNames.begin(), m_backupFolderNames.end());
+
 }
 
 std::string GuiEditor::readMetaDataUsername(std::string path) {
@@ -465,19 +470,19 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         if (k & KEY_MINUS) {
           UploadManager um;
 
-          (new MessageBox("Uploading savefile...\n \nThis may take a while.", MessageBox::NONE))->show();
+          (new MessageBox("Uploading savefile...\n \nPress \uE0E1 to cancel.", MessageBox::NONE))->show();
           requestDraw();
 
-          std::string retURL = um.upload(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem], Title::g_currTitle->getTitleID());
+          std::string retURL = um.upload(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem]);
 
-          if (retURL != "") {
+          if (retURL.find("https://") != std::string::npos) {
             std::string messageBoxStr = "Upload finished!\n \n";
             messageBoxStr += retURL;
 
             (new MessageBox(messageBoxStr.c_str(), MessageBox::OKAY))->show();
           } 
           else
-            (new MessageBox("Upload failed!", MessageBox::OKAY))->show(); 
+            (new MessageBox("Upload failed!\n \n" + retURL, MessageBox::OKAY))->show(); 
 
           Gui::g_currListSelector->hide();
         }

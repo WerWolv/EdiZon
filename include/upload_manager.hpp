@@ -14,7 +14,7 @@ public:
   std::string upload(std::string path, std::string fileName);
 
 private:
-  bool zip(std::vector<std::string> paths);
+  bool zip(std::vector<std::string> paths, std::vector<u8> *zipData);
 
   CURL *m_curl;
   std::string m_returnAddress;

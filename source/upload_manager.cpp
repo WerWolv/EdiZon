@@ -66,7 +66,7 @@ static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ul
 std::string UploadManager::upload(std::string path, std::string fileName) {
   if (gethostid() == INADDR_LOOPBACK) return "";
 
-  printf("%s\n", path.c_str());
+  std::vector<u8> zipData;
 
   std::vector<std::string> filePaths;
   std::filesystem::recursive_directory_iterator end;
@@ -74,25 +74,7 @@ std::string UploadManager::upload(std::string path, std::string fileName) {
     if (!it->is_directory())
       filePaths.push_back(it->path().c_str());
 
-  if (!this->zip(filePaths)) return "";
-
-  FILE *tar = fopen("/EdiZon/tmp/archive.zip", "rb");
-  if (tar == nullptr) return "";
-  fseek(tar, 0L, SEEK_END);
-  size_t size = ftell(tar);
-  char *data = (char*)malloc(size);
-
-  rewind(tar);
-
-  if (data == nullptr) return "";
-
-  fread(data, 1, size, tar);
-  fclose(tar);
-
-  if (data == nullptr) {
-    free(data);
-    return "";
-  }
+  if (!this->zip(filePaths, &zipData)) return "";
 
   curl_mime *mime;
   curl_mimepart *part;
@@ -100,7 +82,7 @@ std::string UploadManager::upload(std::string path, std::string fileName) {
   mime = curl_mime_init(m_curl);
   part = curl_mime_addpart(mime);
 
-  curl_mime_data(part, data, size);
+  curl_mime_data(part, reinterpret_cast<const char*>(&zipData[0]), zipData.size());
   curl_mime_filename(part, std::string(fileName + ".zip").c_str());
   curl_mime_name(part, "file");
 
@@ -114,19 +96,13 @@ std::string UploadManager::upload(std::string path, std::string fileName) {
 
   if (curl_easy_perform(m_curl) != CURLE_OK) m_returnAddress = "";
 
-  /* Clean-up. */
   curl_mime_free(mime);
-
-  free(data);
-
-  remove("/EdiZon/tmp/archive.zip");
 
   return m_returnAddress;
 }
 
-bool UploadManager::zip(std::vector<std::string> paths) {
-  zipper::Zipper archive("/EdiZon/tmp/archive.zip");
-
+bool UploadManager::zip(std::vector<std::string> paths, std::vector<u8> *zipData) {
+  zipper::Zipper archive(*zipData);
 
   u8 pathOffset = 25;
   u32 currFile = 0;
@@ -138,8 +114,6 @@ bool UploadManager::zip(std::vector<std::string> paths) {
 
   for(auto path : paths) { 
     std::ifstream file = std::ifstream(path);
-
-    printf("%s\n", path.c_str());
 
     archive.add(file, &path.c_str()[pathOffset], zipper::Zipper::Better);
 

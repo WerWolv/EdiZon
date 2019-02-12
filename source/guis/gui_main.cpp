@@ -215,6 +215,8 @@ void GuiMain::onInput(u32 kdown) {
               (new Snackbar(errorMessage.str()))->show();
             }
           }
+                  
+          Gui::g_currMessageBox->hide();
         }
       })->show();
     }

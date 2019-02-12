@@ -63,7 +63,6 @@ void MessageBox::onInput(u32 kdown) {
 
     if (kdown & KEY_A) {
       m_selectionAction(m_selectedOption);
-      this->hide();
     }
 
     if (kdown & KEY_B) {

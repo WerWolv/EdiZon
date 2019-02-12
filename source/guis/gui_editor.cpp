@@ -337,6 +337,24 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
 
 }
 
+void uploadBackup(std::string path, std::string fileName) {
+  UploadManager um;
+
+  (new MessageBox("Uploading savefile...\n \nPress \uE0E1 to cancel.", MessageBox::NONE))->show();
+  requestDraw();
+
+  std::string retURL = um.upload(path, fileName);
+
+  if (retURL.find("https://") != std::string::npos) {
+    std::string messageBoxStr = "Upload finished!\n \n";
+    messageBoxStr += retURL;
+
+    (new MessageBox(messageBoxStr.c_str(), MessageBox::OKAY))->show();
+  } 
+  else
+    (new MessageBox("Upload failed!\n \n" + retURL, MessageBox::OKAY))->show(); 
+}
+
 void GuiEditor::onInput(u32 kdown) {
 if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
@@ -420,14 +438,26 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
       s16 res;
 
       time_t t = time(nullptr);
-      char backupName[33];
+      static char backupName[33];
       std::stringstream initialText;
       initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
       if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
         return;
 
-      if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName)))
-        (new Snackbar("Successfully created backup \"" + std::string(backupName) + "\"!"))->show();
+      if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName))) {
+        (new MessageBox("Successfully created backup!\n \n Would you like to upload it?", MessageBox::YES_NO))->setSelectionAction([&](u8 selection) {
+          if (selection) {
+            std::stringstream backupPath;
+            backupPath << "/EdiZon/" << std::uppercase << std::setfill('0') 
+            << std::setw(sizeof(Title::g_currTitle->getTitleID())*2) 
+            << std::hex << Title::g_currTitle->getTitleID()
+            << "/" << std::string(backupName);
+
+            uploadBackup(backupPath.str(), backupName);
+          }
+        })->show();
+        
+      }
       else {
         switch(res) {
           case 1: (new Snackbar("Failed to mount save file!"))->show(); break;
@@ -453,6 +483,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
                   else (new Snackbar("An error occured while restoring the backup! Error " + std::to_string(res)))->show();
 
                   Gui::g_currListSelector->hide();
+                  Gui::g_currMessageBox->hide();
                 }
               })->show();
           }
@@ -468,21 +499,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         }
 
         if (k & KEY_MINUS) {
-          UploadManager um;
-
-          (new MessageBox("Uploading savefile...\n \nPress \uE0E1 to cancel.", MessageBox::NONE))->show();
-          requestDraw();
-
-          std::string retURL = um.upload(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem]);
-
-          if (retURL.find("https://") != std::string::npos) {
-            std::string messageBoxStr = "Upload finished!\n \n";
-            messageBoxStr += retURL;
-
-            (new MessageBox(messageBoxStr.c_str(), MessageBox::OKAY))->show();
-          } 
-          else
-            (new MessageBox("Upload failed!\n \n" + retURL, MessageBox::OKAY))->show(); 
+          uploadBackup(m_backupPaths[Gui::g_currListSelector->selectedItem], m_backupFolderNames[Gui::g_currListSelector->selectedItem]);
 
           Gui::g_currListSelector->hide();
         }
@@ -577,6 +594,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
             m_widgets.clear();
             Widget::g_categories.clear();
+            Gui::g_currMessageBox->hide();
           }
         })->show();
 
@@ -634,6 +652,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
           Widget::g_categories.clear();
           m_widgets.clear();
+          Gui::g_currMessageBox->hide();
         }
       })->show();
 

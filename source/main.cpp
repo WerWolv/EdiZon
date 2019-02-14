@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     fatalSimple(rc);
   fake_heap_end = (char*) haddr + 0x10000000;
 
-
+  setsysInitialize();
   socketInitializeDefault();
 
 #ifdef NXLINK
@@ -114,11 +114,9 @@ int main(int argc, char** argv) {
   framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
   framebufferMakeLinear(&Gui::g_fb_obj);
 
-  setsysInitialize();
-    ColorSetId colorSetId;
-    setsysGetColorSetId(&colorSetId);
-    setTheme(colorSetId);
-  setsysExit();
+  ColorSetId colorSetId;
+  setsysGetColorSetId(&colorSetId);
+  setTheme(colorSetId);
 
   initTitles();
 
@@ -288,6 +286,7 @@ int main(int argc, char** argv) {
   close(file);
 
   framebufferClose(&Gui::g_fb_obj);
+  setsysExit();
 
   svcSetHeapSize((void**) &haddr, ((u8*) envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - haddr); // clean up the heap
 

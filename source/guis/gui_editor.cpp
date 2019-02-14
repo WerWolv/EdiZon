@@ -10,6 +10,8 @@
 
 #include "upload_manager.hpp"
 
+#include "sha256.h"
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -339,6 +341,7 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
 
 void uploadBackup(std::string path, std::string fileName) {
   UploadManager um;
+  static std::stringstream code;
 
   (new MessageBox("Uploading savefile...\n \nPress \uE0E1 to cancel.", MessageBox::NONE))->show();
   requestDraw();
@@ -346,10 +349,32 @@ void uploadBackup(std::string path, std::string fileName) {
   std::string retURL = um.upload(path, fileName);
 
   if (retURL.find("https://") != std::string::npos) {
-    std::string messageBoxStr = "Upload finished!\n \n";
-    messageBoxStr += retURL;
+    std::string messageBoxStr = "Upload finished!\n \n Visit edizon.werwolv.net and enter this code\n to get your link!";
 
-    (new MessageBox(messageBoxStr.c_str(), MessageBox::OKAY))->show();
+    char serial[0x19];
+    u8 serialHash[0x20];
+    setsysGetSerialNumber(serial);
+
+    struct sha256_state sha_ctx;
+    sha256_init(&sha_ctx);
+    sha256_update(&sha_ctx, (u8 *)serial, 0x19);
+    sha256_finalize(&sha_ctx);
+    sha256_finish(&sha_ctx, serialHash);
+
+    code.str("");
+
+    for (u8 i = 0; i < 3; i++) {
+      code << std::uppercase << std::hex << (serialHash[i] & 0x0F) << " ";
+      code << std::uppercase << std::hex << (serialHash[i] >>   4) << " ";
+    }
+
+    (new MessageBox(messageBoxStr.c_str(), MessageBox::OKAY))->setCustomDraw([&](Gui *gui, s16 x, s16 y){
+      u32 w, h;
+      gui->getTextDimensions(font24, code.str().c_str(), &w, &h);
+
+      gui->drawRectangle(x + (780 / 2) - (w / 2) - 10, y + 210, w + 10, h, currTheme.tooltipColor);
+      gui->drawTextAligned(font24, x + (780 / 2), y + 210, currTheme.textColor, code.str().c_str(), ALIGNED_CENTER);
+    })->show();
   } 
   else
     (new MessageBox("Upload failed!\n \n" + retURL, MessageBox::OKAY))->show(); 
@@ -445,7 +470,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         return;
 
       if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName))) {
-        (new MessageBox("Successfully created backup!\n \n Would you like to upload it?", MessageBox::YES_NO))->setSelectionAction([&](u8 selection) {
+        (new MessageBox("Successfully created backup!\n \n Would you like to upload it to transfer.sh?", MessageBox::YES_NO))->setSelectionAction([&](u8 selection) {
           if (selection) {
             std::stringstream backupPath;
             backupPath << "/EdiZon/" << std::uppercase << std::setfill('0') 

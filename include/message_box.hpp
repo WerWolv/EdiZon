@@ -18,6 +18,7 @@ public:
   ~MessageBox();
 
   MessageBox* setSelectionAction(std::function<void(s8)> selectionAction);
+  MessageBox* setCustomDraw(std::function<void(Gui *gui, s16 x, s16 y)> customDraw);
 
   void draw(Gui *gui);
   void onInput(u32 kdown);
@@ -36,4 +37,5 @@ private:
   u8 m_selectedOption;
   s8 m_progress;
   std::function<void(s8)> m_selectionAction;
+  std::function<void(Gui *gui, s16 x, s16 y)> m_customDraw;
 };

@@ -211,6 +211,7 @@ int main(int argc, char** argv) {
     if (abs(static_cast<s16>(touchPosStart.px - touchPosCurr.px)) < 50 && abs(static_cast<s16>(touchPosStart.py - touchPosCurr.py)) < 50) {
       if (touchCount == 0 && touchCountOld > 0) {
         touchHappend = true;
+
         if (Gui::g_currMessageBox != nullptr)
           Gui::g_currMessageBox->onTouch(touchPosCurr);
         else if (Gui::g_currListSelector != nullptr)
@@ -219,21 +220,21 @@ int main(int argc, char** argv) {
           currGui->onTouch(touchPosCurr);
       }
     } else if (touchCount > 0) {
-        if (Gui::g_currMessageBox != nullptr)
-          Gui::g_currMessageBox->onGesture(touchPosStart, touchPosCurr, false);
-        else if (Gui::g_currListSelector != nullptr)
-          Gui::g_currListSelector->onGesture(touchPosStart, touchPosCurr, false);
-        else
-          currGui->onGesture(touchPosStart, touchPosCurr, false);
+      if (Gui::g_currMessageBox != nullptr)
+        Gui::g_currMessageBox->onGesture(touchPosStart, touchPosCurr, false);
+      else if (Gui::g_currListSelector != nullptr)
+        Gui::g_currListSelector->onGesture(touchPosStart, touchPosCurr, false);
+      else
+        currGui->onGesture(touchPosStart, touchPosCurr, false);
     }
 
     if (touchCount == 0 && touchCountOld > 0 && !touchHappend) {
-        if (Gui::g_currMessageBox != nullptr)
-          Gui::g_currMessageBox->onGesture(touchPosStart, touchPosCurr, false);
-        else if (Gui::g_currListSelector != nullptr)
-          Gui::g_currListSelector->onGesture(touchPosStart, touchPosCurr, false);
-        else
-          currGui->onGesture(touchPosStart, touchPosCurr, false);
+      if (Gui::g_currMessageBox != nullptr)
+        Gui::g_currMessageBox->onGesture(touchPosStart, touchPosCurr, true);
+      else if (Gui::g_currListSelector != nullptr)
+        Gui::g_currListSelector->onGesture(touchPosStart, touchPosCurr, true);
+      else
+        currGui->onGesture(touchPosStart, touchPosCurr, true);
     }
 
     touchCountOld = touchCount;

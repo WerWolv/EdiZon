@@ -1,4 +1,5 @@
 #include <switch.h>
+#include <stratosphere.hpp>
 
 #define HEAP_SIZE 0x000340000
 

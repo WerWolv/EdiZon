@@ -2,7 +2,8 @@
 #.gitignore       #
 ###################
 
-build/
-out/
-.build-tools.cson
+client/build/
+client/out/
+sysmodule/build/
+sysmodule/out/
 .vscode/

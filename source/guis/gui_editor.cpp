@@ -4,7 +4,7 @@
 #include "save.hpp"
 
 #include "config_parser.hpp"
-#include "interpreter.hpp"
+#include "scripting/interpreter.hpp"
 #include "scripting/lua_interpreter.hpp"
 #include "scripting/python_interpreter.hpp"
 
@@ -349,8 +349,6 @@ void uploadBackup(std::string path, std::string fileName) {
   std::string retURL = um.upload(path, fileName);
 
   if (retURL.find("https://") != std::string::npos) {
-    std::string messageBoxStr = "Upload finished!\n \n Visit edizon.werwolv.net and enter this code\n to get your link!";
-
     char serial[0x19];
     u8 serialHash[0x20];
     setsysGetSerialNumber(serial);
@@ -368,8 +366,10 @@ void uploadBackup(std::string path, std::string fileName) {
       code << std::uppercase << std::hex << (serialHash[i] >>   4) << " ";
     }
 
-    (new MessageBox(messageBoxStr.c_str(), MessageBox::OKAY))->setCustomDraw([&](Gui *gui, s16 x, s16 y){
+    (new MessageBox("", MessageBox::OKAY))->setCustomDraw([&](Gui *gui, s16 x, s16 y){
       u32 w, h;
+      gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, currTheme.textColor, "Upload finished!\n \n Visit edizon.werwolv.net and enter this code\n to get your link!", ALIGNED_CENTER);
+
       gui->getTextDimensions(font24, code.str().c_str(), &w, &h);
 
       gui->drawRectangle(x + (780 / 2) - (w / 2) - 10, y + 210, w + 10, h, currTheme.tooltipColor);

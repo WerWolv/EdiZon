@@ -16,7 +16,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 
 UploadManager::UploadManager() {
   curl_global_init(CURL_GLOBAL_DEFAULT);

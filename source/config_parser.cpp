@@ -17,8 +17,8 @@
 #include <iterator>
 #include <locale>
 
-#include "lua_interpreter.hpp"
-#include "python_interpreter.hpp"
+#include "scripting/lua_interpreter.hpp"
+#include "scripting/python_interpreter.hpp"
 
 s8 ConfigParser::hasConfig(u64 titleId) {
     std::stringstream path;

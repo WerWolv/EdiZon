@@ -1,4 +1,4 @@
-#include "python_interpreter.hpp"
+#include "scripting/python_interpreter.hpp"
 
 #include <iostream>
 #include <algorithm>

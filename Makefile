@@ -41,9 +41,9 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	$(notdir $(CURDIR))
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/widgets source/guis source/scripting libs/lua/source libs/nanojpeg/source libs/minizip/source libs/sha256/source
+SOURCES		:=	source source/widgets source/guis source/scripting source/ui_elements libs/lua/source libs/nanojpeg/source libs/minizip/source libs/sha256/source
 DATA		:=	data
-INCLUDES	:=	include include/lua include/widgets include/guis include/scripting libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include libs/sha256/include
+INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include libs/sha256/include
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 

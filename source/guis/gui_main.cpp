@@ -114,7 +114,7 @@ void GuiMain::draw() {
 
     buttonHintStr  = !tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";
     buttonHintStr += m_backupAll ? "(\uE0E7) + \uE0E2 Backup all     " : "(\uE0E7) + \uE0E2 Backup     ";
-    buttonHintStr += "\uE0F0 Update     \uE0EF Exit     \uE0E1 Back     \uE0E0 OK";
+    buttonHintStr += "\uE0E3 Edit RAM     \uE0F0 Update     \uE0EF Exit     \uE0E1 Back     \uE0E0 OK";
 
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
 
@@ -129,6 +129,9 @@ void GuiMain::draw() {
 
 void GuiMain::onInput(u32 kdown) {
   if (Title::g_titles.size() == 0) return;
+
+  if (kdown & KEY_Y)
+    Gui::g_nextGui = GUI_RAM_EDITOR;
   
   if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_A | KEY_X)) {
     if (m_selected.titleIndex == -1 || (m_selected.titleIndex / 2 + 1) * 256 < xOffset || (m_selected.titleIndex / 2) * 256 > xOffset + 6 * 256) {

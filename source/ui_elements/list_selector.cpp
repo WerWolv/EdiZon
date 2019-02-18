@@ -1,4 +1,4 @@
-#include "list_selector.hpp"
+#include "ui_elements/list_selector.hpp"
 
 #include <cmath>
 
@@ -6,7 +6,7 @@
 
 float deltaOffset = 0;
 
-ListSelector::ListSelector(std::string title, std::string options, std::vector<std::string> &listItems) : m_title(title), m_options(options), m_listItems(listItems) {
+ListSelector::ListSelector(std::string title, std::string options, std::vector<std::string> listItems) : m_title(title), m_options(options), m_listItems(listItems) {
   m_optionsWidth = 0;
   m_optionsHeight = 0;
   selectedItem = 0;

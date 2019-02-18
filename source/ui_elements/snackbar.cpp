@@ -1,4 +1,4 @@
-#include "snackbar.hpp"
+#include "ui_elements/snackbar.hpp"
 
 #include "guis/gui.hpp"
 

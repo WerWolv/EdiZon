@@ -1,4 +1,4 @@
-#include "lua_interpreter.hpp"
+#include "scripting/lua_interpreter.hpp"
 
 #include <iostream>
 #include <algorithm>

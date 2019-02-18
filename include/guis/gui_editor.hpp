@@ -1,7 +1,7 @@
 #pragma once
 
 #include "guis/gui.hpp"
-#include "widget.hpp"
+#include "widgets/widget.hpp"
 #include "json.hpp"
 
 #include <vector>

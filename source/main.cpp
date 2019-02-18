@@ -12,6 +12,7 @@
 #include "guis/gui_main.hpp"
 #include "guis/gui_editor.hpp"
 #include "guis/gui_tx_warning.hpp"
+#include "guis/gui_ram_editor.hpp"
 
 #include "update_manager.hpp"
 
@@ -40,13 +41,15 @@ static u32 kdown = 0;
 
 void initTitles() {
   std::vector<FsSaveDataInfo> saveInfoList;
+
   _getSaveList(saveInfoList);
 
   for (auto saveInfo : saveInfoList) {
+    if (saveInfo.titleID == 0 || saveInfo.userID == 0) continue;
 
     if (Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
       Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
-
+      
     Title::g_titles[saveInfo.titleID]->addUserID(saveInfo.userID);
 
     if (Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())
@@ -75,9 +78,11 @@ void createFolders() {
   mkdir("/EdiZon/tmp", 0777);
   mkdir("/EdiZon/restore", 0777);
   mkdir("/EdiZon/batch", 0777);
+  mkdir("/EdiZon/cheats", 0777);
   mkdir("/EdiZon/editor", 0777);
   mkdir("/EdiZon/editor/scripts", 0777);
   mkdir("/EdiZon/editor/scripts/lib", 0777);
+  mkdir("/EdiZon/editor/scripts/lib/python3.5", 0777);
 }
 
 void requestDraw() {
@@ -137,6 +142,9 @@ int main(int argc, char** argv) {
     smUnregisterService("tx");
   }
 
+  if (access("/EdiZon/cheats/addresses.dat", F_OK) != -1)
+    Gui::g_nextGui = GUI_RAM_EDITOR;
+
   g_edizonPath = new char[strlen(argv[0]) + 1];
   strcpy(g_edizonPath, argv[0] + 5);
 
@@ -155,19 +163,28 @@ int main(int argc, char** argv) {
       if (currGui != nullptr)
         delete currGui;
 
-      switch (Gui::g_nextGui) {
-        case GUI_MAIN:
-          currGui = new GuiMain();
-          break;
-        case GUI_EDITOR:
-          currGui = new GuiEditor();
-          break;
-        case GUI_TX_WARNING:
-          currGui = new GuiTXWarning();
-          break;
-        default: break;
-      }
-      Gui::g_nextGui = GUI_INVALID;
+      do {
+        gui_t nextGuiStart = Gui::g_nextGui;
+        switch (Gui::g_nextGui) {
+          case GUI_MAIN:
+            currGui = new GuiMain();
+            break;
+          case GUI_EDITOR:
+            currGui = new GuiEditor();
+            break;
+          case GUI_TX_WARNING:
+            currGui = new GuiTXWarning();
+            break;
+          case GUI_RAM_EDITOR:
+            currGui = new GuiRAMEditor();
+
+          case GUI_INVALID: [[fallthrough]]
+          default: break;
+        }
+        if (nextGuiStart == Gui::g_nextGui)
+          Gui::g_nextGui = GUI_INVALID;
+      } while(Gui::g_nextGui != GUI_INVALID);
+
       mutexUnlock(&mutexCurrGui);
     }
 

@@ -10,10 +10,10 @@ class Gui;
 
 class ListSelector {
 public:
-  ListSelector(std::string title, std::string options, std::vector<std::string> &listItems);
+  ListSelector(std::string title, std::string options, std::vector<std::string> listItems);
   ~ListSelector();
 
-  ListSelector* setInputAction(std::function<void(u32, u16)> inputActions);
+  ListSelector* setInputAction(std::function<void(u32 kdown, u16 selectedItem)> inputActions);
 
   void update();
   void draw(Gui *gui);
@@ -28,7 +28,7 @@ public:
 
 private:
   std::string m_title, m_options;
-  std::vector<std::string> &m_listItems;
+  std::vector<std::string> m_listItems;
   std::function<void(u32, u16)> m_inputActions;
 
   u32 m_optionsWidth, m_optionsHeight;

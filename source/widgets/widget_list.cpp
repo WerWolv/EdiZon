@@ -1,6 +1,6 @@
 #include "widgets/widget_list.hpp"
 
-#include "list_selector.hpp"
+#include "ui_elements/list_selector.hpp"
 
 WidgetList::WidgetList(Interpreter *interpreter, bool isDummy, std::string tooltip, std::vector<std::string> listItemNames, std::vector<s32> listItemValues) :
  Widget(interpreter, isDummy, tooltip), m_listItemNames(listItemNames), m_intListItemValues(listItemValues) {

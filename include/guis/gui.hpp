@@ -6,9 +6,9 @@
 
 #include "title.hpp"
 
-#include "snackbar.hpp"
-#include "list_selector.hpp"
-#include "message_box.hpp"
+#include "ui_elements/snackbar.hpp"
+#include "ui_elements/list_selector.hpp"
+#include "ui_elements/message_box.hpp"
 
 extern "C" {
   #include "theme.h"
@@ -29,7 +29,8 @@ enum gui_t {
   GUI_INVALID,
   GUI_MAIN,
   GUI_EDITOR,
-  GUI_TX_WARNING
+  GUI_TX_WARNING,
+  GUI_RAM_EDITOR
 };
 
 class Gui {

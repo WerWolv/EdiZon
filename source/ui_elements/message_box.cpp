@@ -1,4 +1,4 @@
-#include "message_box.hpp"
+#include "ui_elements/message_box.hpp"
 
 #include <math.h>
 
@@ -33,7 +33,7 @@ void MessageBox::draw(Gui *gui) {
   gui->drawRectangled(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, gui->makeColor(0x00, 0x00, 0x00, 0xA0));
   gui->drawRectangle(250, 180, Gui::g_framebuffer_width - 500, Gui::g_framebuffer_height - 360, currTheme.backgroundColor);
 
-  gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, currTheme.textColor, m_message.c_str(), ALIGNED_CENTER);
+  gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 75, currTheme.textColor, m_message.c_str(), ALIGNED_CENTER);
 
   if (m_options == MessageBox::OKAY) {
     gui->drawRectangle(250, Gui::g_framebuffer_height - 260, Gui::g_framebuffer_width - 500, 80, currTheme.selectedButtonColor);

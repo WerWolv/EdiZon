@@ -1,6 +1,6 @@
 #include "account.hpp"
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 
 #include <cstring>
 #include <memory>
@@ -13,6 +13,9 @@ Account::Account(u128 userID) : m_userID(userID) {
   accountInitialize();
 
   accountGetProfile(&m_profile, userID);
+
+  if (!serviceIsActive(&m_profile.s)) return;
+
   accountProfileGet(&m_profile, &m_userData, &m_profileBase);
   accountProfileGetImageSize(&m_profile, &m_profileImageSize);
 
@@ -23,6 +26,7 @@ Account::Account(u128 userID) : m_userID(userID) {
   size_t imageSize = 0;
 
   accountProfileLoadImage(&m_profile, &buffer[0], m_profileImageSize, &imageSize);
+
   njInit();
   njDecode(&buffer[0], imageSize);
 

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "interpreter.hpp"
+#include "scripting/interpreter.hpp"
 
 #include "widgets/widget.hpp"
 #include "types.h"

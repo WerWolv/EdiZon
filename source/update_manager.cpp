@@ -1,6 +1,6 @@
 #include "update_manager.hpp"
 
-#include "gui.hpp"
+#include "guis/gui.hpp"
 
 #include <iostream>
 #include <fstream>

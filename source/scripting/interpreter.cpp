@@ -1,4 +1,4 @@
-#include "interpreter.hpp"
+#include "scripting/interpreter.hpp"
 
 #include <iostream>
 #include <algorithm>

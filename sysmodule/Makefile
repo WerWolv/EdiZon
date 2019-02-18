@@ -17,8 +17,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
 #---------------------------------------------------------------------------------
-TARGET		:=	sys-netcheat
+TARGET		:=	cheat
 BUILD		:=	build
+OUTDIR		:=	out
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
@@ -56,7 +57,7 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(OUTDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -115,13 +116,13 @@ endif
 all: $(BUILD)
 
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@
+	@[ -d $@ ] || mkdir -p $@ $(OUTDIR) $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf
+	@rm -fr $(BUILD) $(OUTDIR)
 
 #---------------------------------------------------------------------------------
 else

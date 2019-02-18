@@ -1,13 +1,13 @@
-.PHONY: client sysmodule all
+.PHONY: homebrew sysmodule all
 
 client:
-	$(MAKE) -C client
+	$(MAKE) -C homebrew
 
 sysmodule:
 	$(MAKE) -C sysmodule
 	
 clean:
-	$(MAKE) clean -C client
+	$(MAKE) clean -C homebrew
 	$(MAKE) clean -C sysmodule
 
-all: client sysmodule
+all: homebrew sysmodule

@@ -463,10 +463,10 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
       s16 res;
 
       time_t t = time(nullptr);
-      static char backupName[33];
+      static char backupName[65];
       std::stringstream initialText;
       initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
-      if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
+      if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 64))
         return;
 
       if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName))) {

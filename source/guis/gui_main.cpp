@@ -190,13 +190,13 @@ void GuiMain::onInput(u32 kdown) {
       (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         bool batchFailed = false;
 
-        char backupName[33];
+        char backupName[65];
         time_t t = time(nullptr);
         std::stringstream initialText;
         initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");        
 
         if (selection) {
-          if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
+          if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 64))
             return;
 
           s16 res;
@@ -228,11 +228,11 @@ void GuiMain::onInput(u32 kdown) {
       s16 res;
 
       time_t t = time(nullptr);
-      char backupName[33];
+      char backupName[65];
       std::stringstream initialText;
       initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
 
-      if (!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
+      if (!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 64))
         return;
 
       for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {

@@ -1,7 +1,7 @@
 # EdiZon
 <p align="center"><img src="https://raw.githubusercontent.com/WerWolv98/EdiZon/master/client/icon.jpg"><br />
 	<a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
-  <a href="https://travis-ci.com/WerWolv98/EdiZon"><img src="https://travis-ci.com/WerWolv98/EdiZon.svg?branch=master" alt="Build Status" /></a>
+  <a href="https://travis-ci.com/WerWolv/EdiZon"><img src="https://travis-ci.com/WerWolv/EdiZon.svg?branch=master" alt="Build Status" /></a>
 </p>
 
 A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch.

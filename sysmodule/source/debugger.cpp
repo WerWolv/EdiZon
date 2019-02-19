@@ -3,9 +3,6 @@
 Debugger::Debugger() {
   pmdmntInitialize();
   pminfoInitialize();
-
-  pmdmntGetApplicationPid(&m_pid);
-  pminfoGetTitleId(&m_tid, m_pid);
 }
 
 Debugger::~Debugger() {
@@ -39,26 +36,42 @@ Result Debugger::breakProcess() {
 }
 
 u64 Debugger::getRunningApplicationTID() {
-  return m_tid;
+  u64 tid = 0, pid = 0;
+
+  pmdmntGetApplicationPid(&pid);
+  pminfoGetTitleId(&tid, pid);
+  return tid;
 }
 
 u64 Debugger::getRunningApplicationPID() {
-  return m_pid;
+  u64 pid = 0;
+
+  pmdmntGetApplicationPid(&pid);
+  return pid;
 }
 
 u64 Debugger::peekMemory(u64 address) {
   u64 out;
-  svcReadDebugProcessMemory(&out, m_debugHandle, address, sizeof(u64));
+  if (R_FAILED(svcReadDebugProcessMemory(&out, m_debugHandle, address, sizeof(u64)))) {
+    attachToProcess();
+    svcReadDebugProcessMemory(&out, m_debugHandle, address, sizeof(u64));
+  }
 
   return out;
 }
 
 void Debugger::pokeMemory(size_t varSize, u64 address, u64 value) {
-  svcWriteDebugProcessMemory(m_debugHandle, &value, address, varSize);
+  if (R_FAILED(svcWriteDebugProcessMemory(m_debugHandle, &value, address, varSize))) {
+    attachToProcess();
+    svcWriteDebugProcessMemory(m_debugHandle, &value, address, varSize);
+  }
 }
 
 void Debugger::readMemory(void *buffer, size_t bufferSize, u64 address) {
-  svcReadDebugProcessMemory(buffer, m_debugHandle, address, bufferSize);
+  if (R_FAILED(svcReadDebugProcessMemory(buffer, m_debugHandle, address, bufferSize))) {
+    attachToProcess();
+    svcReadDebugProcessMemory(buffer, m_debugHandle, address, bufferSize);
+  }
 }
 
 MemoryInfo Debugger::queryMemory(u64 address) {

@@ -81,7 +81,7 @@ LIBDIRS	:= $(CURDIR)/libs/nxpy $(PORTLIBS) $(LIBNX)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(OUTDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(OUTDIR)/EdiZon
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \

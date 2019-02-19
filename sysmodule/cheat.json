@@ -17,7 +17,7 @@
   "service_access": [
     "*"
   ],
-  "service_host": [],
+  "service_host": [ "edzn:cht" ],
   "kernel_capabilities": [{
     "type": "kernel_flags",
     "value": {

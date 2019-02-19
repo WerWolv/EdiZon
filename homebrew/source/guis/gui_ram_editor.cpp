@@ -2,12 +2,18 @@
 
 #include <sstream>
 
+extern "C" {
+  #include "edzn_cht.h"
+}
+
 static std::vector<std::string> dataTypes = { "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64", "f32", "f64", "ptr", "str" };
 static std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,     4,     4,     8,     8,     4,     8,     8,     0  };
 static std::string titleNameStr, tidStr, pidStr;
 
 
 GuiRAMEditor::GuiRAMEditor() : Gui() {
+  edznchtInitialize();
+
   m_searchMode = SEARCH_BEGIN;
   m_searchType = SIGNED_8BIT;
 
@@ -95,7 +101,9 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 }
 
 GuiRAMEditor::~GuiRAMEditor() {
-    m_debugger.detachFromProcess();
+  m_debugger.detachFromProcess();
+
+  edznchtExit();
 }
 
 
@@ -123,7 +131,7 @@ void GuiRAMEditor::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E2 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
   else if (m_searchMode == SEARCH_CONTINUE) {
     if (m_foundAddresses.size() > 0)
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E2 Search again     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
     else 
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E1 Back", ALIGNED_RIGHT);
   }
@@ -211,50 +219,6 @@ void GuiRAMEditor::draw() {
     Gui::drawRectangle(256 + x, 0, 1, 50, m_memory[x]);
 
 
-  /*std::string strFoundAddresses = "Found " + std::to_string(m_foundAddresses.size()) + " addresses!";
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, 100, currTheme.textColor, strFoundAddresses.c_str(), ALIGNED_RIGHT);
-
-  u16 offset = 0;
-  for (u64 addr : m_foundAddresses) {
-    std::stringstream ss;
-
-    if (offset < 425) {
-      ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << addr << "";
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, 150 + offset, currTheme.textColor, ss.str().c_str(), ALIGNED_RIGHT);
-      offset += 25;
-    }
-    else {
-      ss << "...";
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, 150 + offset, currTheme.textColor, ss.str().c_str(), ALIGNED_RIGHT);
-      break;
-    }
-
-
-
-  }*/
-
-  //Row -
-  //Column |
-
-  /*for (u8 column = 0; column < 0x10; column++) {
-    ss.str("");
-    ss << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << static_cast<u16>(column);
-    Gui::drawTextAligned(font14, 450 + column * 50, 50, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-   
-    for (u8 row = 0; row < 14; row++) {
-      ss.str("");
-      ss << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << static_cast<u16>(m_ramBuffer[row * 0x10 + column]);
-      Gui::drawTextAligned(font14, 450 + column * 50, 100 + row * 40, currTheme.separatorColor, ss.str().c_str(), ALIGNED_LEFT);
-
-      if (column == 0) {
-        ss.str("");
-        ss << "0x" << std::uppercase << std::setfill('0') << std::setw(9) << std::hex << static_cast<u64>(m_ramAddress + row * 0x10);
-        Gui::drawTextAligned(font14, 300, 100 + row * 40, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-      }
-    }
-  }*/
-
-
   Gui::endDraw();
 }
 
@@ -283,11 +247,63 @@ void GuiRAMEditor::onInput(u32 kdown) {
           if (m_selectedAddress < 8 && m_selectedAddress < (m_foundAddresses.size() - 1))
             m_selectedAddress++;
 
+        if (kdown & KEY_X) {
+          u64 value = 0;
+          u64 fvalue = 0;
+          u64 dvalue = 0;
+
+          switch(m_searchType) {
+            case UNSIGNED_8BIT:
+              value = static_cast<u8>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case UNSIGNED_16BIT:
+              value = static_cast<u16>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case UNSIGNED_32BIT:
+              value = static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case UNSIGNED_64BIT:
+              value = static_cast<u64>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case SIGNED_8BIT:
+              value = static_cast<s8>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case SIGNED_16BIT:
+              value = static_cast<s16>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case SIGNED_32BIT:
+              value = static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case SIGNED_64BIT:
+              value = static_cast<s64>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              break;
+            case FLOAT_32BIT:
+              fvalue = m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]);
+              memcpy(&value, &fvalue, 4);
+              break;
+            case FLOAT_64BIT:
+              dvalue = m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]);
+              memcpy(&value, &dvalue, 8);
+              break;
+          }
+
+          Result rc = edznchtAddMemoryFreeze(m_foundAddresses[m_selectedAddress], value, dataTypeSizes[m_searchType]);
+
+          if (rc == 0)
+            (new Snackbar("Froze variable!"))->show();
+          else if (rc == 1) {
+            edznchtRemoveMemoryFreeze(m_foundAddresses[m_selectedAddress]);
+            (new Snackbar("Unfroze variable!"))->show();
+          } else (new Snackbar("Couldn't freeze variable!"))->show();
+        }
+
         if (kdown & KEY_A) {
           if (m_selectedAddress < 8) {
             char input[16];
-            if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this address.", "", SwkbdType::SwkbdType_NumPad, input, 15))
+            if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this address.", "", SwkbdType::SwkbdType_NumPad, input, 15)) {
+              edznchtUpdateMemoryFreeze(m_foundAddresses[m_selectedAddress], atol(input));
               m_debugger.pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses[m_selectedAddress], atol(input));
+            }
           } else if (m_foundAddresses.size() < 25) {
             std::vector<std::string> options;
             options.clear();
@@ -361,7 +377,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
     remove("/EdiZon/cheats/addresses.dat");
   }
 
-  if (kdown & KEY_X) {
+  if (kdown & KEY_Y) {
     char input[16];
     if (Gui::requestKeyboardInput("Enter value", "Enter a value for which the game's memory should be searched.", "", SwkbdType::SwkbdType_NumPad, input, 15)) {
       u64 searchValue = atol(input);

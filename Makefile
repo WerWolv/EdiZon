@@ -1,5 +1,7 @@
 .PHONY: homebrew sysmodule all clean
 
+all: homebrew sysmodule
+
 homebrew:
 	$(MAKE) -C homebrew
 
@@ -11,5 +13,3 @@ clean:
 	$(MAKE) clean -C homebrew
 	$(MAKE) clean -C sysmodule
 	$(MAKE) clean -C sysmodule/libstratosphere
-
-all: homebrew sysmodule

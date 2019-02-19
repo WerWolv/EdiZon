@@ -23,4 +23,5 @@ public:
 
 private:
   Handle m_debugHandle;
+  u64 m_tid = 0, m_pid = 0;
 };

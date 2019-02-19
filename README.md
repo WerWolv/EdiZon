@@ -65,6 +65,7 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   - [onepiecefreak](https://github.com/onepiecefreak3) for the edizon debugger and LOTS of reviewing implementations.
   - [Jojo](https://github.com/drdrjojo) for the Travis CI configuration and the config creator.
   - [Ac_K](https://github.com/AcK77) for help with the server side update scripts and the EdiZon save website.
+  - [jakibaki](https://github.com/jakibaki) for his massive help with the implementation of RAM editing and sys-netcheat which was used as inspiration.
   - **bernv3** for the beautiful icon.
   - **All config creators** for bringing this project to life!
 

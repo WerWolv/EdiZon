@@ -139,7 +139,7 @@ ifeq ($(strip $(NO_ICON)),)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
-	export NROFLAGS += --nacp=$(CURDIR)/$(OUTDIR)/$(TARGET).nacp
+	export NROFLAGS += --nacp=$(CURDIR)/$(OUTDIR)/EdiZon.nacp
 endif
 
 ifneq ($(APP_TITLEID),)

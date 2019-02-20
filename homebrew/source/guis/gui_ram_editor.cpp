@@ -9,10 +9,16 @@ extern "C" {
 static std::vector<std::string> dataTypes = { "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64", "f32", "f64", "ptr", "str" };
 static std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,     4,     4,     8,     8,     4,     8,     8,     0  };
 static std::string titleNameStr, tidStr, pidStr;
-
+static bool attached = false;
+static bool sysmodulePresent = false;
 
 GuiRAMEditor::GuiRAMEditor() : Gui() {
-  edznchtInitialize();
+  Handle edznHandle;
+  if (R_FAILED(smRegisterService(&edznHandle, "edzn:cht", false, 1))) {
+    edznchtInitialize();
+    sysmodulePresent = true;
+  } else
+    smUnregisterService("edzn:cht");
 
   m_searchMode = SEARCH_BEGIN;
   m_searchType = SIGNED_8BIT;
@@ -22,7 +28,10 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     return;
   }
 
-  m_debugger.attachToProcess();
+  if (R_FAILED(m_debugger.attachToProcess()))
+    return;
+
+  attached = true;
 
   MemoryInfo meminfo = { 0 };
   u64 lastAddr = 0;
@@ -103,7 +112,8 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 GuiRAMEditor::~GuiRAMEditor() {
   m_debugger.detachFromProcess();
 
-  edznchtExit();
+  if (sysmodulePresent)
+    edznchtExit();
 }
 
 
@@ -120,6 +130,13 @@ void GuiRAMEditor::draw() {
 
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
+  if (!attached) {
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "EdiZon couldn't attach to the running Application. Please restart \n EdiZon and try again.", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
+    Gui::endDraw();
+    return;
+  }
+
   if (m_debugger.getRunningApplicationPID() == 0) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "To use the RAM editor, a title has to be running in the background. \n Please launch a game and try again.", ALIGNED_CENTER);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
@@ -128,10 +145,14 @@ void GuiRAMEditor::draw() {
   }
 
   if (m_searchMode == SEARCH_BEGIN)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E2 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
   else if (m_searchMode == SEARCH_CONTINUE) {
-    if (m_foundAddresses.size() > 0)
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
+    if (m_foundAddresses.size() > 0) {
+      if (sysmodulePresent)
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
+      else 
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E3 Search again     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
+    }
     else 
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E1 Back", ALIGNED_RIGHT);
   }
@@ -140,19 +161,35 @@ void GuiRAMEditor::draw() {
   Gui::drawImage(0, 0, 256, 256, Title::g_titles[m_debugger.getRunningApplicationTID()]->getTitleIcon(), IMAGE_MODE_RGB24);
 
 
-  Gui::drawRectangle(256, 50, 184, 70, currTheme.selectedColor);
+  Gui::drawRectangle(650, 50, 20, 20,  Gui::makeColor(0xFF, 0x00, 0x00, 0xFF)); // Code
+  Gui::drawRectangle(650, 70, 20, 20,  Gui::makeColor(0x00, 0xFF, 0x00, 0xFF)); // Shared Memory
+  Gui::drawRectangle(650, 90, 20, 20,  Gui::makeColor(0x00, 0x00, 0xFF, 0xFF)); // Heap
+  Gui::drawRectangle(650, 110, 20, 20, Gui::makeColor(0xFF, 0xFF, 0x00, 0xFF)); // Stack
+  Gui::drawRectangle(650, 130, 20, 20, Gui::makeColor(0x80, 0x80, 0x80, 0xFF)); // Others
+
+  Gui::drawTextAligned(font14, 690, 48, currTheme.textColor, "Code", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 68, currTheme.textColor, "Shared Memory", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 88, currTheme.textColor, "Heap", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 108, currTheme.textColor, "Stack", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 128, currTheme.textColor, "Others", ALIGNED_LEFT);
+
+
+  Gui::drawRectangle(256, 50, 394, 137, currTheme.selectedColor);
+
+  Gui::drawTextAligned(font20, 300, 60, COLOR_BLACK, titleNameStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 300, 90, COLOR_BLACK, tidStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 300, 120, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
+
+
+  Gui::drawRectangle(256, 186, 92, 70, currTheme.selectedColor);
+  Gui::drawRectangle(Gui::g_framebuffer_width - 92, 186, 92, 70, currTheme.selectedColor);
   for (u8 i = 0; i < 12; i++) {
-    Gui::drawRectangle(440 + i * 70, 50, 70, 70, currTheme.textColor);
-    Gui::drawRectangle(440 + i * 70 + 2, 50 + 2, 70 - 4, 70 - 4, m_searchType == i ? m_searchMode == SEARCH_BEGIN ? currTheme.highlightColor : currTheme.selectedColor : currTheme.separatorColor);
-    Gui::drawTextAligned(font20, 475 + i * 70 + 2, 67, m_searchType == i ? COLOR_BLACK : currTheme.textColor, dataTypes[i].c_str(), ALIGNED_CENTER);
+    Gui::drawRectangle(348 + i * 70, 186, 70, 70, currTheme.textColor);
+    Gui::drawRectangle(348 + i * 70 + 2, 186 + 2, 70 - 4, 70 - 4, m_searchType == i ? m_searchMode == SEARCH_BEGIN ? currTheme.highlightColor : currTheme.selectedColor : currTheme.separatorColor);
+    Gui::drawTextAligned(font20, 383 + i * 70 + 2, 203, m_searchType == i ? COLOR_BLACK : currTheme.textColor, dataTypes[i].c_str(), ALIGNED_CENTER);
   }
-  Gui::drawTextAligned(font20, 280, 67, COLOR_BLACK, "Data type", ALIGNED_LEFT);
-
-  Gui::drawRectangle(256, 119, 400, 137, currTheme.selectedColor);
-
-  Gui::drawTextAligned(font20, 280, 140, COLOR_BLACK, titleNameStr.c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, 280, 170, COLOR_BLACK, tidStr.c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, 280, 200, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 290, 203, COLOR_BLACK, "\uE0E4", ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 1222, 203, COLOR_BLACK, "\uE0E5", ALIGNED_LEFT);
 
   for (u8 line = 0; line < 9; line++) {
     if (line >= m_foundAddresses.size()) break;
@@ -169,10 +206,10 @@ void GuiRAMEditor::draw() {
 
       switch(m_searchType) {
         case UNSIGNED_8BIT:
-          ss << " (" << std::dec << static_cast<u8>(m_debugger.peekMemory(m_foundAddresses[line])) << ")";
+          ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[line]) & 0xFF) << ")";
           break;
         case UNSIGNED_16BIT:
-          ss << " (" << std::dec << static_cast<u16>(m_debugger.peekMemory(m_foundAddresses[line])) << ")";
+          ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[line]) & 0xFFFF) << ")";
           break;
         case UNSIGNED_32BIT:
           ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[line])) << ")";
@@ -181,10 +218,10 @@ void GuiRAMEditor::draw() {
           ss << " (" << std::dec << static_cast<u64>(m_debugger.peekMemory(m_foundAddresses[line])) << ")";
           break;
         case SIGNED_8BIT:
-          ss << " (" << std::dec << static_cast<s8>(m_debugger.peekMemory(m_foundAddresses[line])) << ")";
+          ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[line]) & 0xFF) << ")";
           break;
         case SIGNED_16BIT:
-          ss << " (" << std::dec << static_cast<s16>(m_debugger.peekMemory(m_foundAddresses[line])) << ")";
+          ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[line]) & 0xFFFF) << ")";
           break;
         case SIGNED_32BIT:
           ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[line])) << ")";
@@ -212,8 +249,7 @@ void GuiRAMEditor::draw() {
   }
 
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 256);
-  Gui::drawShadow(256, 0, Gui::g_framebuffer_width - 256, 50);
-  Gui::drawShadow(256, 50, Gui::g_framebuffer_width - 256, 70);
+  Gui::drawShadow(256, 50, Gui::g_framebuffer_width, 136);
 
   for (u16 x = 0; x < 1024; x++)
     Gui::drawRectangle(256 + x, 0, 1, 50, m_memory[x]);
@@ -247,17 +283,17 @@ void GuiRAMEditor::onInput(u32 kdown) {
           if (m_selectedAddress < 8 && m_selectedAddress < (m_foundAddresses.size() - 1))
             m_selectedAddress++;
 
-        if (kdown & KEY_X) {
+        if (kdown & KEY_X && sysmodulePresent) {
           u64 value = 0;
           u64 fvalue = 0;
           u64 dvalue = 0;
 
           switch(m_searchType) {
             case UNSIGNED_8BIT:
-              value = static_cast<u8>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              value = static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]) & 0xFF);
               break;
             case UNSIGNED_16BIT:
-              value = static_cast<u16>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              value = static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]) & 0xFFFF);
               break;
             case UNSIGNED_32BIT:
               value = static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
@@ -266,10 +302,10 @@ void GuiRAMEditor::onInput(u32 kdown) {
               value = static_cast<u64>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
               break;
             case SIGNED_8BIT:
-              value = static_cast<s8>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              value = static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]) & 0xFF);
               break;
             case SIGNED_16BIT:
-              value = static_cast<s16>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
+              value = static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]) & 0xFFFF);
               break;
             case SIGNED_32BIT:
               value = static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress]));
@@ -320,10 +356,10 @@ void GuiRAMEditor::onInput(u32 kdown) {
               
               switch(m_searchType) {
                 case UNSIGNED_8BIT:
-                  ss << " (" << std::dec << static_cast<u8>(m_debugger.peekMemory(m_foundAddresses[i])) << ")";
+                  ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[i]) & 0xFF) << ")";
                   break;
                 case UNSIGNED_16BIT:
-                  ss << " (" << std::dec << static_cast<u16>(m_debugger.peekMemory(m_foundAddresses[i])) << ")";
+                  ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[i]) & 0xFFFF) << ")";
                   break;
                 case UNSIGNED_32BIT:
                   ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[i])) << ")";
@@ -332,10 +368,10 @@ void GuiRAMEditor::onInput(u32 kdown) {
                   ss << " (" << std::dec << static_cast<u64>(m_debugger.peekMemory(m_foundAddresses[i])) << ")";
                   break;
                 case SIGNED_8BIT:
-                  ss << " (" << std::dec << static_cast<s8>(m_debugger.peekMemory(m_foundAddresses[i])) << ")";
+                  ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[i]) & 0xFF) << ")";
                   break;
                 case SIGNED_16BIT:
-                  ss << " (" << std::dec << static_cast<s16>(m_debugger.peekMemory(m_foundAddresses[i])) << ")";
+                  ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[i]) & 0xFFFF) << ")";
                   break;
                 case SIGNED_32BIT:
                   ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[i])) << ")";

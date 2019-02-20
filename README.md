@@ -43,13 +43,15 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
 
   1. Download the latest release from the [GitHub release page](https://github.com/WerWolv/EdiZon/releases/latest).
   2. Unpack the downloaded zip file, put the files on your Nintendo Switch's SD card and let the folders merge.
-  3. Use a free open source CFW like [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) to launch the hbmenu and start EdiZon from there.
+  3. If you're using Hekate, make sure to add `debugmode=1` to your current profile. Without that flag set RAM editing won't work.
+  4. Use a free open source CFW like [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) to launch the hbmenu and start EdiZon from there.
 
 # How to compile
 
-  1. Download and install devkitA64. It comes bundled with the [devkitPro](https://devkitpro.org) toolchain.
-  2. Required libraries are libNX, libcurl, zlib and freetype2. Use the pacman package manager that comes with devkitPro to download and install libNX, portlibs (`switch-portlibs`) and freetype2 (`switch-freetype`). 
-  3. The rest of the compilation works using the `make` command. Type `make homebrew` to build EdiZon, `make sysmodule` to build the companion sysmodule used for RAM editing or `make all` to build both.
+  1. Clone the EdiZon repo to your computer using `git clone https://github.com/WerWolv/EdiZon --recurse-submodules`.
+  2. Download and install devkitA64. It comes bundled with the [devkitPro](https://devkitpro.org) toolchain.
+  3. Use the pacman package manager that comes with devkitPro to download and install libNX, portlibs (`switch-portlibs`) and freetype2 (`switch-freetype`).
+  4. The rest of the compilation works using the `make` command. Type `make homebrew` to build EdiZon, `make sysmodule` to build the companion sysmodule used for RAM editing or `make all` to build both.
 
 # Discord
 
@@ -57,6 +59,9 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
 
 # Credits
 
+  Thanks to...
+
+  - [devkitPro](https://devkitpro.org) for their amazing toolchain!
   - [3096](https://github.com/3096) for [save dumping/injecting](https://github.com/3096/nut)
   - [Bernardo Giordano](https://github.com/BernardoGiordano) for some code from [Checkpoint](https://github.com/BernardoGiordano/Checkpoint).
   - [SwitchBrew](https://switchbrew.org/) for the [Homebrew Launcher](https://github.com/switchbrew/nx-hbmenu) GUI and shared font code.
@@ -66,6 +71,7 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   - [Jojo](https://github.com/drdrjojo) for the Travis CI configuration and the config creator.
   - [Ac_K](https://github.com/AcK77) for help with the server side update scripts and the EdiZon save website.
   - [jakibaki](https://github.com/jakibaki) for his massive help with the implementation of RAM editing and sys-netcheat which was used as inspiration.
+  - [SciresM](https://github.com/SciresM) for the aarch64 hardware accelerated SHA256 code and [libstratosphere](https://github.com/Atmosphere-NX/libstratosphere/).
   - **bernv3** for the beautiful icon.
   - **All config creators** for bringing this project to life!
 

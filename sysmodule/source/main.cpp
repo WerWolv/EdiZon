@@ -65,13 +65,14 @@ void freezeLoop(void *args) {
       continue;
     }
 
+    if (debugger.getRunningApplicationPID() == 0)
+      EdiZonCheatService::g_frozenAddresses.clear();
+
     debugger.attachToProcess();
-    debugger.breakProcess();
     for (auto const& [addr, info] : EdiZonCheatService::g_frozenAddresses) {
       debugger.pokeMemory(dataTypeSizes[info.valueType], addr, info.freezeValue);
     } 
-
-    debugger.continueProcess();
+    debugger.detachFromProcess();
 
     mutexUnlock(&EdiZonCheatService::g_freezeMutex);
     svcSleepThread(5E8L);

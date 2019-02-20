@@ -58,6 +58,7 @@ void freezeLoop(void *args) {
 
   while(true) {
     mutexLock(&EdiZonCheatService::g_freezeMutex);
+
     if (EdiZonCheatService::g_frozenAddresses.size() == 0) {
       mutexUnlock(&EdiZonCheatService::g_freezeMutex);
       svcSleepThread(5E8L);
@@ -65,12 +66,12 @@ void freezeLoop(void *args) {
     }
 
     debugger.attachToProcess();
+    debugger.breakProcess();
     for (auto const& [addr, info] : EdiZonCheatService::g_frozenAddresses) {
-      debugger.breakProcess();
       debugger.pokeMemory(dataTypeSizes[info.valueType], addr, info.freezeValue);
-      debugger.continueProcess();
     } 
-    debugger.detachFromProcess();
+
+    debugger.continueProcess();
 
     mutexUnlock(&EdiZonCheatService::g_freezeMutex);
     svcSleepThread(5E8L);

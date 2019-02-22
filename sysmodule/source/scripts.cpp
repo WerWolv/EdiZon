@@ -20,9 +20,18 @@ Scripts::~Scripts() {
   fclose(logFile);
 }
 
+void Scripts::initScripts(std::string code) {
+  duk_eval_string(m_context, code.c_str());
+}
 
-void Scripts::executeScripts() {
+void Scripts::finalizeScripts() {
+  
+}
 
+void Scripts::executeScripts(std::string cheatName) {
+  duk_get_global_string(m_context, cheatName.c_str());
+  duk_call(m_context, 0);
+  duk_pop(m_context);
 }
 
 static duk_ret_t print(duk_context *ctx) {

@@ -79,15 +79,69 @@ Result EdiZonCheatService::getFrozenMemoryAddressCount(Out<size_t> frozenAddrCnt
 }
 
 
-Result EdiZonCheatService::loadCheat(InBuffer<char> fileName, Out<u64> cheatId) {
-  return 0x1337;
+Result EdiZonCheatService::loadCheat(InBuffer<char> fileName, InBuffer<char> cheatName) {
+  Result ret = 1;
+
+  if (EdiZonCheatService::g_cheatScripts.find(fileName.buffer) == EdiZonCheatService::g_cheatScripts.end())
+    ret = 0;
+  else if (EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.find(cheatName.buffer) == EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.end())
+    ret = 0;
+
+  mutexLock(&EdiZonCheatService::g_freezeMutex);
+  EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames[cheatName.buffer] = false;
+  mutexUnlock(&EdiZonCheatService::g_freezeMutex);
+
+  return ret;
 }
 
-Result EdiZonCheatService::unloadCheat(u64 cheatId) {
-  return 0x1337;
+Result EdiZonCheatService::unloadCheat(InBuffer<char> fileName, InBuffer<char> cheatName) {
+  if (EdiZonCheatService::g_cheatScripts.find(fileName.buffer) == EdiZonCheatService::g_cheatScripts.end())
+    return 1;
+  else if (EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.find(cheatName.buffer) == EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.end())
+    return 1;
+
+  mutexLock(&EdiZonCheatService::g_freezeMutex);
+
+  EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.erase(cheatName.buffer);
+  if (EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.empty())
+    EdiZonCheatService::g_cheatScripts.erase(fileName.buffer);
+
+  mutexUnlock(&EdiZonCheatService::g_freezeMutex);
+
+  return 0;
 }
 
-Result EdiZonCheatService::GetLoadedCheats(OutBuffer<u64> cheatIds) {
-  return 0x1337;
+Result EdiZonCheatService::activateCheat(InBuffer<char> fileName, InBuffer<char> cheatName, bool activated) {
+
+  if (EdiZonCheatService::g_cheatScripts.find(fileName.buffer) == EdiZonCheatService::g_cheatScripts.end())
+    return 1;
+  else if (EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.find(cheatName.buffer) == EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.end())
+    return 1;
+
+  if (EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames[cheatName.buffer] == activated)
+    return 2;
+
+  mutexLock(&EdiZonCheatService::g_freezeMutex);
+  EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames[cheatName.buffer] = activated;
+  mutexUnlock(&EdiZonCheatService::g_freezeMutex);
+
+  return 0;
+}
+
+Result EdiZonCheatService::getLoadedCheats(InBuffer<char> fileName, Out<size_t> bufferSize, OutBuffer<bool> enabled) {
+  if (EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames.size() > enabled.num_elements)
+    return 1;
+  
+  mutexLock(&EdiZonCheatService::g_freezeMutex);
+
+  u32 i = 0;
+  for (auto const& [cheatName, en] : EdiZonCheatService::g_cheatScripts[fileName.buffer].cheatNames)
+    enabled.buffer[i++] = en;
+
+  mutexUnlock(&EdiZonCheatService::g_freezeMutex);
+
+  bufferSize.SetValue(i);
+
+  return 0;
 }
   

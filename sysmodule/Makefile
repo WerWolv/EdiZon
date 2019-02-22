@@ -27,7 +27,7 @@ endif
 TARGET		:=	cheat
 BUILD		:=	build
 OUTDIR		:=	out
-SOURCES		:=	source
+SOURCES		:=	source libs/duktape/source
 DATA		:=	data
 INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src

@@ -13,13 +13,19 @@ enum EdiZonCheatServiceCmd {
     EdiZonCheat_Cmd_GetFrozenMemoryAddressCount = 4,
     EdiZonCheat_Cmd_LoadCheat = 5,
     EdiZonCheat_Cmd_UnloadCheat = 6,
-    EdiZonCheat_Cmd_GetLoadedCheats = 7
+    EdiZonCheat_Cmd_ActivateCheat = 7,
+    EdiZonCheat_Cmd_GetLoadedCheats = 8
 };
 
 struct FreezeInfo {
   u64 freezeValue;
   u64 valueType;
 };
+
+typedef struct {
+  std::map<std::string, bool> cheatNames;
+  std::string code;
+} Cheat;
 
 class EdiZonCheatService final : public IServiceObject {
 private:
@@ -29,13 +35,15 @@ private:
   Result getFrozenMemoryAddresses(Out<size_t> bufferSize, OutBuffer<u64> freezeAddrs);
   Result getFrozenMemoryAddressCount(Out<size_t> frozenAddrCnt);
 
-  Result loadCheat(InBuffer<char> fileName, Out<u64> cheatId);
-  Result unloadCheat(u64 cheatId);
-  Result GetLoadedCheats(OutBuffer<u64> cheatIds);
+  Result loadCheat(InBuffer<char> fileName, InBuffer<char> cheatName);
+  Result unloadCheat(InBuffer<char> fileName, InBuffer<char> cheatName);
+  Result activateCheat(InBuffer<char> fileName, InBuffer<char> cheatName, bool activated);
+  Result getLoadedCheats(InBuffer<char> fileName, Out<size_t> bufferSize, OutBuffer<bool> enabled);
 
 public:
   static inline std::map<u64, FreezeInfo> g_frozenAddresses;
   static inline Mutex g_freezeMutex;
+  static inline std::map<std::string, Cheat> g_cheatScripts;
 
   DEFINE_SERVICE_DISPATCH_TABLE {
     MakeServiceCommandMeta<EdiZonCheat_Cmd_AddMemoryFreeze, &EdiZonCheatService::addMemoryFreeze>(),
@@ -46,6 +54,7 @@ public:
 
     MakeServiceCommandMeta<EdiZonCheat_Cmd_LoadCheat, &EdiZonCheatService::loadCheat>(),
     MakeServiceCommandMeta<EdiZonCheat_Cmd_UnloadCheat, &EdiZonCheatService::unloadCheat>(),
-    MakeServiceCommandMeta<EdiZonCheat_Cmd_GetLoadedCheats, &EdiZonCheatService::GetLoadedCheats>()
+        MakeServiceCommandMeta<EdiZonCheat_Cmd_ActivateCheat, &EdiZonCheatService::activateCheat>(),
+    MakeServiceCommandMeta<EdiZonCheat_Cmd_GetLoadedCheats, &EdiZonCheatService::getLoadedCheats>()
   };
 };

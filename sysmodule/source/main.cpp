@@ -9,7 +9,6 @@
 
 static std::vector<u8> dataTypeSizes = { 1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 8, 0 };
 
-
 extern "C" {
   u32 __nx_applet_type = AppletType_None;
 
@@ -79,20 +78,74 @@ void freezeLoop(void *args) {
   }
 }
 
+void scriptExecutionLoop(void *args) {
+  Debugger debugger;
+  Scripts scripts;
+
+  while(true) {
+    mutexLock(&EdiZonCheatService::g_freezeMutex);
+    debugger.attachToProcess();
+
+    for (auto & [fileName, cheat] : EdiZonCheatService::g_cheatScripts) {
+      if (cheat.code == "") {
+        FILE *cheatFile = fopen(std::string("/EdiZon/cheats/" + fileName + ".js").c_str(), "r");
+        size_t fileSize = 0;
+        char *buffer;
+
+        fseek(cheatFile, 0, SEEK_END);
+        fileSize = ftell(cheatFile);
+        rewind(cheatFile);
+
+        buffer = new char[fileSize];
+        fread(buffer, 1, fileSize, cheatFile);
+        fclose(cheatFile);
+
+        cheat.code = buffer;
+        delete[] buffer;
+      }
+
+      scripts.initScripts(cheat.code);
+
+      for (auto const& [cheatName, enabled] : cheat.cheatNames) {
+        if (!enabled) continue;
+
+        scripts.executeScripts(cheatName);
+      }
+
+      scripts.finalizeScripts();
+    }
+
+    debugger.detachFromProcess();
+    mutexUnlock(&EdiZonCheatService::g_freezeMutex);
+  }
+}
+
 int main(int argc, char **argv) {
+  (void) argc;
+  (void) argv;
+
   consoleDebugInit(debugDevice_SVC);
 
   mutexInit(&EdiZonCheatService::g_freezeMutex);
 
-  Thread freezeThread;
+  Thread freezeThread, scriptExecThread;
 
   Result rc = threadCreate(&freezeThread, freezeLoop, NULL, 0x400, 49, 3);
+  if (R_FAILED(rc))
+    fatalSimple(rc);
+
+  rc = threadCreate(&scriptExecThread, scriptExecutionLoop, NULL, 0x1000, 49, 3);
   if (R_FAILED(rc))
     fatalSimple(rc);
 
   rc = threadStart(&freezeThread);
   if (R_FAILED(rc))
     fatalSimple(rc);
+
+  rc = threadStart(&scriptExecThread);
+  if (R_FAILED(rc))
+    fatalSimple(rc);
+
 
   auto serverManager = new WaitableManager<CheatServerOptions>(1);
 

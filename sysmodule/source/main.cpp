@@ -2,8 +2,8 @@
 #include <stratosphere.hpp>
 
 #include "edizon_cheat_service.hpp"
-
 #include "debugger.hpp"
+#include "scripts.hpp"
 
 #define HEAP_SIZE 0x00034000
 

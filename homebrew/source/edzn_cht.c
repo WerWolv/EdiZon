@@ -1,20 +1,23 @@
 #include "edzn_cht.h"
 
 static Service g_edznchtService;
+static Service g_pmdmntService;
 static u64 g_refCnt;
 
-Result edznchtInitialize(void) {
+void edznchtInitialize(void) {
   atomicIncrement64(&g_refCnt);
 
   if (g_edznchtService.type != ServiceType_Uninitialized)
-    return 0;
+    return;
 
-  return smGetService(&g_edznchtService, "edzn:cht");
+  smGetService(&g_edznchtService, "edzn:cht");
+  smGetService(&g_pmdmntService, "pm:dmnt");
 }
 
 void edznchtExit(void) {
   if (atomicDecrement64(&g_refCnt) == 0) {
     serviceClose(&g_edznchtService);
+    serviceClose(&g_pmdmntService);
   }
 }
 
@@ -196,6 +199,41 @@ Result edznchtGetFrozenMemoryAddressCount(size_t *frozenAddrCnt) {
     resp = r.Raw;
 
     *frozenAddrCnt = resp->frozenAddrCnt;
+
+    rc = resp->result;
+  }
+
+  return rc;
+}
+
+Result pmdmntAtmosphereGetProcessHandle (Handle *out_processHandle) {
+  IpcCommand c;
+  ipcInitialize(&c);
+
+  struct {
+    u64 magic;
+    u64 cmd_id;
+  } *raw;
+
+  raw = ipcPrepareHeader(&c, sizeof(*raw));
+
+  raw->magic = SFCI_MAGIC;
+  raw->cmd_id = 65000;
+
+  Result rc = serviceIpcDispatch(&g_pmdmntService);
+
+  if (R_SUCCEEDED(rc)) {
+    IpcParsedCommand r;
+
+    struct {
+        u64 magic;
+        u64 result;
+    } *resp;
+
+    serviceIpcParse(&g_pmdmntService, &r, sizeof(*resp));
+    resp = r.Raw;
+
+    *out_processHandle = r.Handles[0];
 
     rc = resp->result;
   }

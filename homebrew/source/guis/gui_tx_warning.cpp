@@ -18,7 +18,7 @@ void GuiTXWarning::draw() {
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0xC5, 0x39, 0x29, 0xFF));
   Gui::drawTextAligned(fontHuge, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, COLOR_WHITE, "\uE150", ALIGNED_CENTER);
 
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2, COLOR_WHITE, "EdiZon detected that you're running the SX OS custom firmware. Please note that this\nmay cause unexpected failures, corruption of save data or backups, the Editor failing\nto load save files or configs and many other issues. For your own safety and the\n safety of your Nintendo Switch, please use a free open source CFW instead.", ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2, COLOR_WHITE, "EdiZon detected that you're running the SX OS custom firmware. Please note that this\nmay cause unexpected failures, corruption of save data or backups, the Editor failing\nto load save files or configs, RAM editing not being supported and many other issues.\n For your own safety and the safety of your Nintendo Switch, please use a free open source CFW instead.", ALIGNED_CENTER);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 150 , COLOR_WHITE, "If you want to proceed anyways, press \uE0E0. Otherwise press \uE0EF to exit.", ALIGNED_CENTER);
 
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 250, COLOR_WHITE, "\uE070  Don't show this warning anymore", ALIGNED_CENTER);

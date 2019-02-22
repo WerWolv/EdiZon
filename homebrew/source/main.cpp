@@ -34,7 +34,7 @@ char* g_edizonPath;
 static bool updateThreadRunning = false;
 static Mutex mutexCurrGui;
 static Gui* currGui = nullptr;
-static u32 inputTicker = 0;
+static s64 inputTicker = 0;
 
 static u32 kheld = 0, kheldOld = 0;
 static u32 kdown = 0;
@@ -191,15 +191,6 @@ int main(int argc, char** argv) {
     if (currGui != nullptr) {
       currGui->draw();
 
-      if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
-        if (Gui::g_currMessageBox != nullptr)
-          Gui::g_currMessageBox->onInput(kdown);
-        else if (Gui::g_currListSelector != nullptr)
-          Gui::g_currListSelector->onInput(kdown);
-        else
-          currGui->onInput(kdown);
-      }
-
       if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0) {
         if (Gui::g_currMessageBox != nullptr)
           Gui::g_currMessageBox->onInput(kheld);
@@ -207,11 +198,19 @@ int main(int argc, char** argv) {
           Gui::g_currListSelector->onInput(kheld);
         else
           currGui->onInput(kheld);
+      } else if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
+        if (Gui::g_currMessageBox != nullptr)
+          Gui::g_currMessageBox->onInput(kdown);
+        else if (Gui::g_currListSelector != nullptr)
+          Gui::g_currListSelector->onInput(kdown);
+        else
+          currGui->onInput(kdown);
       }
     }
 
-    if (kheld != kheldOld)
+    if (kheld != kheldOld) {
       inputTicker = 0;
+    }
 
     static touchPosition touchPosStart, touchPosCurr, touchPosOld;
     static u8 touchCount, touchCountOld;

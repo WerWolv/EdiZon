@@ -88,7 +88,7 @@ void scriptExecutionLoop(void *args) {
 
     for (auto & [fileName, cheat] : EdiZonCheatService::g_cheatScripts) {
       if (cheat.code == "") {
-        FILE *cheatFile = fopen(std::string("/EdiZon/cheats/" + fileName + ".js").c_str(), "r");
+        FILE *cheatFile = fopen(std::string("/EdiZon/cheats/test.js").c_str(), "r");
         size_t fileSize = 0;
         char *buffer;
 
@@ -117,6 +117,7 @@ void scriptExecutionLoop(void *args) {
 
     debugger.detachFromProcess();
     mutexUnlock(&EdiZonCheatService::g_freezeMutex);
+    svcSleepThread(5E8L);
   }
 }
 
@@ -134,7 +135,7 @@ int main(int argc, char **argv) {
   if (R_FAILED(rc))
     fatalSimple(rc);
 
-  rc = threadCreate(&scriptExecThread, scriptExecutionLoop, NULL, 0x1000, 49, 3);
+  rc = threadCreate(&scriptExecThread, scriptExecutionLoop, NULL, 0x4000, 49, 3);
   if (R_FAILED(rc))
     fatalSimple(rc);
 

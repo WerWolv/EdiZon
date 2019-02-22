@@ -14,7 +14,8 @@ enum EdiZonCheatServiceCmd {
     EdiZonCheat_Cmd_LoadCheat = 5,
     EdiZonCheat_Cmd_UnloadCheat = 6,
     EdiZonCheat_Cmd_ActivateCheat = 7,
-    EdiZonCheat_Cmd_GetLoadedCheats = 8
+    EdiZonCheat_Cmd_GetLoadedCheats = 8,
+    EdiZonCheat_Cmd_GetLoadedCheatCount = 9
 };
 
 struct FreezeInfo {
@@ -38,7 +39,8 @@ private:
   Result loadCheat(InBuffer<char> fileName, InBuffer<char> cheatName);
   Result unloadCheat(InBuffer<char> fileName, InBuffer<char> cheatName);
   Result activateCheat(InBuffer<char> fileName, InBuffer<char> cheatName, bool activated);
-  Result getLoadedCheats(InBuffer<char> fileName, Out<size_t> bufferSize, OutBuffer<bool> enabled);
+  Result getLoadedCheats(Out<size_t> bufferSize, OutBuffer<bool> enabled);
+  Result getLoadedCheatCount(Out<size_t> loadedCheatCnt);
 
 public:
   static inline std::map<u64, FreezeInfo> g_frozenAddresses;
@@ -54,7 +56,7 @@ public:
 
     MakeServiceCommandMeta<EdiZonCheat_Cmd_LoadCheat, &EdiZonCheatService::loadCheat>(),
     MakeServiceCommandMeta<EdiZonCheat_Cmd_UnloadCheat, &EdiZonCheatService::unloadCheat>(),
-        MakeServiceCommandMeta<EdiZonCheat_Cmd_ActivateCheat, &EdiZonCheatService::activateCheat>(),
+    MakeServiceCommandMeta<EdiZonCheat_Cmd_ActivateCheat, &EdiZonCheatService::activateCheat>(),
     MakeServiceCommandMeta<EdiZonCheat_Cmd_GetLoadedCheats, &EdiZonCheatService::getLoadedCheats>()
   };
 };

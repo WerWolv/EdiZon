@@ -2858,7 +2858,14 @@ typedef struct duk_hthread duk_context;
 #undef DUK_USE_EXTSTR_INTERN_CHECK
 #undef DUK_USE_FASTINT
 #define DUK_USE_FAST_REFCOUNT_DEFAULT
-#undef DUK_USE_FATAL_HANDLER
+#define DUK_USE_FATAL_HANDLER(udata,msg) do { \
+        const char *fatal_msg = (msg); /* avoid double evaluation */ \
+        (void) udata; \
+        FILE *file = fopen("/EdiZon/cheats/fatal.log", "a+"); \
+        fprintf(file, "*** FATAL ERROR: %s\n", fatal_msg ? fatal_msg : "no message"); \
+        fflush(file); \
+        fclose(file); \
+    } while (0)
 #define DUK_USE_FATAL_MAXLEN 128
 #define DUK_USE_FINALIZER_SUPPORT
 #undef DUK_USE_FINALIZER_TORTURE

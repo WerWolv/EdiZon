@@ -12,7 +12,6 @@ Scripts::Scripts() {
   duk_push_global_object(m_context);
   duk_push_c_function(m_context, print, DUK_VARARGS);
   duk_put_prop_string(m_context, -2, "print");
-  duk_pop(m_context);
 }
 
 Scripts::~Scripts() {

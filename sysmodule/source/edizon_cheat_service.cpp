@@ -5,6 +5,8 @@ void scriptExecutionLoop(void *args) {
   Debugger debugger;
   Cheat *cheat = reinterpret_cast<Cheat*>(args);
 
+  cheat->script->setDebugger(&debugger);
+
   while(cheat->script != nullptr) {
     mutexLock(&EdiZonCheatService::g_freezeMutex);
     debugger.attachToProcess();
@@ -20,7 +22,6 @@ void scriptExecutionLoop(void *args) {
     svcSleepThread(5E8L);
   }
 }
-
 
 
 Result EdiZonCheatService::addMemoryFreeze(u64 freezeAddr, u64 freezeValue, u64 valueType) {

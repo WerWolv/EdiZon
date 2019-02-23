@@ -7901,6 +7901,7 @@ struct duk_hthread {
 	duk_hstring **strs;
 #endif
 #endif
+	void *extra_space;
 };
 
 /*
@@ -96793,6 +96794,14 @@ DUK_INTERNAL duk_double_t duk_util_tinyrandom_get_double(duk_hthread *thr) {
 #endif  /* DUK__RANDOM_XOROSHIRO128PLUS */
 
 #endif  /* !DUK_USE_GET_RANDOM_DOUBLE */
+
+DUK_EXTERNAL_DECL void* duk_get_extra_space(duk_context *ctx) {
+	return ctx->extra_space;
+}
+
+DUK_EXTERNAL_DECL void duk_set_extra_space(duk_context *ctx, void *data) {
+	ctx->extra_space = data;
+}
 
 /* automatic undefs */
 #undef DUK__RANDOM_SHAMIR3OP

@@ -61,6 +61,10 @@ void Debugger::readMemory(void *buffer, size_t bufferSize, u64 address) {
   svcReadDebugProcessMemory(buffer, m_debugHandle, address, bufferSize);
 }
 
+void Debugger::writeMemory(void *buffer, size_t bufferSize, u64 address) {
+  svcWriteDebugProcessMemory(m_debugHandle, buffer, address, bufferSize);
+}
+
 MemoryInfo Debugger::queryMemory(u64 address) {
   MemoryInfo memInfo = { 0 };
   u32 pageInfo;

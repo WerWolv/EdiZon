@@ -1314,6 +1314,8 @@ DUK_EXTERNAL_DECL duk_double_t duk_get_now(duk_context *ctx);
 DUK_EXTERNAL_DECL void duk_time_to_components(duk_context *ctx, duk_double_t timeval, duk_time_components *comp);
 DUK_EXTERNAL_DECL duk_double_t duk_components_to_time(duk_context *ctx, duk_time_components *comp);
 
+DUK_EXTERNAL_DECL void* duk_get_extra_space(duk_context *ctx);
+DUK_EXTERNAL_DECL void duk_set_extra_space(duk_context *ctx, void *data);
 /*
  *  Date provider related constants
  *

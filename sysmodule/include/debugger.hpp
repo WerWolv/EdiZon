@@ -20,7 +20,8 @@ public:
   void pokeMemory(size_t varSize, u64 address, u64 value);
   MemoryInfo queryMemory(u64 address);
   void readMemory(void *buffer, size_t bufferSize, u64 address);
-
+  void writeMemory(void *buffer, size_t bufferSize, u64 address);
+  
 private:
   Handle m_debugHandle;
   u64 m_tid = 0, m_pid = 0;

@@ -3,7 +3,6 @@
 
 #include "edizon_cheat_service.hpp"
 #include "debugger.hpp"
-#include "scripts.hpp"
 
 #define HEAP_SIZE 0x00034000
 
@@ -78,49 +77,6 @@ void freezeLoop(void *args) {
   }
 }
 
-void scriptExecutionLoop(void *args) {
-  Debugger debugger;
-  Scripts scripts;
-
-  while(true) {
-    mutexLock(&EdiZonCheatService::g_freezeMutex);
-    debugger.attachToProcess();
-
-    for (auto & [fileName, cheat] : EdiZonCheatService::g_cheatScripts) {
-      if (cheat.code == "") {
-        FILE *cheatFile = fopen(std::string("/EdiZon/cheats/test.js").c_str(), "r");
-        size_t fileSize = 0;
-        char *buffer;
-
-        fseek(cheatFile, 0, SEEK_END);
-        fileSize = ftell(cheatFile);
-        rewind(cheatFile);
-
-        buffer = new char[fileSize];
-        fread(buffer, 1, fileSize, cheatFile);
-        fclose(cheatFile);
-
-        cheat.code = buffer;
-        delete[] buffer;
-      }
-
-      scripts.initScripts(cheat.code);
-
-      for (auto const& [cheatName, enabled] : cheat.cheatNames) {
-        if (!enabled) continue;
-
-        scripts.executeScripts(cheatName);
-      }
-
-      scripts.finalizeScripts();
-    }
-
-    debugger.detachFromProcess();
-    mutexUnlock(&EdiZonCheatService::g_freezeMutex);
-    svcSleepThread(5E8L);
-  }
-}
-
 int main(int argc, char **argv) {
   (void) argc;
   (void) argv;
@@ -129,24 +85,16 @@ int main(int argc, char **argv) {
 
   mutexInit(&EdiZonCheatService::g_freezeMutex);
 
-  Thread freezeThread, scriptExecThread;
+  Thread freezeThread;
 
   Result rc = threadCreate(&freezeThread, freezeLoop, NULL, 0x400, 49, 3);
   if (R_FAILED(rc))
     fatalSimple(rc);
 
-  rc = threadCreate(&scriptExecThread, scriptExecutionLoop, NULL, 0x4000, 49, 3);
-  if (R_FAILED(rc))
-    fatalSimple(rc);
 
   rc = threadStart(&freezeThread);
   if (R_FAILED(rc))
     fatalSimple(rc);
-
-  rc = threadStart(&scriptExecThread);
-  if (R_FAILED(rc))
-    fatalSimple(rc);
-
 
   auto serverManager = new WaitableManager<CheatServerOptions>(1);
 

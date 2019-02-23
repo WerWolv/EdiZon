@@ -2052,7 +2052,7 @@ typedef struct duk_hthread duk_context;
 
 /* An abort()-like primitive is needed by the default fatal error handler. */
 #if !defined(DUK_ABORT)
-#define DUK_ABORT             abort
+#define DUK_ABORT             
 #endif
 
 #if !defined(DUK_SETJMP)

@@ -4,6 +4,7 @@
 #include <stratosphere.hpp>
 
 #include <map>
+#include "scripts.hpp"
 
 enum EdiZonCheatServiceCmd {
     EdiZonCheat_Cmd_AddMemoryFreeze = 0,
@@ -25,7 +26,8 @@ struct FreezeInfo {
 
 typedef struct {
   std::map<std::string, bool> cheatNames;
-  std::string code;
+  Thread thread;
+  Scripts *script;
 } Cheat;
 
 class EdiZonCheatService final : public IServiceObject {

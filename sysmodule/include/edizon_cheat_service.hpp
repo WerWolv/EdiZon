@@ -38,7 +38,7 @@ private:
   Result getFrozenMemoryAddresses(Out<size_t> bufferSize, OutBuffer<u64> freezeAddrs);
   Result getFrozenMemoryAddressCount(Out<size_t> frozenAddrCnt);
 
-  Result loadCheat(InBuffer<char> fileName, InBuffer<char> cheatName);
+  Result loadCheat(InBuffer<char> fileName, InBuffer<char> cheatName, u64 baseAddr, u64 mainAddr, u64 heapAddr);
   Result unloadCheat(InBuffer<char> fileName, InBuffer<char> cheatName);
   Result activateCheat(InBuffer<char> fileName, InBuffer<char> cheatName, bool activated);
   Result getLoadedCheats(Out<size_t> bufferSize, OutBuffer<bool> enabled);

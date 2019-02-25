@@ -12,7 +12,7 @@ extern "C" {
 
 class Scripts {
 public:
-  Scripts();
+  Scripts(u64 baseAddr, u64 mainAddr, u64 heapAddr);
   ~Scripts();
 
   void setDebugger(Debugger *debugger);
@@ -25,6 +25,8 @@ private:
 
   std::vector<std::string> m_loadedCheats;
   duk_context *m_context;
+
+  u64 m_baseAddr, m_mainAddr, m_heapAddr;
 
   duk_ret_t readNBytes(duk_context *ctx);
   duk_ret_t writeNBytes(duk_context *ctx);

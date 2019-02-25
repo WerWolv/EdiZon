@@ -6,7 +6,7 @@
 
 #include "encoding.hpp"
 
-void *python_extraspace;
+static void *python_extraspace;
 static PyMethodDef *edizonMethods;
 static PyModuleDef edizonModule;
 

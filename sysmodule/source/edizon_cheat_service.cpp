@@ -103,7 +103,7 @@ Result EdiZonCheatService::getFrozenMemoryAddressCount(Out<size_t> frozenAddrCnt
 }
 
 
-Result EdiZonCheatService::loadCheat(InBuffer<char> fileName, InBuffer<char> cheatName) {
+Result EdiZonCheatService::loadCheat(InBuffer<char> fileName, InBuffer<char> cheatName, u64 baseAddr, u64 mainAddr, u64 heapAddr) {
   Result ret = 1;
 
   if (EdiZonCheatService::g_cheatScripts.find(fileName.buffer) == EdiZonCheatService::g_cheatScripts.end())
@@ -127,12 +127,12 @@ Result EdiZonCheatService::loadCheat(InBuffer<char> fileName, InBuffer<char> che
     fread(buffer, 1, fileSize, cheatFile);
     fclose(cheatFile);
 
-    EdiZonCheatService::g_cheatScripts[fileName.buffer].script = new Scripts();
+    EdiZonCheatService::g_cheatScripts[fileName.buffer].script = new Scripts(baseAddr, mainAddr, heapAddr);
     EdiZonCheatService::g_cheatScripts[fileName.buffer].script->initScripts(buffer);
 
     delete[] buffer;
     
-    if(R_FAILED(threadCreate(&EdiZonCheatService::g_cheatScripts[fileName.buffer].thread, scriptExecutionLoop, &EdiZonCheatService::g_cheatScripts[fileName.buffer], 0x4000, 49, 3))) {
+    if(R_FAILED(threadCreate(&EdiZonCheatService::g_cheatScripts[fileName.buffer].thread, scriptExecutionLoop, &EdiZonCheatService::g_cheatScripts[fileName.buffer], 0x2000, 49, 3))) {
       delete EdiZonCheatService::g_cheatScripts[fileName.buffer].script;
       EdiZonCheatService::g_cheatScripts[fileName.buffer].script = nullptr;
 

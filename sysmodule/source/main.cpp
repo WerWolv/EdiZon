@@ -4,7 +4,7 @@
 #include "edizon_cheat_service.hpp"
 #include "debugger.hpp"
 
-#define HEAP_SIZE 0x00034000
+#define HEAP_SIZE 0x000340000
 
 static std::vector<u8> dataTypeSizes = { 1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 8, 0 };
 

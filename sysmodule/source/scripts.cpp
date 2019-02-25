@@ -1,4 +1,5 @@
 #include "scripts.hpp"
+#include <sstream>
 
 static FILE *logFile;
 
@@ -12,7 +13,7 @@ duk_ret_t dispatch(duk_context *ctx) {
   return ((*ptr).*func)(ctx);
 }
 
-Scripts::Scripts() {
+Scripts::Scripts(u64 baseAddr, u64 mainAddr, u64 heapAddr) : m_baseAddr(baseAddr), m_mainAddr(mainAddr), m_heapAddr(heapAddr) {
   m_context = duk_create_heap_default();
   duk_set_extra_space(m_context, this);
 
@@ -43,7 +44,14 @@ void Scripts::setDebugger(Debugger *debugger) {
 }
 
 void Scripts::initScripts(std::string code) {
-  duk_peval_string(m_context, code.c_str());
+  std::stringstream ss;
+  duk_eval_string(m_context, code.c_str());
+
+  ss << "Addresses = { BASE : u64(0x" << std::hex << (m_baseAddr >> 32) << ", 0x" << (m_baseAddr & 0xFFFFFFFF) << "), ";
+  ss << "MAIN : u64(0x" << std::hex << (m_mainAddr >> 32) << ", 0x" << (m_mainAddr & 0xFFFFFFFF) << "), ";
+  ss << "HEAP : u64(0x" << std::hex << (m_heapAddr >> 32) << ", 0x" << (m_heapAddr & 0xFFFFFFFF) << ") };";
+
+  duk_eval_string(m_context, ss.str().c_str());
 }
 
 void Scripts::finalizeScripts() {
@@ -52,14 +60,14 @@ void Scripts::finalizeScripts() {
 
 void Scripts::executeScripts(std::string cheatName) {
   duk_get_global_string(m_context, cheatName.c_str());
-  duk_pcall(m_context, 0);
+  duk_call(m_context, 0);
   duk_pop(m_context);
 }
 
 static duk_ret_t print(duk_context *ctx) {
   if (logFile == nullptr) return 1;
 
-  fprintf(logFile, "Print: ");
+  fprintf(logFile, "INFO: ");
 
   for (duk_idx_t i = 0, n = duk_get_top(ctx); i < n; i++) {
     if (i > 0)
@@ -98,6 +106,8 @@ duk_ret_t Scripts::readNBytes(duk_context *ctx) {
   u8 *retBuffer = (u8*)duk_push_fixed_buffer(ctx, dataBufferSize);
   memcpy(retBuffer, dataBuffer, dataBufferSize);
 
+  fprintf(logFile, "Read from %lx [%lu]\n", addr, addrBufferSize);
+
   return 1;
 }
 
@@ -118,6 +128,8 @@ duk_ret_t Scripts::writeNBytes(duk_context *ctx) {
     addr |= addrBuffer[i] << i * 8;
 
   m_debugger->writeMemory(dataBuffer, dataBufferSize, addr);
+
+  fprintf(logFile, "Write to %lx [%lu]\n", addr, addrBufferSize);
 
   m_debugger->continueProcess();
 

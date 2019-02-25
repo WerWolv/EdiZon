@@ -243,7 +243,7 @@ Result pmdmntAtmosphereGetProcessHandle (Handle *out_processHandle) {
   return rc;
 }
 
-Result edznchtLoadCheat(char *fileName, char *cheatName) {
+Result edznchtLoadCheat(char *fileName, char *cheatName, u64 baseAddr, u64 mainAddr, u64 heapAddr) {
   IpcCommand c;
   ipcInitialize(&c);
 
@@ -253,12 +253,18 @@ Result edznchtLoadCheat(char *fileName, char *cheatName) {
   struct {
     u64 magic;
     u64 cmd_id;
+    u64 baseAddr;
+    u64 mainAddr;
+    u64 heapAddr;
   } *raw;
 
   raw = ipcPrepareHeader(&c, sizeof(*raw));
 
   raw->magic = SFCI_MAGIC;
   raw->cmd_id = 5;
+  raw->baseAddr = baseAddr;
+  raw->mainAddr = mainAddr;
+  raw->heapAddr = heapAddr;
 
   Result rc = serviceIpcDispatch(&g_edznchtService);
 

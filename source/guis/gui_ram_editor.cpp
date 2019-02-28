@@ -4,9 +4,6 @@
 #include <limits>
 #include <bits/stdc++.h>
 
-extern "C" {
-  #include "edzn_cht.h"
-}
 
 static std::vector<std::string> dataTypes = { "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64", "f32", "f64", "ptr", "str" };
 static std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,     4,     4,     8,     8,     4,     8,     8,     0  };
@@ -17,15 +14,6 @@ static std::string titleNameStr, tidStr, pidStr;
 
 
 GuiRAMEditor::GuiRAMEditor() : Gui() {
-  Handle edznHandle;
-  Handle applicationHandle;
-
-  if (R_FAILED(smRegisterService(&edznHandle, "edzn:cht", false, 1))) {
-    edznchtInitialize();
-    m_sysmodulePresent = true;
-  } else
-    smUnregisterService("edzn:cht");
-
   m_searchMode = SEARCH_BEGIN;
   m_searchType = SIGNED_8BIT;
 
@@ -37,10 +25,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   if (R_FAILED(m_debugger.attachToProcess()))
     return;
 
-  pmdmntAtmosphereGetProcessHandle(&applicationHandle);
-
-  svcGetInfo(&m_addressSpaceBaseAddr, 12, applicationHandle, 0);
-  svcGetInfo(&m_heapBaseAddr, 4, applicationHandle, 0);
+  //TODO: Get base addresses from Atmosphere here
 
   m_attached = true;
 
@@ -124,9 +109,6 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
 GuiRAMEditor::~GuiRAMEditor() {
   m_debugger.detachFromProcess();
-
-  if (m_sysmodulePresent)
-    edznchtExit();
 }
 
 
@@ -223,6 +205,7 @@ void GuiRAMEditor::draw() {
   if (!m_foundAddresses.empty()) {
     Gui::drawRectangle(Gui::g_framebuffer_width - 522, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses.size()), 8U) * 40, currTheme.textColor);
     Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 272, 262, currTheme.backgroundColor, "Found candidates", ALIGNED_CENTER);
+    Gui::drawShadow(Gui::g_framebuffer_width - 522, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses.size()), 8U) * 40);
   }
 
   for (u8 line = 0; line < 8; line++) {
@@ -289,7 +272,6 @@ void GuiRAMEditor::draw() {
 
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 256);
   Gui::drawShadow(256, 50, Gui::g_framebuffer_width, 136);
-  Gui::drawShadow(Gui::g_framebuffer_width - 522, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses.size()), 8U) * 40);
 
   for (u16 x = 0; x < 1024; x++)
     Gui::drawRectangle(256 + x, 0, 1, 50, m_memory[x]);
@@ -363,12 +345,12 @@ void GuiRAMEditor::onInput(u32 kdown) {
               break;
           }
 
-          Result rc = edznchtAddMemoryFreeze(m_foundAddresses[m_selectedAddress].addr, value, dataTypeSizes[m_searchType]);
-
+          Result rc = 0x1337;
+          //TODO: Add Atmosphere memory freeze add IPC here
           if (rc == 0)
             (new Snackbar("Froze variable!"))->show();
           else if (rc == 1) {
-            edznchtRemoveMemoryFreeze(m_foundAddresses[m_selectedAddress].addr);
+            //TODO: Add Atmosphere memory freeze remove IPC here
             (new Snackbar("Unfroze variable!"))->show();
           } else (new Snackbar("Couldn't freeze variable!"))->show();
         }
@@ -377,7 +359,9 @@ void GuiRAMEditor::onInput(u32 kdown) {
           if (m_selectedAddress < 7) {
             char input[16];
             if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this address.", "", SwkbdType::SwkbdType_NumPad, input, 15)) {
-              edznchtUpdateMemoryFreeze(m_foundAddresses[m_selectedAddress].addr, atol(input));
+              
+              //TODO: Add Atmosphere memory freeze update IPC here
+
               m_debugger.pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses[m_selectedAddress].addr, atol(input));
             }
           } else if (m_foundAddresses.size() < 25) {

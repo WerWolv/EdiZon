@@ -1,5 +1,5 @@
 # EdiZon
-  <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/homebrew/icon.jpg"><br />
+  <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/icon.jpg"><br />
     <a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
     <a href="https://travis-ci.com/WerWolv/EdiZon"><img src="https://travis-ci.com/WerWolv/EdiZon.svg?branch=master" alt="Build Status" /></a>
   </p>
@@ -19,13 +19,11 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
     - Built-in save editor updater.
   - **On-the-fly memory editing**
     - Cheat Engine like RAM editing.
-    - Freezing of values in RAM. **(WIP)**
-    - Scriptable background editing. **(WIP)**
+    - Freezing of values in RAM via Atmosphère's cheat module. **(WIP)**
+    - Interface for loading and managing Atmosphère cheats. **(WIP)**
+    - Easy to use cheat creator tool. **(WIP)** 
 
   All packed into one easy to use and easy to install Homebrew.
-
-  - The code for the homebrew application can be found [here](https://github.com/WerWolv/EdiZon/tree/master/homebrew).
-  - The code for the sysmodule can be found [here](https://github.com/WerWolv/EdiZon/tree/master/sysmodule).
 
 # Images
   <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/assets/main_menu.jpg"></p>
@@ -45,13 +43,14 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   2. Unpack the downloaded zip file, put the files on your Nintendo Switch's SD card and let the folders merge.
   3. If you're using Hekate, make sure to add `debugmode=1` to your current profile. Without that flag set RAM editing won't work.
   4. Use a free open source CFW like [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) to launch the hbmenu and start EdiZon from there.
+     1. If you want to use the cheat manager you absolutely have to use [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) as only their cheats are supported.
 
 # How to compile
 
-  1. Clone the EdiZon repo to your computer using `git clone https://github.com/WerWolv/EdiZon --recurse-submodules`.
+  1. Clone the EdiZon repo to your computer using `git clone https://github.com/WerWolv/EdiZon`.
   2. Download and install devkitA64. It comes bundled with the [devkitPro](https://devkitpro.org) toolchain.
   3. Use the pacman package manager that comes with devkitPro to download and install libNX, portlibs (`switch-portlibs`) and freetype2 (`switch-freetype`).
-  4. The rest of the compilation works using the `make` command. Type `make homebrew` to build EdiZon, `make sysmodule` to build the companion sysmodule used for RAM editing or `make all` to build both.
+  4. The rest of the compilation works using the `make` command.
 
 # Discord
 
@@ -71,7 +70,7 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   - [Jojo](https://github.com/drdrjojo) for the Travis CI configuration and the config creator.
   - [Ac_K](https://github.com/AcK77) for help with the server side update scripts and the EdiZon save website.
   - [jakibaki](https://github.com/jakibaki) for his massive help with the implementation of RAM editing and sys-netcheat which was used as inspiration.
-  - [SciresM](https://github.com/SciresM) for the aarch64 hardware accelerated SHA256 code and [libstratosphere](https://github.com/Atmosphere-NX/libstratosphere/).
+  - [SciresM](https://github.com/SciresM) for the aarch64 hardware accelerated SHA256 code, his implementation of the Atmosphère cheat engine and his support during development.
   - **bernv3** for the beautiful icon.
   - **All config creators** for bringing this project to life!
 

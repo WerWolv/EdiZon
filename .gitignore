@@ -2,8 +2,6 @@
 #.gitignore       #
 ###################
 
-homebrew/build/
-homebrew/out/
-sysmodule/build/
-sysmodule/out/
+build/
+out/
 .vscode/

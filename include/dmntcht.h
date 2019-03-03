@@ -28,7 +28,7 @@ typedef struct {
     CheatDefinition definition;
 } CheatEntry;
 
-Result dmntchtdmntchtInitialize(void);
+Result dmntchtInitialize(void);
 void dmntchtExit(void);
 Service* dmntchtGetService(void);
 

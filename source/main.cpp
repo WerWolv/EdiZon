@@ -22,6 +22,7 @@
 
 extern "C" {
   #include "theme.h"
+  #include "util.h"
 }
 
 #define NXLINK
@@ -127,20 +128,10 @@ int main(int argc, char** argv) {
 
   createFolders();
 
-  Handle txHandle;
-  if (R_FAILED(smRegisterService(&txHandle, "tx", false, 1)) && access("/EdiZon/.hide_sxos", F_OK) == -1) {
-    if(R_SUCCEEDED(smRegisterService(&txHandle, "rnx", false, 1))) {
-      Gui::g_nextGui = GUI_TX_WARNING;
-      smUnregisterService("rnx");
-    }
-    else {
-      Gui::g_nextGui = GUI_MAIN;
-    }
-  }
-  else {
-    Gui::g_nextGui = GUI_MAIN;
-    smUnregisterService("tx");
-  }
+  Gui::g_nextGui = GUI_MAIN;
+
+  if (isServiceRunning("tx") && !isServiceRunning("rnx") && access("/EdiZon/.hide_sxos", F_OK) == -1)
+    Gui::g_nextGui = GUI_TX_WARNING;
 
   if (access("/EdiZon/cheats/addresses.dat", F_OK) != -1)
     Gui::g_nextGui = GUI_RAM_EDITOR;

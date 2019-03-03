@@ -4,11 +4,15 @@
 #include <limits>
 #include <bits/stdc++.h>
 
+extern "C" {
+  #include "util.h"
+  #include "dmntcht.h"
+}
 
 static std::vector<std::string> dataTypes = { "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64", "f32", "f64", "ptr", "str" };
 static std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,     4,     4,     8,     8,     4,     8,     8,     0  };
-static std::vector<long double> dataTypeMaxValues = { std::numeric_limits<s8>::max(), std::numeric_limits<u8>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<float>::max(), std::numeric_limits<double>::max(), std::numeric_limits<u64>::max() };
-static std::vector<long double> dataTypeMinValues = { std::numeric_limits<s8>::min(), std::numeric_limits<u8>::min(), std::numeric_limits<s16>::min(), std::numeric_limits<u16>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<u32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min(), std::numeric_limits<float>::min(), std::numeric_limits<double>::min(), std::numeric_limits<u64>::min() };
+static std::vector<u128> dataTypeMaxValues = { std::numeric_limits<s8>::max(), std::numeric_limits<u8>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max() };
+static std::vector<u128> dataTypeMinValues = { std::numeric_limits<s8>::min(), std::numeric_limits<u8>::min(), std::numeric_limits<s16>::min(), std::numeric_limits<u16>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<u32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min() };
 
 static std::string titleNameStr, tidStr, pidStr;
 
@@ -25,7 +29,29 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   if (R_FAILED(m_debugger.attachToProcess()))
     return;
 
-  //TODO: Get base addresses from Atmosphere here
+  m_sysmodulePresent = isServiceRunning("dmnt:cht");
+
+  if (m_sysmodulePresent) {
+    dmntchtInitialize();
+
+    CheatProcessMetadata metadata;
+    dmntchtGetCheatProcessMetadata(&metadata);
+
+    m_addressSpaceBaseAddr = metadata.address_space_extents.base;
+    m_heapBaseAddr = metadata.heap_extents.base;
+    m_codeBaseAddr = metadata.main_nso_extents.base;
+  } else {
+    Handle appHandle = INVALID_HANDLE;
+
+    amspmdmntInitialize();
+    amspmdmntAtmosphereGetProcessHandle(&appHandle);
+
+    if (appHandle != INVALID_HANDLE) {
+      svcGetInfo(&m_addressSpaceBaseAddr, 12, appHandle, 0);
+      svcGetInfo(&m_heapBaseAddr, 4, appHandle, 0);
+      m_codeBaseAddr = 0x00;
+    }
+  }  
 
   m_attached = true;
 
@@ -42,7 +68,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_debugger.continueProcess();
 
   for (MemoryInfo meminfo : m_memoryInfo) {
-    if (m_codeBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic || (meminfo.type == MemType_CodeMutable)))
+    if (m_codeBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic))
       m_codeBaseAddr = meminfo.addr;
 
     for (u64 addrOffset = meminfo.addr; addrOffset < meminfo.addr + meminfo.size; addrOffset += 0x20000000) {
@@ -105,10 +131,17 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   ss << "PID: " << std::dec << m_debugger.getRunningApplicationPID();
   pidStr = ss.str();
+
+  if (!m_sysmodulePresent) {
+    (new MessageBox("Atmosphère's cheat module is not running on this System. \n Cheat management and variable freezing is disabled.", MessageBox::OKAY))->show();
+  }
 }
 
 GuiRAMEditor::~GuiRAMEditor() {
   m_debugger.detachFromProcess();
+
+  if (m_sysmodulePresent)
+    amspmdmntExit();
 }
 
 
@@ -306,62 +339,21 @@ void GuiRAMEditor::onInput(u32 kdown) {
             m_selectedAddress++;
 
         if (kdown & KEY_X && m_sysmodulePresent) {
-          u64 value = 0;
-          u64 fvalue = 0;
-          u64 dvalue = 0;
-
-          switch(m_searchType) {
-            case UNSIGNED_8BIT:
-              value = static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr) & 0xFF);
-              break;
-            case UNSIGNED_16BIT:
-              value = static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr) & 0xFFFF);
-              break;
-            case UNSIGNED_32BIT:
-              value = static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr));
-              break;
-            case UNSIGNED_64BIT:
-              value = static_cast<u64>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr));
-              break;
-            case SIGNED_8BIT:
-              value = static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr) & 0xFF);
-              break;
-            case SIGNED_16BIT:
-              value = static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr) & 0xFFFF);
-              break;
-            case SIGNED_32BIT:
-              value = static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr));
-              break;
-            case SIGNED_64BIT:
-              value = static_cast<s64>(m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr));
-              break;
-            case FLOAT_32BIT:
-              fvalue = m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr);
-              memcpy(&value, &fvalue, 4);
-              break;
-            case FLOAT_64BIT:
-              dvalue = m_debugger.peekMemory(m_foundAddresses[m_selectedAddress].addr);
-              memcpy(&value, &dvalue, 8);
-              break;
+          if (R_FAILED(dmntchtToggleAddressFrozen(m_foundAddresses[m_selectedAddress].addr))) {
+            (new Snackbar("Failed to freeze variable!"))->show();
+            return;
           }
 
-          Result rc = 0x1337;
-          //TODO: Add Atmosphere memory freeze add IPC here
-          if (rc == 0)
+          if (!isAddressFrozen(m_foundAddresses[m_selectedAddress].addr))
             (new Snackbar("Froze variable!"))->show();
-          else if (rc == 1) {
-            //TODO: Add Atmosphere memory freeze remove IPC here
+          else
             (new Snackbar("Unfroze variable!"))->show();
-          } else (new Snackbar("Couldn't freeze variable!"))->show();
         }
 
         if (kdown & KEY_A) {
           if (m_selectedAddress < 7) {
             char input[16];
             if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this address.", "", SwkbdType::SwkbdType_NumPad, input, 15)) {
-              
-              //TODO: Add Atmosphere memory freeze update IPC here
-
               m_debugger.pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses[m_selectedAddress].addr, atol(input));
             }
           } else if (m_foundAddresses.size() < 25) {
@@ -585,4 +577,26 @@ void GuiRAMEditor::onTouch(touchPosition &touch) {
 
 void GuiRAMEditor::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
 
+}
+
+bool isAddressFrozen(uintptr_t address) {
+  uintptr_t *addresses;
+  u64 addressCnt = 0;
+  bool frozen = false;
+
+  dmntchtGetFrozenAddressCount(&addressCnt);
+
+  if (addressCnt != 0) {
+    addresses = new uintptr_t[addressCnt];
+    dmntchtGetFrozenAddresses(addresses, addressCnt, 0, nullptr);
+
+    for (u64 i = 0; i < addressCnt; i++) {
+      if (addresses[i] == address) {
+        frozen = true;
+        break;
+      }
+    }
+  }
+
+  return frozen;
 }

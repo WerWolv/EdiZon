@@ -197,7 +197,7 @@ Result dmntchtGetCheatProcessMapping(MemoryInfo *buffer, u64 buffer_size, u64 of
   return rc;
 }
 
-Result dmntchtReadCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 *size) {
+Result dmntchtReadCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size) {
   IpcCommand c;
   ipcInitialize(&c);
   ipcAddRecvBuffer(&c, buffer, buffer_size * sizeof(u8), 0);
@@ -234,7 +234,7 @@ Result dmntchtReadCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u
   return rc;
 }
 
-Result dmntchtWriteCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 *size) {
+Result dmntchtWriteCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size) {
   IpcCommand c;
   ipcInitialize(&c);
   ipcAddSendBuffer(&c, buffer, buffer_size * sizeof(u8), 0);

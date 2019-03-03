@@ -11,10 +11,13 @@ extern "C" {
 
 static std::vector<std::string> dataTypes = { "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64", "f32", "f64", "ptr", "str" };
 static std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,     4,     4,     8,     8,     4,     8,     8,     0  };
-static std::vector<u128> dataTypeMaxValues = { std::numeric_limits<s8>::max(), std::numeric_limits<u8>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max() };
-static std::vector<u128> dataTypeMinValues = { std::numeric_limits<s8>::min(), std::numeric_limits<u8>::min(), std::numeric_limits<s16>::min(), std::numeric_limits<u16>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<u32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min() };
+static std::vector<s128> dataTypeMaxValues = { std::numeric_limits<s8>::max(), std::numeric_limits<u8>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max() };
+static std::vector<s128> dataTypeMinValues = { std::numeric_limits<s8>::min(), std::numeric_limits<u8>::min(), std::numeric_limits<s16>::min(), std::numeric_limits<u16>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<u32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min() };
 
 static std::string titleNameStr, tidStr, pidStr;
+
+
+bool isAddressFrozen(uintptr_t address);
 
 
 GuiRAMEditor::GuiRAMEditor() : Gui() {

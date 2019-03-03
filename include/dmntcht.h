@@ -38,8 +38,8 @@ Result dmntchtGetCheatProcessMetadata(CheatProcessMetadata *out_metadata);
 
 Result dmntchtGetCheatProcessMappingCount(u64 *out_count);
 Result dmntchtGetCheatProcessMapping(MemoryInfo *buffer, u64 buffer_size, u64 offset, u64 *out_count);
-Result dmntchtReadCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 *size);
-Result dmntchtWriteCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 *size);
+Result dmntchtReadCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size);
+Result dmntchtWriteCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size);
 
 Result dmntchtGetCheatCount(u64 *out_count);
 Result dmntchtGetCheats(CheatEntry *buffer, u64 buffer_size, u64 offset, u64 *out_count);

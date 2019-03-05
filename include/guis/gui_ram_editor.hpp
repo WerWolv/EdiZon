@@ -41,7 +41,7 @@ public:
   void onGesture(touchPosition startPosition, touchPosition endPosition, bool finish);
 
 private:
-  Debugger m_debugger;
+  Debugger *m_debugger;
   u8 m_ramBuffer[0x10 * 14] = { 0 };
   u64 m_ramAddress = 0;
   u8 m_selectedAddress = 0;

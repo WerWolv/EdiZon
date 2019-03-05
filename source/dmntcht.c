@@ -3,588 +3,630 @@
 static Service g_dmntchtService;
 static u64 g_refCnt;
 
+static Result _dmntchtGetCount(u64 cmd_id, u64 *out_count);
+static Result _dmntchtGetEntries(u64 cmd_id, void *buffer, u64 buffer_size, u64 offset, u64 *out_count);
+
 Result dmntchtInitialize(void) {
-  atomicIncrement64(&g_refCnt);
+    atomicIncrement64(&g_refCnt);
 
-  if (serviceIsActive(&g_dmntchtService))
-    return 0;
+    if (serviceIsActive(&g_dmntchtService)) {
+        return 0;
+    }
 
-  return smGetService(&g_dmntchtService, "dmnt:cht");
+    return smGetService(&g_dmntchtService, "dmnt:cht");
 }
 
 void dmntchtExit(void) {
-  if (atomicIncrement64(&g_refCnt) == 0)
-    serviceClose(&g_dmntchtService);
+    if (atomicIncrement64(&g_refCnt) == 0)  {
+        serviceClose(&g_dmntchtService);
+    }
 }
 
-Service* dmntchtGetService(void) {
-  return &g_dmntchtService;
+Service* dmntchtGetServiceSession(void) {
+    return &g_dmntchtService;
 }
-
 
 Result dmntchtHasCheatProcess(bool *out) {
-  IpcCommand c;
-  ipcInitialize(&c);
+    IpcCommand c;
+    ipcInitialize(&c);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65000;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-        bool out;
-    } *resp;
+        u64 cmd_id;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-    *out = resp->out;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65000;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            bool out;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        if (R_SUCCEEDED(rc)) {
+            if (out) *out = resp->out;
+        }
+    }
+
+    return rc;
 }
 
 Result dmntchtGetCheatProcessEvent(Event *event) {
-  IpcCommand c;
-  ipcInitialize(&c);
+    IpcCommand c;
+    ipcInitialize(&c);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65001;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-    } *resp;
+        u64 cmd_id;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65001;
+
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
 
     if (R_SUCCEEDED(rc)) {
-      eventLoadRemote(event, r.Handles[0], true);
-    }
-  }
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+        } *resp;
 
-  return rc;
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+
+        if (R_SUCCEEDED(rc)) {
+            eventLoadRemote(event, r.Handles[0], true);
+        }
+    }
+
+    return rc;
 }
 
-Result dmntchtGetCheatProcessMetadata(CheatProcessMetadata *out_metadata) {
-  IpcCommand c;
-  ipcInitialize(&c);
+Result dmntchtGetCheatProcessMetadata(DmntCheatProcessMetadata *out_metadata) {
+    IpcCommand c;
+    ipcInitialize(&c);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65002;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-        CheatProcessMetadata metadata;
-    } *resp;
+        u64 cmd_id;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-    *out_metadata = resp->metadata;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65002;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            DmntCheatProcessMetadata metadata;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        if (R_SUCCEEDED(rc)) {
+            if (out_metadata) *out_metadata = resp->metadata;
+        }
+    }
+
+    return rc;
+}
+
+Result dmntchtForceOpenCheatProcess(void) {
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+    } *raw;
+
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
+
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65003;
+
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+    }
+
+    return rc;
+}
+
+static Result _dmntchtGetCount(u64 cmd_id, u64 *out_count) {
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+    } *raw;
+
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
+
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = cmd_id;
+
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            u64 count;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        *out_count = resp->count;
+    }
+
+    return rc;
+}
+
+static Result _dmntchtGetEntries(u64 cmd_id, void *buffer, u64 buffer_size, u64 offset, u64 *out_count) {
+    IpcCommand c;
+    ipcInitialize(&c);
+    ipcAddRecvBuffer(&c, buffer, buffer_size, 0);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+        u64 offset;
+    } *raw;
+
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
+
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = cmd_id;
+    raw->offset = offset;
+
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            u64 count;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        if (R_SUCCEEDED(rc)) {
+            if (out_count) *out_count = resp->count;
+        }
+    }
+
+    return rc;
 }
 
 Result dmntchtGetCheatProcessMappingCount(u64 *out_count) {
-  IpcCommand c;
-  ipcInitialize(&c);
-
-  struct {
-    u64 magic;
-    u64 cmd_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65100;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
-    struct {
-        u64 magic;
-        u64 result;
-        u64 count;
-    } *resp;
-
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
-
-    rc = resp->result;
-    *out_count = resp->count;
-  }
-
-  return rc;
+    return _dmntchtGetCount(65100, out_count);
 }
 
-Result dmntchtGetCheatProcessMapping(MemoryInfo *buffer, u64 buffer_size, u64 offset, u64 *out_count) {
-  IpcCommand c;
-  ipcInitialize(&c);
-  ipcAddRecvBuffer(&c, buffer, buffer_size * sizeof(MemoryInfo), 0);
-
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 offset;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65101;
-  raw->offset = offset;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
-    struct {
-        u64 magic;
-        u64 result;
-        u64 count;
-    } *resp;
-
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
-
-    rc = resp->result;
-    *out_count = resp->count;
-  }
-
-  return rc;
+Result dmntchtGetCheatProcessMappings(MemoryInfo *buffer, u64 max_count, u64 offset, u64 *out_count) {
+    return _dmntchtGetEntries(65101, buffer, sizeof(*buffer) * max_count, offset, out_count);
 }
 
-Result dmntchtReadCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size) {
-  IpcCommand c;
-  ipcInitialize(&c);
-  ipcAddRecvBuffer(&c, buffer, buffer_size * sizeof(u8), 0);
+Result dmntchtReadCheatProcessMemory(u64 address, void *buffer, size_t size) {
+    IpcCommand c;
+    ipcInitialize(&c);
+    ipcAddRecvBuffer(&c, buffer, size, 0);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 address;
-    u64 size;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65102;
-  raw->address = address;
-  raw->size = size;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-    } *resp;
+        u64 cmd_id;
+        u64 address;
+        u64 size;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65102;
+    raw->address = address;
+    raw->size = size;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+    }
+
+    return rc;
 }
 
-Result dmntchtWriteCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size) {
-  IpcCommand c;
-  ipcInitialize(&c);
-  ipcAddSendBuffer(&c, buffer, buffer_size * sizeof(u8), 0);
+Result dmntchtWriteCheatProcessMemory(u64 address, const void *buffer, size_t size) {
+    IpcCommand c;
+    ipcInitialize(&c);
+    ipcAddSendBuffer(&c, buffer, size, 0);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 address;
-    u64 size;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65103;
-  raw->address = address;
-  raw->size = size;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-    } *resp;
+        u64 cmd_id;
+        u64 address;
+        u64 size;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65103;
+    raw->address = address;
+    raw->size = size;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+    }
+
+    return rc;
+}
+
+Result dmntchtQueryCheatProcessMemory(MemoryInfo *mem_info, u64 address){
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+        u64 address;
+    } *raw;
+
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
+
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65104;
+    raw->address = address;
+
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            MemoryInfo mem_info;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        if (R_SUCCEEDED(rc)) {
+            if (mem_info) *mem_info = resp->mem_info;
+        }
+    }
+
+    return rc;
 }
 
 Result dmntchtGetCheatCount(u64 *out_count) {
-  IpcCommand c;
-  ipcInitialize(&c);
-
-  struct {
-    u64 magic;
-    u64 cmd_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65200;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
-    struct {
-        u64 magic;
-        u64 result;
-        u64 count;
-    } *resp;
-
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
-
-    rc = resp->result;
-    *out_count = resp->count;
-  }
-
-  return rc;
+    return _dmntchtGetCount(65200, out_count);
 }
 
-Result dmntchtGetCheats(CheatEntry *buffer, u64 buffer_size, u64 offset, u64 *out_count) {
-  IpcCommand c;
-  ipcInitialize(&c);
-  ipcAddRecvBuffer(&c, buffer, buffer_size * sizeof(CheatEntry), 0);
-
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 offset;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65201;
-  raw->offset = offset;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
-    struct {
-        u64 magic;
-        u64 result;
-        u64 count;
-    } *resp;
-
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
-
-    rc = resp->result;
-    *out_count = resp->count;
-  }
-
-  return rc;
+Result dmntchtGetCheats(DmntCheatEntry *buffer, u64 max_count, u64 offset, u64 *out_count) {
+    return _dmntchtGetEntries(65201, buffer, sizeof(*buffer) * max_count, offset, out_count);
 }
 
-Result dmntchtGetCheatById(CheatEntry *buffer, u32 cheat_id) {
-  IpcCommand c;
-  ipcInitialize(&c);
-  ipcAddRecvBuffer(&c, buffer, sizeof(CheatEntry), 0);
+Result dmntchtGetCheatById(DmntCheatEntry *buffer, u32 cheat_id) {
+    IpcCommand c;
+    ipcInitialize(&c);
+    ipcAddRecvBuffer(&c, buffer, sizeof(*buffer), 0);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 cheat_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65202;
-  raw->cheat_id = cheat_id;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-        u64 count;
-    } *resp;
+        u64 cmd_id;
+        u32 cheat_id;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65202;
+    raw->cheat_id = cheat_id;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+    }
+
+    return rc;
 }
 
 Result dmntchtToggleCheat(u32 cheat_id) {
-  IpcCommand c;
-  ipcInitialize(&c);
+    IpcCommand c;
+    ipcInitialize(&c);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 cheat_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65203;
-  raw->cheat_id = cheat_id;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-    } *resp;
+        u64 cmd_id;
+        u32 cheat_id;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65203;
+    raw->cheat_id = cheat_id;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+    }
+
+    return rc;
 }
 
-Result dmntchtAddCheat(CheatDefinition *buffer, bool enabled, u32 *out_cheat_id) {
-  IpcCommand c;
-  ipcInitialize(&c);
-  ipcAddSendBuffer(&c, buffer, sizeof(CheatDefinition), 0);
+Result dmntchtAddCheat(DmntCheatDefinition *buffer, bool enabled, u32 *out_cheat_id) {
+    IpcCommand c;
+    ipcInitialize(&c);
+    ipcAddSendBuffer(&c, buffer, sizeof(*buffer), 0);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 enabled;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65204;
-  raw->enabled = enabled;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-        u64 cheat_id;
-    } *resp;
+        u64 cmd_id;
+        u8 enabled;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
-    *out_cheat_id = resp->cheat_id;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65204;
+    raw->enabled = enabled;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            u32 cheat_id;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        if (R_SUCCEEDED(rc)) {
+            if (out_cheat_id) *out_cheat_id = resp->cheat_id;
+        }
+    }
+
+    return rc;
 }
 
 Result dmntchtRemoveCheat(u32 cheat_id) {
-  IpcCommand c;
-  ipcInitialize(&c);
+    IpcCommand c;
+    ipcInitialize(&c);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 cheat_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65205;
-  raw->cheat_id = cheat_id;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-    } *resp;
+        u64 cmd_id;
+        u32 cheat_id;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65205;
+    raw->cheat_id = cheat_id;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+    }
+
+    return rc;
 }
 
 
 Result dmntchtGetFrozenAddressCount(u64 *out_count) {
-  IpcCommand c;
-  ipcInitialize(&c);
-
-  struct {
-    u64 magic;
-    u64 cmd_id;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65300;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
-    struct {
-        u64 magic;
-        u64 result;
-        u64 count;
-    } *resp;
-
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
-
-    rc = resp->result;
-    *out_count = resp->count;
-  }
-
-  return rc;
+    return _dmntchtGetCount(65300, out_count);
 }
 
-Result dmntchtGetFrozenAddresses(uintptr_t *buffer, u64 buffer_size, u64 offset, u64 *out_count) {
-  IpcCommand c;
-  ipcInitialize(&c);
-  ipcAddRecvBuffer(&c, buffer, buffer_size * sizeof(uintptr_t), 0);
-
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 offset;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65301;
-  raw->offset = offset;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
-    struct {
-        u64 magic;
-        u64 result;
-        u64 count;
-    } *resp;
-
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
-    *out_count = resp->count;
-
-    rc = resp->result;
-  }
-
-  return rc;
+Result dmntchtGetFrozenAddresses(DmntFrozenAddressEntry *buffer, u64 max_count, u64 offset, u64 *out_count) {
+    return _dmntchtGetEntries(65301, buffer, sizeof(*buffer) * max_count, offset, out_count);
 }
 
-Result dmntchtToggleAddressFrozen(uintptr_t address) {
-  IpcCommand c;
-  ipcInitialize(&c);
+Result dmntchtGetFrozenAddress(DmntFrozenAddressEntry *out, u64 address) {
+    IpcCommand c;
+    ipcInitialize(&c);
 
-  struct {
-    u64 magic;
-    u64 cmd_id;
-    u64 address;
-  } *raw;
-
-  raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65302;
-  raw->address = address;
-
-  Result rc = serviceIpcDispatch(&g_dmntchtService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
     struct {
         u64 magic;
-        u64 result;
-    } *resp;
+        u64 cmd_id;
+        u64 address;
+    } *raw;
 
-    serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
-    resp = r.Raw;
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
 
-    rc = resp->result;
-  }
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65302;
+    raw->address = address;
 
-  return rc;
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            DmntFrozenAddressEntry entry;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        if (R_SUCCEEDED(rc)) {
+            if (out) *out = resp->entry;
+        }
+    }
+
+    return rc;
+}
+
+Result dmntchtEnableFrozenAddress(u64 address, u64 width, u64 *out_value) {
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+        u64 address;
+        u64 width;
+    } *raw;
+
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
+
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65303;
+    raw->address = address;
+    raw->width = width;
+
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            u64 value;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+        if (R_SUCCEEDED(rc)) {
+            if (out_value) *out_value = resp->value;
+        }
+    }
+
+    return rc;
+}
+
+Result dmntchtDisableFrozenAddress(u64 address) {
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    struct {
+        u64 magic;
+        u64 cmd_id;
+        u64 address;
+    } *raw;
+
+    raw = serviceIpcPrepareHeader(&g_dmntchtService, &c, sizeof(*raw));
+
+    raw->magic = SFCI_MAGIC;
+    raw->cmd_id = 65304;
+    raw->address = address;
+
+    Result rc = serviceIpcDispatch(&g_dmntchtService);
+
+    if (R_SUCCEEDED(rc)) {
+        IpcParsedCommand r;
+        struct {
+            u64 magic;
+            u64 result;
+            u64 value;
+        } *resp;
+
+        serviceIpcParse(&g_dmntchtService, &r, sizeof(*resp));
+        resp = r.Raw;
+
+        rc = resp->result;
+    }
+
+    return rc;
 }

@@ -168,6 +168,7 @@ int main(int argc, char** argv) {
             break;
           case GUI_RAM_EDITOR:
             currGui = new GuiRAMEditor();
+            break;
 
           case GUI_INVALID: [[fallthrough]]
           default: break;

@@ -1,6 +1,10 @@
 #include "debugger.hpp"
 
-Debugger::Debugger() {
+extern "C" {
+  #include "dmntcht.h"
+}
+
+Debugger::Debugger(bool dmntPresent) : m_dmntPresent(dmntPresent) {
   pmdmntInitialize();
   pminfoInitialize();
 
@@ -14,17 +18,27 @@ Debugger::~Debugger() {
 }
 
 Result Debugger::attachToProcess() {
-  u64 pid;
-  pmdmntGetApplicationPid(&pid);
+  if (m_dmntPresent) {
+    return dmntchtForceOpenCheatProcess();
+  } else {
+    u64 pid;
+    pmdmntGetApplicationPid(&pid);
 
-  return svcDebugActiveProcess(&m_debugHandle, pid);
+    return svcDebugActiveProcess(&m_debugHandle, pid);
+  }
 }
 
 Result Debugger::detachFromProcess() {
+  if (m_dmntPresent) 
+    return 0;
+
   return svcCloseHandle(m_debugHandle);
 }
 
 Result Debugger::continueProcess() {
+  if (m_dmntPresent)
+    return 0;
+
   Result rc;
   do {
     u8 event[0x40];
@@ -35,6 +49,9 @@ Result Debugger::continueProcess() {
 }
 
 Result Debugger::breakProcess() {
+  if (m_dmntPresent)
+    return 0;
+
   return svcBreakDebugProcess(m_debugHandle);
 }
 
@@ -48,18 +65,26 @@ u64 Debugger::getRunningApplicationPID() {
 
 u64 Debugger::peekMemory(u64 address) {
   u64 out;
-  svcReadDebugProcessMemory(&out, m_debugHandle, address, sizeof(u64));
+  if (m_dmntPresent)
+    dmntchtReadCheatProcessMemory(address, &out, sizeof(u64));
+  else
+    svcReadDebugProcessMemory(&out, m_debugHandle, address, sizeof(u64));
 
   return out;
 }
 
 void Debugger::pokeMemory(size_t varSize, u64 address, u64 value) {
-  svcWriteDebugProcessMemory(m_debugHandle, &value, address, varSize);
+  if (m_dmntPresent)
+    dmntchtWriteCheatProcessMemory(address, &value, varSize);
+  else
+    svcWriteDebugProcessMemory(m_debugHandle, &value, address, varSize);
 }
 
 void Debugger::readMemory(void *buffer, size_t bufferSize, u64 address) {
-  svcReadDebugProcessMemory(buffer, m_debugHandle, address, bufferSize);
-}
+  if (m_dmntPresent)
+    dmntchtReadCheatProcessMemory(address, buffer, bufferSize);
+  else
+    svcReadDebugProcessMemory(buffer, m_debugHandle, address, bufferSize);}
 
 void Debugger::writeMemory(void *buffer, size_t bufferSize, u64 address) {
   svcWriteDebugProcessMemory(m_debugHandle, buffer, address, bufferSize);
@@ -67,9 +92,14 @@ void Debugger::writeMemory(void *buffer, size_t bufferSize, u64 address) {
 
 MemoryInfo Debugger::queryMemory(u64 address) {
   MemoryInfo memInfo = { 0 };
-  u32 pageInfo;
 
-  svcQueryDebugProcessMemory(&memInfo, &pageInfo, m_debugHandle, address);
+  if (m_dmntPresent) {
+    dmntchtQueryCheatProcessMemory(&memInfo, address);
+  } else {
+    u32 pageInfo;
+
+    svcQueryDebugProcessMemory(&memInfo, &pageInfo, m_debugHandle, address);
+  }
 
   return memInfo;
 }

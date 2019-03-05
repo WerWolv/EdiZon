@@ -5,49 +5,64 @@
 typedef struct {
     u64 base;
     u64 size;
-} MemoryRegionExtents;
+} DmntMemoryRegionExtents;
 
 typedef struct {
     u64 process_id;
-    MemoryRegionExtents main_nso_extents;
-    MemoryRegionExtents heap_extents;
-    MemoryRegionExtents alias_extents;
-    MemoryRegionExtents address_space_extents;
+    u64 title_id;
+    DmntMemoryRegionExtents main_nso_extents;
+    DmntMemoryRegionExtents heap_extents;
+    DmntMemoryRegionExtents alias_extents;
+    DmntMemoryRegionExtents address_space_extents;
     u8 main_nso_build_id[0x20];
-} CheatProcessMetadata;
+} DmntCheatProcessMetadata;
 
 typedef struct {
     char readable_name[0x40];
     uint32_t num_opcodes;
     uint32_t opcodes[0x100];
-} CheatDefinition;
+} DmntCheatDefinition;
 
 typedef struct {
     bool enabled;
     uint32_t cheat_id;
-    CheatDefinition definition;
-} CheatEntry;
+    DmntCheatDefinition definition;
+} DmntCheatEntry;
+
+typedef struct {
+    u64 value;
+    u8 width;
+} DmntFrozenAddressValue;
+
+typedef struct {
+    u64 address;
+    DmntFrozenAddressValue value;
+} DmntFrozenAddressEntry;
 
 Result dmntchtInitialize(void);
 void dmntchtExit(void);
-Service* dmntchtGetService(void);
+Service* dmntchtGetServiceSession(void);
 
 Result dmntchtHasCheatProcess(bool *out);
 Result dmntchtGetCheatProcessEvent(Event *event);
-Result dmntchtGetCheatProcessMetadata(CheatProcessMetadata *out_metadata);
+Result dmntchtGetCheatProcessMetadata(DmntCheatProcessMetadata *out_metadata);
+Result dmntchtForceOpenCheatProcess(void);
 
 Result dmntchtGetCheatProcessMappingCount(u64 *out_count);
-Result dmntchtGetCheatProcessMapping(MemoryInfo *buffer, u64 buffer_size, u64 offset, u64 *out_count);
-Result dmntchtReadCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size);
-Result dmntchtWriteCheatProcessMemory(u8 *buffer, u64 buffer_size, u64 address, u64 size);
+Result dmntchtGetCheatProcessMappings(MemoryInfo *buffer, u64 max_count, u64 offset, u64 *out_count);
+Result dmntchtReadCheatProcessMemory(u64 address, void *buffer, size_t size);
+Result dmntchtWriteCheatProcessMemory(u64 address, const void *buffer, size_t size);
+Result dmntchtQueryCheatProcessMemory(MemoryInfo *mem_info, u64 address);
 
 Result dmntchtGetCheatCount(u64 *out_count);
-Result dmntchtGetCheats(CheatEntry *buffer, u64 buffer_size, u64 offset, u64 *out_count);
-Result dmntchtGetCheatById(CheatEntry *buffer, u32 cheat_id);
+Result dmntchtGetCheats(DmntCheatEntry *buffer, u64 max_count, u64 offset, u64 *out_count);
+Result dmntchtGetCheatById(DmntCheatEntry *out_cheat, u32 cheat_id);
 Result dmntchtToggleCheat(u32 cheat_id);
-Result dmntchtAddCheat(CheatDefinition *buffer, bool enabled, u32 *out_cheat_id);
+Result dmntchtAddCheat(DmntCheatDefinition *cheat, bool enabled, u32 *out_cheat_id);
 Result dmntchtRemoveCheat(u32 cheat_id);
 
 Result dmntchtGetFrozenAddressCount(u64 *out_count);
-Result dmntchtGetFrozenAddresses(uintptr_t *buffer, u64 buffer_size, u64 offset, u64 *out_count);
-Result dmntchtToggleAddressFrozen(uintptr_t address);
+Result dmntchtGetFrozenAddresses(DmntFrozenAddressEntry *buffer, u64 max_count, u64 offset, u64 *out_count);
+Result dmntchtGetFrozenAddress(DmntFrozenAddressEntry *out, u64 address);
+Result dmntchtEnableFrozenAddress(u64 address, u64 width, u64 *out_value);
+Result dmntchtDisableFrozenAddress(u64 address);

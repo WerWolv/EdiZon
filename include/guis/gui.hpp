@@ -38,7 +38,7 @@ public:
   static inline enum gui_t g_nextGui = GUI_INVALID;
 
   u8 *framebuffer;
-    static inline Framebuffer g_fb_obj;
+  static inline Framebuffer g_fb_obj;
   static inline u32 g_framebuffer_width = 1280;
   static inline u32 g_framebuffer_height = 720;
 

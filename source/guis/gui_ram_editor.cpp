@@ -24,21 +24,21 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_searchMode = SEARCH_BEGIN;
   m_searchType = SIGNED_8BIT;
 
-  if (m_debugger.getRunningApplicationPID() == 0) {
+  m_sysmodulePresent = isServiceRunning("dmnt:cht");
+
+  m_debugger = new Debugger(m_sysmodulePresent);
+
+  if (m_debugger->getRunningApplicationPID() == 0) {
     remove("/EdiZon/cheats/addresses.dat");
     return;
   }
 
-  if (R_FAILED(m_debugger.attachToProcess()))
-    return;
-
-  m_sysmodulePresent = isServiceRunning("dmnt:cht");
-
   if (m_sysmodulePresent) {
     dmntchtInitialize();
+    dmntchtForceOpenCheatProcess();
 
-    CheatProcessMetadata metadata;
-    dmntchtGetCheatProcessMetadata(&metadata);
+    DmntCheatProcessMetadata metadata;
+    printf("%x\n", dmntchtGetCheatProcessMetadata(&metadata));
 
     m_addressSpaceBaseAddr = metadata.address_space_extents.base;
     m_heapBaseAddr = metadata.heap_extents.base;
@@ -63,12 +63,12 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   do {
     lastAddr = meminfo.addr;
-    meminfo = m_debugger.queryMemory(meminfo.addr + meminfo.size);
+    meminfo = m_debugger->queryMemory(meminfo.addr + meminfo.size);
 
     m_memoryInfo.push_back(meminfo);
   } while (lastAddr < meminfo.addr + meminfo.size);
 
-  m_debugger.continueProcess();
+  m_debugger->continueProcess();
 
   for (MemoryInfo meminfo : m_memoryInfo) {
     if (m_codeBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic))
@@ -88,7 +88,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     }
   }
 
-  u64 oldPid = 0;
+  u64 oldHeapBaseAddr = 0;
   size_t addressCnt = 0;
   std::ifstream file("/EdiZon/cheats/addresses.dat", std::ios::in | std::ios::binary);
 
@@ -96,7 +96,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     m_searchMode = SEARCH_CONTINUE;
     file.read((char*)&addressCnt, 8);
     file.read((char*)&m_searchType, 1);
-    file.read((char*)&oldPid, 8);
+    file.read((char*)&oldHeapBaseAddr, 8);
 
     GuiRAMEditor::ramAddr_t *buffer = new GuiRAMEditor::ramAddr_t[addressCnt];
     m_foundAddresses.reserve(addressCnt);
@@ -110,7 +110,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     file.close();
   }
 
-  if (m_debugger.getRunningApplicationPID() != oldPid && oldPid != 0) {
+  if (m_heapBaseAddr != oldHeapBaseAddr && oldHeapBaseAddr != 0) {
     m_searchMode = SEARCH_BEGIN;
     remove("/EdiZon/cheats/addresses.dat");
     m_foundAddresses.clear();
@@ -119,20 +119,20 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   }
 
   std::stringstream ss;
-  if (Title::g_titles[m_debugger.getRunningApplicationTID()] != nullptr) {
-    if (Title::g_titles[m_debugger.getRunningApplicationTID()]->getTitleName().length() < 24)
-      ss << Title::g_titles[m_debugger.getRunningApplicationTID()]->getTitleName();
+  if (Title::g_titles[m_debugger->getRunningApplicationTID()] != nullptr) {
+    if (Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName().length() < 24)
+      ss << Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName();
     else
-      ss << Title::g_titles[m_debugger.getRunningApplicationTID()]->getTitleName().substr(0, 21) << "...";
+      ss << Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName().substr(0, 21) << "...";
     titleNameStr = ss.str();
     ss.str("");
   } else titleNameStr = "Unknown title name!";
 
-  ss << "TID: " << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger.getRunningApplicationTID();
+  ss << "TID: " << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
   tidStr = ss.str();
   ss.str("");
 
-  ss << "PID: " << std::dec << m_debugger.getRunningApplicationPID();
+  ss << "PID: " << std::dec << m_debugger->getRunningApplicationPID();
   pidStr = ss.str();
 
   if (!m_sysmodulePresent) {
@@ -141,7 +141,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 }
 
 GuiRAMEditor::~GuiRAMEditor() {
-  m_debugger.detachFromProcess();
+  m_debugger->detachFromProcess();
 
   if (m_sysmodulePresent)
     amspmdmntExit();
@@ -169,7 +169,7 @@ void GuiRAMEditor::draw() {
     return;
   }
 
-  if (m_debugger.getRunningApplicationPID() == 0) {
+  if (m_debugger->getRunningApplicationPID() == 0) {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "To use the RAM editor, a title has to be running in the background. \n Please launch a game and try again.", ALIGNED_CENTER);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
     Gui::endDraw();
@@ -191,8 +191,8 @@ void GuiRAMEditor::draw() {
 
   Gui::drawRectangle(256, 50, Gui::g_framebuffer_width - 256, 206, currTheme.separatorColor);
 
-  if (Title::g_titles[m_debugger.getRunningApplicationTID()] != nullptr)
-    Gui::drawImage(0, 0, 256, 256, Title::g_titles[m_debugger.getRunningApplicationTID()]->getTitleIcon(), IMAGE_MODE_RGB24);
+  if (Title::g_titles[m_debugger->getRunningApplicationTID()] != nullptr)
+    Gui::drawImage(0, 0, 256, 256, Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleIcon(), IMAGE_MODE_RGB24);
   else 
     Gui::drawRectangle(0, 0, 256, 256, Gui::makeColor(0x00, 0x00, 0xFF, 0xFF));
 
@@ -264,36 +264,36 @@ void GuiRAMEditor::draw() {
 
       switch(m_searchType) {
         case UNSIGNED_8BIT:
-          ss << "  ( " << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[line].addr) & 0xFF) << " )";
+          ss << "  ( " << std::dec << static_cast<u32>(m_debugger->peekMemory(m_foundAddresses[line].addr) & 0xFF) << " )";
           break;
         case UNSIGNED_16BIT:
-          ss << "  ( " << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[line].addr) & 0xFFFF) << " )";
+          ss << "  ( " << std::dec << static_cast<u32>(m_debugger->peekMemory(m_foundAddresses[line].addr) & 0xFFFF) << " )";
           break;
         case UNSIGNED_32BIT:
-          ss << "  ( " << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[line].addr)) << " )";
+          ss << "  ( " << std::dec << static_cast<u32>(m_debugger->peekMemory(m_foundAddresses[line].addr)) << " )";
           break;
         case UNSIGNED_64BIT:
-          ss << "  ( " << std::dec << static_cast<u64>(m_debugger.peekMemory(m_foundAddresses[line].addr)) << " )";
+          ss << "  ( " << std::dec << static_cast<u64>(m_debugger->peekMemory(m_foundAddresses[line].addr)) << " )";
           break;
         case SIGNED_8BIT:
-          ss << "  ( " << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[line].addr) & 0xFF) << " )";
+          ss << "  ( " << std::dec << static_cast<s32>(m_debugger->peekMemory(m_foundAddresses[line].addr) & 0xFF) << " )";
           break;
         case SIGNED_16BIT:
-          ss << "  ( " << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[line].addr) & 0xFFFF) << " )";
+          ss << "  ( " << std::dec << static_cast<s32>(m_debugger->peekMemory(m_foundAddresses[line].addr) & 0xFFFF) << " )";
           break;
         case SIGNED_32BIT:
-          ss << "  ( " << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[line].addr)) << " )";
+          ss << "  ( " << std::dec << static_cast<s32>(m_debugger->peekMemory(m_foundAddresses[line].addr)) << " )";
           break;
         case SIGNED_64BIT:
-          ss << "  ( " << std::dec << static_cast<s64>(m_debugger.peekMemory(m_foundAddresses[line].addr)) << " )";
+          ss << "  ( " << std::dec << static_cast<s64>(m_debugger->peekMemory(m_foundAddresses[line].addr)) << " )";
           break;
         case FLOAT_32BIT:
-          fvalue = m_debugger.peekMemory(m_foundAddresses[line].addr);
+          fvalue = m_debugger->peekMemory(m_foundAddresses[line].addr);
           memcpy(&fcast, &fvalue, 4);
           ss << "  ( " << fcast << " )";
           break;
         case FLOAT_64BIT:
-          dvalue = m_debugger.peekMemory(m_foundAddresses[line].addr);
+          dvalue = m_debugger->peekMemory(m_foundAddresses[line].addr);
           memcpy(&dcast, &dvalue, 8);
           ss << "  ( " << dcast << " )"; 
           break;
@@ -320,7 +320,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
   if (kdown & KEY_B) 
     Gui::g_nextGui = GUI_MAIN;
 
-  if (m_debugger.getRunningApplicationPID() == 0)
+  if (m_debugger->getRunningApplicationPID() == 0)
     return;
 
   if (m_searchMode == SEARCH_BEGIN) {
@@ -342,22 +342,27 @@ void GuiRAMEditor::onInput(u32 kdown) {
             m_selectedAddress++;
 
         if (kdown & KEY_X && m_sysmodulePresent) {
-          if (R_FAILED(dmntchtToggleAddressFrozen(m_foundAddresses[m_selectedAddress].addr))) {
-            (new Snackbar("Failed to freeze variable!"))->show();
-            return;
-          }
+          if (!isAddressFrozen(m_foundAddresses[m_selectedAddress].addr)) {
+            u64 outValue;
 
-          if (!isAddressFrozen(m_foundAddresses[m_selectedAddress].addr))
-            (new Snackbar("Froze variable!"))->show();
-          else
-            (new Snackbar("Unfroze variable!"))->show();
+            if (R_SUCCEEDED(dmntchtEnableFrozenAddress(m_foundAddresses[m_selectedAddress].addr, dataTypeSizes[m_searchType], &outValue)))
+              (new Snackbar("Froze variable!"))->show();
+            else
+              (new Snackbar("Failed to freeze variable!"))->show();
+          }
+          else {
+            if (R_SUCCEEDED(dmntchtDisableFrozenAddress(m_foundAddresses[m_selectedAddress].addr)))
+              (new Snackbar("Unfroze variable!"))->show();
+            else
+              (new Snackbar("Failed to unfreeze variable!"))->show();
+          }
         }
 
         if (kdown & KEY_A) {
           if (m_selectedAddress < 7) {
             char input[16];
             if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this address.", "", SwkbdType::SwkbdType_NumPad, input, 15)) {
-              m_debugger.pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses[m_selectedAddress].addr, atol(input));
+              m_debugger->pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses[m_selectedAddress].addr, atol(input));
             }
           } else if (m_foundAddresses.size() < 25) {
             std::vector<std::string> options;
@@ -375,36 +380,36 @@ void GuiRAMEditor::onInput(u32 kdown) {
               
               switch(m_searchType) {
                 case UNSIGNED_8BIT:
-                  ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[i].addr) & 0xFF) << ")";
+                  ss << " (" << std::dec << static_cast<u32>(m_debugger->peekMemory(m_foundAddresses[i].addr) & 0xFF) << ")";
                   break;
                 case UNSIGNED_16BIT:
-                  ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[i].addr) & 0xFFFF) << ")";
+                  ss << " (" << std::dec << static_cast<u32>(m_debugger->peekMemory(m_foundAddresses[i].addr) & 0xFFFF) << ")";
                   break;
                 case UNSIGNED_32BIT:
-                  ss << " (" << std::dec << static_cast<u32>(m_debugger.peekMemory(m_foundAddresses[i].addr)) << ")";
+                  ss << " (" << std::dec << static_cast<u32>(m_debugger->peekMemory(m_foundAddresses[i].addr)) << ")";
                   break;
                 case UNSIGNED_64BIT:
-                  ss << " (" << std::dec << static_cast<u64>(m_debugger.peekMemory(m_foundAddresses[i].addr)) << ")";
+                  ss << " (" << std::dec << static_cast<u64>(m_debugger->peekMemory(m_foundAddresses[i].addr)) << ")";
                   break;
                 case SIGNED_8BIT:
-                  ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[i].addr) & 0xFF) << ")";
+                  ss << " (" << std::dec << static_cast<s32>(m_debugger->peekMemory(m_foundAddresses[i].addr) & 0xFF) << ")";
                   break;
                 case SIGNED_16BIT:
-                  ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[i].addr) & 0xFFFF) << ")";
+                  ss << " (" << std::dec << static_cast<s32>(m_debugger->peekMemory(m_foundAddresses[i].addr) & 0xFFFF) << ")";
                   break;
                 case SIGNED_32BIT:
-                  ss << " (" << std::dec << static_cast<s32>(m_debugger.peekMemory(m_foundAddresses[i].addr)) << ")";
+                  ss << " (" << std::dec << static_cast<s32>(m_debugger->peekMemory(m_foundAddresses[i].addr)) << ")";
                   break;
                 case SIGNED_64BIT:
-                  ss << " (" << std::dec << static_cast<s64>(m_debugger.peekMemory(m_foundAddresses[i].addr)) << ")";
+                  ss << " (" << std::dec << static_cast<s64>(m_debugger->peekMemory(m_foundAddresses[i].addr)) << ")";
                   break;
                 case FLOAT_32BIT:
-                  fvalue = m_debugger.peekMemory(m_foundAddresses[i].addr);
+                  fvalue = m_debugger->peekMemory(m_foundAddresses[i].addr);
                   memcpy(&fcast, &fvalue, 4);
                   ss << " (" << fcast << ")";
                   break;
                 case FLOAT_64BIT:
-                  dvalue = m_debugger.peekMemory(m_foundAddresses[i].addr);
+                  dvalue = m_debugger->peekMemory(m_foundAddresses[i].addr);
                   memcpy(&dcast, &dvalue, 8);
                   ss << " (" << dcast << ")"; 
                   break;
@@ -423,7 +428,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
                     return;
                   }
 
-                  m_debugger.pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses[m_selectedAddress].addr, value);
+                  m_debugger->pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses[m_selectedAddress].addr, value);
                 }
               }
             })->show();
@@ -484,7 +489,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
         return;
       }
 
-      m_debugger.breakProcess();
+      m_debugger->breakProcess();
 
       (new MessageBox("Searching RAM \n \n This may take a while...", MessageBox::NONE))->show();
       requestDraw();
@@ -496,7 +501,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
         for (GuiRAMEditor::ramAddr_t addr : m_foundAddresses) {
           u64 value = 0, realValue = 0;
 
-          m_debugger.readMemory(&value, 8, addr.addr);
+          m_debugger->readMemory(&value, 8, addr.addr);
           memcpy(&realValue, &value, dataTypeSizes[m_searchType]);
 
           if (realValue == searchValue) {
@@ -512,7 +517,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
           remove("/EdiZon/cheats/addresses.dat");
           
           Gui::g_currMessageBox->hide();
-          m_debugger.continueProcess();
+          m_debugger->continueProcess();
           (new Snackbar("None of your previously found addresses got changed to the entered value."))->show();
           return;
         }
@@ -531,7 +536,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if (meminfo.size - offset < bufferSize)
               bufferSize = meminfo.size - offset;
 
-            m_debugger.readMemory(buffer, bufferSize, meminfo.addr + offset);
+            m_debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
 
             u64 realValue = 0;
             for (u64 i = 0; i < bufferSize; i++) {
@@ -558,17 +563,17 @@ void GuiRAMEditor::onInput(u32 kdown) {
       std::ofstream file("/EdiZon/cheats/addresses.dat", std::ios::out | std::ios::binary);
       if (file.is_open()) {
         u64 addressCount = m_foundAddresses.size();
-        u64 pid = m_debugger.getRunningApplicationPID();
+        u64 pid = m_debugger->getRunningApplicationPID();
         file.write((char*)&addressCount, 8);
         file.write((char*)&m_searchType, 1);
-        file.write((char*)&pid, 8);
+        file.write((char*)&m_heapBaseAddr, 8);
         file.write((char*)&m_foundAddresses[0], m_foundAddresses.size() * sizeof(GuiRAMEditor::ramAddr_t));
         file.close();
       } else printf("Didn't save!\n");
 
       Gui::g_currMessageBox->hide();
 
-      m_debugger.continueProcess();
+      m_debugger->continueProcess();
 
     }
   }
@@ -583,18 +588,18 @@ void GuiRAMEditor::onGesture(touchPosition startPosition, touchPosition endPosit
 }
 
 bool isAddressFrozen(uintptr_t address) {
-  uintptr_t *addresses;
+  DmntFrozenAddressEntry *addresses;
   u64 addressCnt = 0;
   bool frozen = false;
 
   dmntchtGetFrozenAddressCount(&addressCnt);
 
   if (addressCnt != 0) {
-    addresses = new uintptr_t[addressCnt];
+    addresses = new DmntFrozenAddressEntry[addressCnt];
     dmntchtGetFrozenAddresses(addresses, addressCnt, 0, nullptr);
 
     for (u64 i = 0; i < addressCnt; i++) {
-      if (addresses[i] == address) {
+      if (addresses[i].address == address) {
         frozen = true;
         break;
       }

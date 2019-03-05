@@ -5,7 +5,7 @@
 class Debugger {
   
 public:
-  Debugger();
+  Debugger(bool dmntPresent);
   ~Debugger();
 
   Result attachToProcess();
@@ -25,4 +25,5 @@ public:
 private:
   Handle m_debugHandle;
   u64 m_tid = 0, m_pid = 0;
+  bool m_dmntPresent;
 };

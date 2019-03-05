@@ -8,6 +8,10 @@
 
 #include "debugger.hpp"
 
+extern "C" {
+  #include "dmntcht.h"
+}
+
 class GuiRAMEditor : public Gui {
   
   typedef enum {
@@ -44,7 +48,9 @@ private:
   Debugger *m_debugger;
   u8 m_ramBuffer[0x10 * 14] = { 0 };
   u64 m_ramAddress = 0;
-  u8 m_selectedAddress = 0;
+
+  u8 m_selectedEntry = 0;
+  enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
 
   std::vector<MemoryInfo> m_memoryInfo;
   color_t m_memory[1024] = { 0 };
@@ -56,6 +62,9 @@ private:
   u64 m_addressSpaceBaseAddr = 0x00;
   u64 m_heapBaseAddr = 0x00;
   u64 m_codeBaseAddr = 0x00;
+
+  DmntCheatEntry *m_cheats;
+  u64 m_cheatCnt;
 
   enum {
     SEARCH_BEGIN,

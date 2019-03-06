@@ -76,10 +76,8 @@ void update(void *args) {
 
 void createFolders() {
   mkdir("/EdiZon", 0777);
-  mkdir("/EdiZon/tmp", 0777);
   mkdir("/EdiZon/restore", 0777);
   mkdir("/EdiZon/batch", 0777);
-  mkdir("/EdiZon/cheats", 0777);
   mkdir("/EdiZon/editor", 0777);
   mkdir("/EdiZon/editor/scripts", 0777);
   mkdir("/EdiZon/editor/scripts/lib", 0777);

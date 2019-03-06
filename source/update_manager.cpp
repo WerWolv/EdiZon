@@ -234,11 +234,22 @@ Updates UpdateManager::checkUpdate() {
       updatedFile = EDIZON;
   }
 
-  std::filesystem::recursive_directory_iterator end;
-  for (std::filesystem::recursive_directory_iterator it("/EdiZon/editor"); it != end; ++it) {
-    if (remote[it->path().c_str()] == nullptr) {
-      if (!it->is_directory()) {
-        deleteFile(it->path().c_str());
+  for (auto p : std::filesystem::recursive_directory_iterator("/EdiZon/editor")) {
+    if (remote[p.path().c_str()] == nullptr) {
+      if (!p.is_directory()) {
+        deleteFile(p.path().c_str());
+
+        if (updatedFile == NONE)
+          updatedFile = EDITOR;
+      }
+    }
+  }
+
+  for (auto p : std::filesystem::recursive_directory_iterator("/atmosphere/titles")) {
+    std::string currPath = p.path().c_str();
+    if (remote[currPath] == nullptr) {
+      if (!p.is_directory() && currPath.find("cheats") != std::string::npos) {
+        deleteFile(currPath);
 
         if (updatedFile == NONE)
           updatedFile = EDITOR;

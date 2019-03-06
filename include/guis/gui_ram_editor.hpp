@@ -3,6 +3,7 @@
 #include "guis/gui.hpp"
 
 #include <vector>
+#include <set>
 #include <unordered_map>
 #include <stdbool.h>
 
@@ -12,8 +13,24 @@ extern "C" {
   #include "dmntcht.h"
 }
 
+
 class GuiRAMEditor : public Gui {
-  
+
+public:
+  GuiRAMEditor();
+  ~GuiRAMEditor();
+
+  void update();
+  void draw();
+  void onInput(u32 kdown);
+  void onTouch(touchPosition &touch);
+  void onGesture(touchPosition startPosition, touchPosition endPosition, bool finish);
+
+  typedef struct {
+  u64 addr;
+  MemoryType type;
+} ramAddr_t;
+
   typedef enum {
   SIGNED_8BIT,
   UNSIGNED_8BIT,
@@ -27,35 +44,21 @@ class GuiRAMEditor : public Gui {
   FLOAT_64BIT,
   POINTER,
   STRING
-} searchType_t;
-
-typedef struct {
-  u64 addr;
-  MemoryType type;
-} ramAddr_t;
-
-public:
-  GuiRAMEditor();
-  ~GuiRAMEditor();
-
-  void update();
-  void draw();
-  void onInput(u32 kdown);
-  void onTouch(touchPosition &touch);
-  void onGesture(touchPosition startPosition, touchPosition endPosition, bool finish);
+  } searchType_t;
 
 private:
   Debugger *m_debugger;
   u8 m_ramBuffer[0x10 * 14] = { 0 };
-  u64 m_ramAddress = 0;
+  color_t m_memory[1024] = { 0 };
 
   u8 m_selectedEntry = 0;
-  enum { NONE, CHEATS, CANDIDATES } m_menuLocation = NONE;
+  enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
+  u8 m_searchType = SIGNED_8BIT;
 
   std::vector<MemoryInfo> m_memoryInfo;
-  color_t m_memory[1024] = { 0 };
   std::vector<ramAddr_t> m_foundAddresses;
-  u8 m_searchType = SIGNED_8BIT;
+  std::set<u64> m_frozenAddresses;
+
   bool m_attached = false;
   bool m_sysmodulePresent = false;
 

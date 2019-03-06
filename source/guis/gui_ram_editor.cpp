@@ -31,7 +31,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_debugger = new Debugger(m_sysmodulePresent);
 
   if (m_debugger->getRunningApplicationPID() == 0) {
-    remove("/EdiZon/cheats/addresses.dat");
+    remove("/EdiZon/addresses.dat");
     return;
   }
 
@@ -115,7 +115,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   u64 oldHeapBaseAddr = 0;
   size_t addressCnt = 0;
-  std::ifstream file("/EdiZon/cheats/addresses.dat", std::ios::in | std::ios::binary);
+  std::ifstream file("/EdiZon/addresses.dat", std::ios::in | std::ios::binary);
 
   if (file.is_open()) {
     m_searchMode = SEARCH_CONTINUE;
@@ -137,7 +137,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   if (m_heapBaseAddr != oldHeapBaseAddr && oldHeapBaseAddr != 0) {
     m_searchMode = SEARCH_BEGIN;
-    remove("/EdiZon/cheats/addresses.dat");
+    remove("/EdiZon/addresses.dat");
     m_foundAddresses.clear();
     m_searchType = 0;
     Gui::g_nextGui = GUI_MAIN;
@@ -546,7 +546,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       m_searchMode = SEARCH_BEGIN;
       m_foundAddresses.clear();
       m_menuLocation = CHEATS;
-      remove("/EdiZon/cheats/addresses.dat");
+      remove("/EdiZon/addresses.dat");
     }
   }
 
@@ -619,7 +619,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
 
         if (m_foundAddresses.empty()) {
           m_searchMode = SEARCH_BEGIN;
-          remove("/EdiZon/cheats/addresses.dat");
+          remove("/EdiZon/addresses.dat");
           
           Gui::g_currMessageBox->hide();
           m_debugger->continueProcess();
@@ -660,12 +660,12 @@ void GuiRAMEditor::onInput(u32 kdown) {
 
         if (m_foundAddresses.empty()) {
           m_searchMode = SEARCH_BEGIN;
-          remove("/EdiZon/cheats/addresses.dat");
+          remove("/EdiZon/addresses.dat");
           (new Snackbar("Value not found in memory. Try again with a different one."))->show();
         }
       }
 
-      std::ofstream file("/EdiZon/cheats/addresses.dat", std::ios::out | std::ios::binary);
+      std::ofstream file("/EdiZon/addresses.dat", std::ios::out | std::ios::binary);
       if (file.is_open()) {
         u64 addressCount = m_foundAddresses.size();
         file.write((char*)&addressCount, 8);

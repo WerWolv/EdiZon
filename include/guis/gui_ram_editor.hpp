@@ -50,7 +50,7 @@ private:
   u64 m_ramAddress = 0;
 
   u8 m_selectedEntry = 0;
-  enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
+  enum { NONE, CHEATS, CANDIDATES } m_menuLocation = NONE;
 
   std::vector<MemoryInfo> m_memoryInfo;
   color_t m_memory[1024] = { 0 };

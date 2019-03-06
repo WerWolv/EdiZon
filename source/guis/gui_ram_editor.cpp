@@ -120,12 +120,14 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     file.close();
   }
 
-  if (m_heapBaseAddr != oldHeapBaseAddr && oldHeapBaseAddr != 0) {
+  if (m_heapBaseAddr != oldHeapBaseAddr || oldHeapBaseAddr != 0) {
     m_searchMode = SEARCH_BEGIN;
     remove("/EdiZon/cheats/addresses.dat");
     m_foundAddresses.clear();
     m_searchType = 0;
     Gui::g_nextGui = GUI_MAIN;
+  } else {
+    m_menuLocation = CANDIDATES;
   }
 
   std::stringstream ss;
@@ -497,6 +499,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
   } else { /* Cheats menu */
     if (kdown & KEY_A) {
+      if (m_cheatCnt == 0) return;
+
       if (m_selectedEntry != 7) {
         dmntchtToggleCheat(m_cheats[m_selectedEntry].cheat_id);
         u64 cheatCnt = 0;
@@ -511,7 +515,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
         std::vector<std::string> options;
 
         for (u16 i = 7; i < m_cheatCnt; i++)
-          options.push_back((m_cheats[i].enabled ? "\uE070  " : "    ") + std::string(m_cheats[i].definition.readable_name));
+          options.push_back((m_cheats[i].enabled ? "\uE070    " : "        ") + std::string(m_cheats[i].definition.readable_name));
 
         (new ListSelector("Cheats", "\uE0E0 Toggle cheat     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
           if (k & KEY_A) {

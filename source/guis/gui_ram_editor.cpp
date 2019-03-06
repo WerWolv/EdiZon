@@ -253,15 +253,18 @@ void GuiRAMEditor::draw() {
     Gui::drawTextAligned(font14, 375, 262, currTheme.backgroundColor, "Cheats", ALIGNED_CENTER);
     Gui::drawShadow(50, 256, 650, 46 + std::min(static_cast<u32>(m_cheatCnt), 8U) * 40);
 
-    for (u8 line = 0; line < 7; line++) {
+    for (u8 line = 0; line < 8; line++) {
       if (line >= m_cheatCnt) break;
 
       ss.str("");
-      ss << "\uE070   " << m_cheats[line].definition.readable_name;
+      if (line < 7 && m_cheatCnt != 8) 
+        ss << "\uE070   " << m_cheats[line].definition.readable_name;
+      else 
+        ss << "And " << std::dec << (m_cheatCnt - 8) << " more...";
 
       Gui::drawRectangle(52, 300 + line * 40, 646, 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
       Gui::drawTextAligned(font14, 70, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-    
+      
       if (!m_cheats[line].enabled) {
         color_t highlightColor = currTheme.highlightColor;
         highlightColor.a = 0xFF;
@@ -494,16 +497,38 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
   } else { /* Cheats menu */
     if (kdown & KEY_A) {
-      dmntchtToggleCheat(m_cheats[m_selectedEntry].cheat_id);
-      u64 cheatCnt = 0;
+      if (m_selectedEntry != 7) {
+        dmntchtToggleCheat(m_cheats[m_selectedEntry].cheat_id);
+        u64 cheatCnt = 0;
 
-      dmntchtGetCheatCount(&cheatCnt);
-      if (cheatCnt > 0) {
-        m_cheats = new DmntCheatEntry[cheatCnt];
-        dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
+        dmntchtGetCheatCount(&cheatCnt);
+        if (cheatCnt > 0) {
+          delete[] m_cheats;
+          m_cheats = new DmntCheatEntry[cheatCnt];
+          dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
+        }
+      } else {
+        std::vector<std::string> options;
+
+        for (u16 i = 7; i < m_cheatCnt; i++)
+          options.push_back((m_cheats[i].enabled ? "\uE070  " : "    ") + std::string(m_cheats[i].definition.readable_name));
+
+        (new ListSelector("Cheats", "\uE0E0 Toggle cheat     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
+          if (k & KEY_A) {
+            dmntchtToggleCheat(m_cheats[selectedItem + 8].cheat_id);
+            u64 cheatCnt = 0;
+
+            dmntchtGetCheatCount(&cheatCnt);
+            if (cheatCnt > 0) {
+              delete[] m_cheats;
+              m_cheats = new DmntCheatEntry[cheatCnt];
+              dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
+            }
+
+            Gui::g_currListSelector->hide();
+          }
+        })->show();
       }
-
-      //TODO: Handle more than 8 cheats in a list
     }
   }
 

@@ -19,9 +19,8 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
     - Built-in save editor updater.
   - **On-the-fly memory editing**
     - Cheat Engine like RAM editing.
-    - Freezing of values in RAM via Atmosphère's cheat module. **(WIP)**
-    - Interface for loading and managing Atmosphère cheats. **(WIP)**
-    - Easy to use cheat creator tool. **(WIP)** 
+    - Freezing of values in RAM via Atmosphère's cheat module.
+    - Interface for loading and managing Atmosphère cheats.
 
   All packed into one easy to use and easy to install Homebrew.
 

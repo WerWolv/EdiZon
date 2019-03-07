@@ -6,17 +6,19 @@
 
 #include <curl/curl.h>
 
+#include "title.hpp"
+
 class UploadManager {
 public:
   UploadManager();
   ~UploadManager();
 
-  std::string upload(std::string path, std::string fileName);
+  std::string upload(std::string path, std::string fileName, Title *title, std::string hash);
 
 private:
   bool zip(std::vector<std::string> paths, std::vector<u8> *zipData);
 
   CURL *m_curl;
-  std::string m_returnAddress;
+  std::string m_returnCode;
 
 };

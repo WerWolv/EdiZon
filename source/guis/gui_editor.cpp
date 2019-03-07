@@ -341,43 +341,44 @@ void GuiEditor::updateSaveFileList(std::vector<std::string> saveFilePath, std::s
 
 void uploadBackup(std::string path, std::string fileName) {
   UploadManager um;
-  static std::stringstream code;
+  static std::stringstream hashStr;
 
   (new MessageBox("Uploading savefile...\n \nPress \uE0E1 to cancel.", MessageBox::NONE))->show();
   requestDraw();
 
-  std::string retURL = um.upload(path, fileName);
+  char serial[0x19];
+  u8 serialHash[0x20];
+  setsysGetSerialNumber(serial);
 
-  if (retURL.find("https://") != std::string::npos) {
-    char serial[0x19];
-    u8 serialHash[0x20];
-    setsysGetSerialNumber(serial);
+  struct sha256_state sha_ctx;
+  sha256_init(&sha_ctx);
+  sha256_update(&sha_ctx, (u8 *)serial, 0x19);
+  sha256_finalize(&sha_ctx);
+  sha256_finish(&sha_ctx, serialHash);
 
-    struct sha256_state sha_ctx;
-    sha256_init(&sha_ctx);
-    sha256_update(&sha_ctx, (u8 *)serial, 0x19);
-    sha256_finalize(&sha_ctx);
-    sha256_finish(&sha_ctx, serialHash);
+  hashStr.str("");
 
-    code.str("");
+  for (u8 i = 0; i < 0x20; i++) {
+    hashStr << std::hex << (serialHash[i] & 0x0F);
+    hashStr << std::hex << (serialHash[i] >>   4);
+  }
 
-    for (u8 i = 0; i < 3; i++) {
-      code << std::uppercase << std::hex << (serialHash[i] & 0x0F) << " ";
-      code << std::uppercase << std::hex << (serialHash[i] >>   4) << " ";
-    }
+  static std::string retCode = um.upload(path, fileName, Title::g_currTitle, hashStr.str());
+  retCode = retCode.substr(0, retCode.find("\n") - 1);
 
+  if (retCode.length() == 6) {
     (new MessageBox("", MessageBox::OKAY))->setCustomDraw([&](Gui *gui, s16 x, s16 y){
       u32 w, h;
       gui->drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, currTheme.textColor, "Upload finished!\n \n Visit edizon.werwolv.net and enter this code\n to get your link!", ALIGNED_CENTER);
 
-      gui->getTextDimensions(font24, code.str().c_str(), &w, &h);
+      gui->getTextDimensions(font24, retCode.c_str(), &w, &h);
 
-      gui->drawRectangle(x + (780 / 2) - (w / 2) - 10, y + 210, w + 10, h, currTheme.tooltipColor);
-      gui->drawTextAligned(font24, x + (780 / 2), y + 210, currTheme.textColor, code.str().c_str(), ALIGNED_CENTER);
+      gui->drawRectangle(x + (780 / 2) - (w / 2) - 20, y + 210, w + 40, h + 20, currTheme.tooltipColor);
+      gui->drawTextAligned(font24, x + (780 / 2), y + 210, currTheme.textColor, retCode.c_str(), ALIGNED_CENTER);
     })->show();
   } 
   else
-    (new MessageBox("Upload failed!\n \n" + retURL, MessageBox::OKAY))->show(); 
+    (new MessageBox("Upload failed!\n \n" + retCode, MessageBox::OKAY))->show(); 
 }
 
 void GuiEditor::onInput(u32 kdown) {

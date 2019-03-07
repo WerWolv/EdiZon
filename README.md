@@ -20,7 +20,7 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   - **On-the-fly memory editing**
     - Cheat Engine like RAM editing.
     - Freezing of values in RAM via Atmosphère's cheat module.
-    - Interface for loading and managing Atmosphère cheats.
+    - Interface for loading, managing and updating Atmosphère cheats.
 
   All packed into one easy to use and easy to install Homebrew.
 
@@ -41,7 +41,8 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   1. Download the latest release from the [GitHub release page](https://github.com/WerWolv/EdiZon/releases/latest).
   2. Unpack the downloaded zip file, put the files on your Nintendo Switch's SD card and let the folders merge.
   3. If you're using Hekate, make sure to add `debugmode=1` to your current profile. Without that flag set RAM editing won't work.
-  4. Use a free open source CFW like [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) to launch the hbmenu and start EdiZon from there.
+  4. For the best experience, open the `/atmosphere/system_settings.ini` file and change `dmnt_cheats_enabled_by_default = u8!0x1` to `dmnt_cheats_enabled_by_default = u8!0x0`.
+  5. Use a free open source CFW like [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) to launch the hbmenu and start EdiZon from there.
      1. If you want to use the cheat manager you absolutely have to use [Atmosphère](https://github.com/Atmosphere-NX/Atmosphere) as only their cheats are supported.
 
 # How to compile

@@ -192,15 +192,14 @@ void GuiRAMEditor::draw() {
 
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
-  if (!m_attached) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "EdiZon couldn't attach to the running Application. Please restart \n EdiZon and try again.", ALIGNED_CENTER);
+
+  if (m_debugger->getRunningApplicationPID() == 0) {
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "A title needs to be running in the background to use the RAM editor. \n Please launch an application and try again.", ALIGNED_CENTER);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
     Gui::endDraw();
     return;
-  }
-
-  if (m_debugger->getRunningApplicationPID() == 0) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "To use the RAM editor, a title has to be running in the background. \n Please launch a game and try again.", ALIGNED_CENTER);
+  } else if (!m_attached) {
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "EdiZon couldn't attach to the running Application. Please restart \n EdiZon and try again.", ALIGNED_CENTER);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E1 Back", ALIGNED_RIGHT);
     Gui::endDraw();
     return;
@@ -226,35 +225,35 @@ void GuiRAMEditor::draw() {
   else 
     Gui::drawRectangle(0, 0, 256, 256, Gui::makeColor(0x00, 0x00, 0xFF, 0xFF));
 
-  Gui::drawRectangle(650, 50, 20, 20,  Gui::makeColor(0xFF, 0x00, 0x00, 0xFF)); // Code
-  Gui::drawRectangle(650, 70, 20, 20,  Gui::makeColor(0x00, 0xFF, 0x00, 0xFF)); // Shared Memory
-  Gui::drawRectangle(650, 90, 20, 20,  Gui::makeColor(0x00, 0x00, 0xFF, 0xFF)); // Heap
-  Gui::drawRectangle(650, 110, 20, 20, Gui::makeColor(0xFF, 0xFF, 0x00, 0xFF)); // Stack
-  Gui::drawRectangle(650, 130, 20, 20, Gui::makeColor(0x80, 0x80, 0x80, 0xFF)); // Others
+  Gui::drawRectangle(650, 65, 20, 20,  Gui::makeColor(0xFF, 0x00, 0x00, 0xFF)); // Code
+  Gui::drawRectangle(650, 85, 20, 20,  Gui::makeColor(0x00, 0xFF, 0x00, 0xFF)); // Shared Memory
+  Gui::drawRectangle(650, 105, 20, 20,  Gui::makeColor(0x00, 0x00, 0xFF, 0xFF)); // Heap
+  Gui::drawRectangle(650, 125, 20, 20, Gui::makeColor(0xFF, 0xFF, 0x00, 0xFF)); // Stack
+  Gui::drawRectangle(650, 145, 20, 20, Gui::makeColor(0x80, 0x80, 0x80, 0xFF)); // Others
 
-  Gui::drawTextAligned(font14, 690, 47, currTheme.textColor, "Code", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 67, currTheme.textColor, "Shared Memory", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 87, currTheme.textColor, "Heap", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 107, currTheme.textColor, "Stack", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 127, currTheme.textColor, "Others", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 62,  currTheme.textColor, "Code", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 82,  currTheme.textColor, "Shared Memory", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 102, currTheme.textColor, "Heap", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 122, currTheme.textColor, "Stack", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 690, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
 
   ss.str("");
   ss << "BASE  :  0x" <<std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_addressSpaceBaseAddr;
-  Gui::drawTextAligned(font14, 900, 67,  currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 75,  currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "HEAP  :  0x" <<std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_heapBaseAddr;
-  Gui::drawTextAligned(font14, 900, 97,  currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 105,  currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "MAIN  :  0x" <<std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_codeBaseAddr;
-  Gui::drawTextAligned(font14, 900, 127, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 135, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
 
 
-  Gui::drawRectangle(256, 50, 394, 137, currTheme.selectedColor);
+  Gui::drawRectangle(256, 50, 394, 137, COLOR_WHITE);
 
   Gui::drawTextAligned(font20, 280, 70, COLOR_BLACK, titleNameStr.c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, 280, 100, COLOR_BLACK, tidStr.c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, 280, 130, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 280, 120, COLOR_BLACK, tidStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 280, 140, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
 
 
   Gui::drawRectangle(256, 186, 92, 70, currTheme.selectedColor);
@@ -301,9 +300,9 @@ void GuiRAMEditor::draw() {
 
 
   if (!m_foundAddresses.empty()) {
-    Gui::drawRectangle(Gui::g_framebuffer_width - 522, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses.size()), 8U) * 40, currTheme.textColor);
-    Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 272, 262, currTheme.backgroundColor, "Found candidates", ALIGNED_CENTER);
-    Gui::drawShadow(Gui::g_framebuffer_width - 522, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses.size()), 8U) * 40);
+    Gui::drawRectangle(Gui::g_framebuffer_width - 552, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses.size()), 8U) * 40, currTheme.textColor);
+    Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 302, 262, currTheme.backgroundColor, "Found candidates", ALIGNED_CENTER);
+    Gui::drawShadow(Gui::g_framebuffer_width - 552, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses.size()), 8U) * 40);
   }
 
   for (u8 line = 0; line < 8; line++) {
@@ -320,8 +319,8 @@ void GuiRAMEditor::draw() {
     else 
       ss << "And " << std::dec << (m_foundAddresses.size() - 8) << " others...";
 
-    Gui::drawRectangle(Gui::g_framebuffer_width - 520, 300 + line * 40, 496, 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
-    Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 500, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+    Gui::drawRectangle(Gui::g_framebuffer_width - 550, 300 + line * 40, 496, 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
+    Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 530, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   }
 
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 256);

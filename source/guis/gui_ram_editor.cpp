@@ -649,6 +649,11 @@ void GuiRAMEditor::onInput(u32 kdown) {
               if (realValue == searchValue) {
                 m_foundAddresses.push_back({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
               }
+
+              if (m_foundAddresses.size() >= 0x7FFFF) {
+                (new Snackbar("Too many candidates found! Selection has been truncated."))->show();
+                return;
+              }
             }
 
             offset += bufferSize;

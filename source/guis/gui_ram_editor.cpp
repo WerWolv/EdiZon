@@ -15,7 +15,7 @@ static const std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,    
 static const std::vector<s128> dataTypeMaxValues = { std::numeric_limits<s8>::max(), std::numeric_limits<u8>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max() };
 static const std::vector<s128> dataTypeMinValues = { std::numeric_limits<s8>::min(), std::numeric_limits<u8>::min(), std::numeric_limits<s16>::min(), std::numeric_limits<u16>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<u32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min() };
 
-static std::string titleNameStr, tidStr, pidStr;
+static std::string titleNameStr, tidStr, pidStr, buildIDStr;
 
 
 bool isAddressFrozen(uintptr_t address);
@@ -47,6 +47,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     m_addressSpaceBaseAddr = metadata.address_space_extents.base;
     m_heapBaseAddr = metadata.heap_extents.base;
     m_codeBaseAddr = metadata.main_nso_extents.base;
+    memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
 
     u64 cheatCnt = 0;
 
@@ -82,6 +83,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   }  
 
   m_attached = true;
+
 
   MemoryInfo meminfo = { 0 };
   u64 lastAddr = 0;
@@ -159,6 +161,13 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   ss << "PID: " << std::dec << m_debugger->getRunningApplicationPID();
   pidStr = ss.str();
+  ss.str("");
+
+  ss << "BID: ";
+  for (u8 i = 0; i < 8; i++)
+    ss << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+  
+  buildIDStr = ss.str();
 
   if (!m_sysmodulePresent) {
     (new MessageBox("Atmosphère's cheat module is not running on this System. \n Cheat management and variable freezing is disabled.", MessageBox::OKAY))->show();
@@ -225,35 +234,36 @@ void GuiRAMEditor::draw() {
   else 
     Gui::drawRectangle(0, 0, 256, 256, Gui::makeColor(0x00, 0x00, 0xFF, 0xFF));
 
-  Gui::drawRectangle(650, 65, 20, 20,  Gui::makeColor(0xFF, 0x00, 0x00, 0xFF)); // Code
-  Gui::drawRectangle(650, 85, 20, 20,  Gui::makeColor(0x00, 0xFF, 0x00, 0xFF)); // Shared Memory
-  Gui::drawRectangle(650, 105, 20, 20,  Gui::makeColor(0x00, 0x00, 0xFF, 0xFF)); // Heap
-  Gui::drawRectangle(650, 125, 20, 20, Gui::makeColor(0xFF, 0xFF, 0x00, 0xFF)); // Stack
-  Gui::drawRectangle(650, 145, 20, 20, Gui::makeColor(0x80, 0x80, 0x80, 0xFF)); // Others
+  Gui::drawRectangle(660, 65, 20, 20,  Gui::makeColor(0xFF, 0x00, 0x00, 0xFF));  // Code
+  Gui::drawRectangle(660, 85, 20, 20,  Gui::makeColor(0x00, 0xFF, 0x00, 0xFF));  // Shared Memory
+  Gui::drawRectangle(660, 105, 20, 20, Gui::makeColor(0x00, 0x00, 0xFF, 0xFF));  // Heap
+  Gui::drawRectangle(660, 125, 20, 20, Gui::makeColor(0xFF, 0xFF, 0x00, 0xFF));  // Stack
+  Gui::drawRectangle(660, 145, 20, 20, Gui::makeColor(0x80, 0x80, 0x80, 0xFF));  // Others
 
-  Gui::drawTextAligned(font14, 690, 62,  currTheme.textColor, "Code", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 82,  currTheme.textColor, "Shared Memory", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 102, currTheme.textColor, "Heap", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 122, currTheme.textColor, "Stack", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 690, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 700, 62,  currTheme.textColor, "Code", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 700, 82,  currTheme.textColor, "Shared Memory", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 700, 102, currTheme.textColor, "Heap", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 700, 122, currTheme.textColor, "Stack", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
 
   ss.str("");
-  ss << "BASE  :  0x" <<std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_addressSpaceBaseAddr;
+  ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_addressSpaceBaseAddr;
   Gui::drawTextAligned(font14, 900, 75,  currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
-  ss << "HEAP  :  0x" <<std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_heapBaseAddr;
+  ss << "HEAP  :  0x" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_heapBaseAddr;
   Gui::drawTextAligned(font14, 900, 105,  currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
-  ss << "MAIN  :  0x" <<std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_codeBaseAddr;
+  ss << "MAIN  :  0x" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_codeBaseAddr;
   Gui::drawTextAligned(font14, 900, 135, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
 
 
   Gui::drawRectangle(256, 50, 394, 137, COLOR_WHITE);
 
   Gui::drawTextAligned(font20, 280, 70, COLOR_BLACK, titleNameStr.c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 280, 120, COLOR_BLACK, tidStr.c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 280, 140, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 290, 110, COLOR_BLACK, tidStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 290, 130, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 290, 150, COLOR_BLACK, buildIDStr.c_str(), ALIGNED_LEFT);
 
 
   Gui::drawRectangle(256, 186, 92, 70, currTheme.selectedColor);
@@ -520,7 +530,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_MINUS) {
-    if (m_foundAddresses.size() == 0) {
+    if (m_foundAddresses.size() == 0 && m_searchMode == SEARCH_BEGIN) {
       std::vector<std::string> options;
       for (u64 addr : m_frozenAddresses)
         options.push_back(getAddressDisplayString({ addr, MemType_Normal }, m_debugger, (GuiRAMEditor::searchType_t)m_searchType, m_heapBaseAddr, m_codeBaseAddr, m_addressSpaceBaseAddr));
@@ -541,7 +551,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
           Gui::g_currListSelector->hide();
         }
       })->show();
-    } else {
+    } else if (m_searchMode == SEARCH_CONTINUE) {
       m_searchMode = SEARCH_BEGIN;
       m_foundAddresses.clear();
       m_menuLocation = CHEATS;
@@ -652,7 +662,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
 
               if (m_foundAddresses.size() >= 0x7FFFF) {
                 (new Snackbar("Too many candidates found! Selection has been truncated."))->show();
-                return;
+                delete[] buffer;
+                goto done;
               }
             }
 
@@ -668,6 +679,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
           (new Snackbar("Value not found in memory. Try again with a different one."))->show();
         }
       }
+
+      done:
 
       std::ofstream file("/EdiZon/addresses.dat", std::ios::out | std::ios::binary);
       if (file.is_open()) {

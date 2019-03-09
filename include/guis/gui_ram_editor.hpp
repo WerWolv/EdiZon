@@ -65,6 +65,7 @@ private:
   u64 m_addressSpaceBaseAddr = 0x00;
   u64 m_heapBaseAddr = 0x00;
   u64 m_codeBaseAddr = 0x00;
+  u8 m_buildID[0x20];
 
   DmntCheatEntry *m_cheats;
   u64 m_cheatCnt;

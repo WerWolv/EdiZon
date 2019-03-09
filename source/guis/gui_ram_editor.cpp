@@ -17,6 +17,8 @@ static const std::vector<s128> dataTypeMinValues = { std::numeric_limits<s8>::mi
 
 static std::string titleNameStr, tidStr, pidStr, buildIDStr;
 
+static u32 cheatListOffset = 0;
+
 
 bool isAddressFrozen(uintptr_t address);
 std::string getAddressDisplayString(GuiRAMEditor::ramAddr_t address, Debugger *debugger, GuiRAMEditor::searchType_t searchType, u64 heapBaseAddr, u64 codeBaseAddr, u64 addressSpaceBaseAddr);
@@ -214,9 +216,12 @@ void GuiRAMEditor::draw() {
     return;
   }
 
-  if (m_searchMode == SEARCH_BEGIN)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Frozen addresses     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
-  else if (m_searchMode == SEARCH_CONTINUE) {
+  if (m_searchMode == SEARCH_BEGIN) {
+    if (m_frozenAddresses.size() != 0)
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Frozen addresses     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
+    else
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
+  } else if (m_searchMode == SEARCH_CONTINUE) {
     if (m_foundAddresses.size() > 0) {
       if (m_sysmodulePresent)
         Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
@@ -287,23 +292,20 @@ void GuiRAMEditor::draw() {
     Gui::drawTextAligned(font14, 375, 262, currTheme.backgroundColor, "Cheats", ALIGNED_CENTER);
     Gui::drawShadow(50, 256, 650, 46 + std::min(static_cast<u32>(m_cheatCnt), 8U) * 40);
 
-    for (u8 line = 0; line < 8; line++) {
+    for (u8 line = cheatListOffset; line < 8 + cheatListOffset; line++) {
       if (line >= m_cheatCnt) break;
 
       ss.str("");
-      if (line < 7 && m_cheatCnt != 8) 
-        ss << "\uE070   " << m_cheats[line].definition.readable_name;
-      else 
-        ss << "And " << std::dec << (m_cheatCnt - 8) << " more...";
+      ss << "\uE070   " << m_cheats[line].definition.readable_name;
 
-      Gui::drawRectangle(52, 300 + line * 40, 646, 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
-      Gui::drawTextAligned(font14, 70, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+      Gui::drawRectangle(52, 300 + (line - cheatListOffset) * 40, 646, 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
+      Gui::drawTextAligned(font14, 70, 305 + (line - cheatListOffset) * 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
       
       if (!m_cheats[line].enabled) {
         color_t highlightColor = currTheme.highlightColor;
         highlightColor.a = 0xFF;
 
-        Gui::drawRectangled(74, 313 + line * 40, 10, 10, (m_selectedEntry == line && m_menuLocation == CHEATS) ? highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
+        Gui::drawRectangled(74, 313 + (line - cheatListOffset) * 40, 10, 10, (m_selectedEntry == line && m_menuLocation == CHEATS) ? highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
       }
     }
   }
@@ -350,17 +352,25 @@ void GuiRAMEditor::onInput(u32 kdown) {
   if (m_debugger->getRunningApplicationPID() == 0)
     return;
 
-  if (kdown & KEY_UP)
+  if (kdown & KEY_UP) {
     if (m_selectedEntry > 0)
       m_selectedEntry--;
+
+    if (m_menuLocation == CHEATS)
+      if (m_selectedEntry == cheatListOffset && cheatListOffset > 0)
+        cheatListOffset--;
+  }
   
   if (kdown & KEY_DOWN) {
     if (m_menuLocation == CANDIDATES) {
       if (m_selectedEntry < 7 && m_selectedEntry < (m_foundAddresses.size() - 1))
         m_selectedEntry++;
     } else {
-      if (m_selectedEntry < 7 && m_selectedEntry < (m_cheatCnt - 1))
+      if (m_selectedEntry < (m_cheatCnt - 1))
         m_selectedEntry++;
+
+      if (m_selectedEntry == (cheatListOffset + 7) && cheatListOffset < (m_cheatCnt - 8))
+        cheatListOffset++;
     }
   }
 
@@ -494,37 +504,14 @@ void GuiRAMEditor::onInput(u32 kdown) {
     if (kdown & KEY_A) {
       if (m_cheatCnt == 0) return;
 
-      if (m_selectedEntry != 7) {
-        dmntchtToggleCheat(m_cheats[m_selectedEntry].cheat_id);
-        u64 cheatCnt = 0;
+      dmntchtToggleCheat(m_cheats[m_selectedEntry].cheat_id);
+      u64 cheatCnt = 0;
 
-        dmntchtGetCheatCount(&cheatCnt);
-        if (cheatCnt > 0) {
-          delete[] m_cheats;
-          m_cheats = new DmntCheatEntry[cheatCnt];
-          dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
-        }
-      } else {
-        std::vector<std::string> options;
-
-        for (u16 i = 7; i < m_cheatCnt; i++)
-          options.push_back((m_cheats[i].enabled ? "\uE070    " : "        ") + std::string(m_cheats[i].definition.readable_name));
-
-        (new ListSelector("Cheats", "\uE0E0 Toggle cheat     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
-          if (k & KEY_A) {
-            dmntchtToggleCheat(m_cheats[selectedItem + 7].cheat_id);
-            u64 cheatCnt = 0;
-
-            dmntchtGetCheatCount(&cheatCnt);
-            if (cheatCnt > 0) {
-              delete[] m_cheats;
-              m_cheats = new DmntCheatEntry[cheatCnt];
-              dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
-            }
-
-            Gui::g_currListSelector->hide();
-          }
-        })->show();
+      dmntchtGetCheatCount(&cheatCnt);
+      if (cheatCnt > 0) {
+        delete[] m_cheats;
+        m_cheats = new DmntCheatEntry[cheatCnt];
+        dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
       }
     }
   }
@@ -532,13 +519,12 @@ void GuiRAMEditor::onInput(u32 kdown) {
   if (kdown & KEY_MINUS) {
     if (m_foundAddresses.size() == 0 && m_searchMode == SEARCH_BEGIN) {
       std::vector<std::string> options;
+      
+      if (m_frozenAddresses.size() == 0)
+        return;
+      
       for (u64 addr : m_frozenAddresses)
         options.push_back(getAddressDisplayString({ addr, MemType_Normal }, m_debugger, (GuiRAMEditor::searchType_t)m_searchType, m_heapBaseAddr, m_codeBaseAddr, m_addressSpaceBaseAddr));
-
-      if (m_frozenAddresses.size() == 0) {
-        (new Snackbar("No frozen variables were found."))->show();
-        return;
-      }
 
       (new ListSelector("Frozen Addresses", "\uE0E0 Unfreeze     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
         if (k & KEY_A) {

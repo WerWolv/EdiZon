@@ -165,7 +165,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   ss << "BID: ";
   for (u8 i = 0; i < 8; i++)
-    ss << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+    ss << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
   
   buildIDStr = ss.str();
 

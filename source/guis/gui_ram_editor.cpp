@@ -683,7 +683,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       Gui::g_currMessageBox->hide();
       
       if (tooManyResults)
-        (new MessageBox("Too many candidates found! Selection has been truncated. \n \n The next search won't include any of the truncated addresses.", Gui::OKAY))->show();
+        (new MessageBox("Too many candidates found! Selection has been truncated. \n \n The next search won't include any of the truncated addresses.", MessageBox::OKAY))->show();
 
       m_debugger->continueProcess();
 

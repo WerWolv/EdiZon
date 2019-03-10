@@ -25,25 +25,25 @@ public:
   void onInput(u32 kdown);
   void onTouch(touchPosition &touch);
   void onGesture(touchPosition startPosition, touchPosition endPosition, bool finish);
-
-  typedef struct {
-  u64 addr;
-  MemoryType type;
-} ramAddr_t;
+  
+  typedef struct{
+    u64 addr;
+    MemoryType type;
+  } ramAddr_t;
 
   typedef enum {
-  SIGNED_8BIT,
-  UNSIGNED_8BIT,
-  SIGNED_16BIT,
-  UNSIGNED_16BIT,
-  SIGNED_32BIT,
-  UNSIGNED_32BIT,
-  SIGNED_64BIT,
-  UNSIGNED_64BIT,
-  FLOAT_32BIT,
-  FLOAT_64BIT,
-  POINTER,
-  STRING
+    UNSIGNED_8BIT,
+    SIGNED_8BIT,
+    UNSIGNED_16BIT,
+    SIGNED_16BIT,
+    UNSIGNED_32BIT,
+    SIGNED_32BIT,
+    UNSIGNED_64BIT,
+    SIGNED_64BIT,
+    FLOAT_32BIT,
+    FLOAT_64BIT,
+    POINTER,
+    STRING
   } searchType_t;
 
   typedef enum {
@@ -58,11 +58,13 @@ private:
 
   u8 m_selectedEntry = 0;
   enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
-  u8 m_searchType = SIGNED_8BIT;
+  searchType_t m_searchType = UNSIGNED_8BIT;
+  searchMode_t m_searchMode = SEARCH_BEGIN;
+  s128 m_searchValue;
 
   std::vector<MemoryInfo> m_memoryInfo;
   std::vector<ramAddr_t> m_foundAddresses;
-  std::set<u64> m_frozenAddresses;
+  std::map<u64, u64> m_frozenAddresses;
 
   bool m_attached = false;
   bool m_sysmodulePresent = false;
@@ -72,7 +74,6 @@ private:
   u64 m_codeBaseAddr = 0x00;
   u8 m_buildID[0x20];
 
-  searchMode_t m_searchMode;
 
   DmntCheatEntry *m_cheats;
   u64 m_cheatCnt;

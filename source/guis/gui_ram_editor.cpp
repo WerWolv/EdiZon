@@ -546,7 +546,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_Y) {
-    char input[16];
+    char input[21];
     bool entered = false;
     s128 searchValue = 0;
     float floatValue = 0.0F;
@@ -557,23 +557,23 @@ void GuiRAMEditor::onInput(u32 kdown) {
       case SIGNED_16BIT: [[fallthrough]]
       case SIGNED_32BIT: [[fallthrough]]
       case SIGNED_64BIT: 
-        entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which the game's memory should be searched.", "", SwkbdType::SwkbdType_NumPad, input, 15);
+        entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which's negated value the game's memory should be searched. (50 -> -50)", "", SwkbdType::SwkbdType_NumPad, input, 20);
         searchValue = -atol(input);
         break;
       case UNSIGNED_8BIT:  [[fallthrough]]
       case UNSIGNED_16BIT: [[fallthrough]]
       case UNSIGNED_32BIT: [[fallthrough]]
       case UNSIGNED_64BIT: 
-        entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which's negated value the game's memory should be searched. (50 -> -50)", "", SwkbdType::SwkbdType_NumPad, input, 15);
+        entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which the game's memory should be searched.", "", SwkbdType::SwkbdType_NumPad, input, 20);
         searchValue = atol(input);
         break;
       case FLOAT_32BIT:
-        entered = Gui::requestKeyboardInput("Enter value", "Enter a floating point value for which's negated value the game's memory should be searched. (Only use numbers, dots and dashes)", "", SwkbdType::SwkbdType_QWERTY, input, 15);
+        entered = Gui::requestKeyboardInput("Enter value", "Enter a floating point value for which's negated value the game's memory should be searched. (Only use numbers, dots and dashes)", "", SwkbdType::SwkbdType_QWERTY, input, 20);
         floatValue = std::stof(input);
         searchValue = (s128)(*(s32*)&floatValue);
         break;
       case FLOAT_64BIT:
-        entered = Gui::requestKeyboardInput("Enter value", "Enter a floating point value for which's negated value the game's memory should be searched. (Only use numbers, dots and dashes)", "", SwkbdType::SwkbdType_QWERTY, input, 15);
+        entered = Gui::requestKeyboardInput("Enter value", "Enter a floating point value for which's negated value the game's memory should be searched. (Only use numbers, dots and dashes)", "", SwkbdType::SwkbdType_QWERTY, input, 20);
         doubleValue = std::stod(input);
         searchValue = (s128)(*(s64*)&doubleValue);
         break;
@@ -584,6 +584,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
 
     if (entered) {
+      bool tooManyResults = false;
+
       if (searchValue > dataTypeMaxValues[m_searchType] || searchValue < dataTypeMinValues[m_searchType]) {
         (new Snackbar("Entered value isn't inside the range of this data type. Please choose a different one."))->show();
         return;
@@ -647,9 +649,9 @@ void GuiRAMEditor::onInput(u32 kdown) {
               }
 
               if (m_foundAddresses.size() >= 0x7FFFF) {
-                (new Snackbar("Too many candidates found! Selection has been truncated."))->show();
+                tooManyResults = true;
                 delete[] buffer;
-                goto done;
+                goto done;  //TODO: find a better solution
               }
             }
 
@@ -679,6 +681,9 @@ void GuiRAMEditor::onInput(u32 kdown) {
       } else printf("Didn't save!\n");
 
       Gui::g_currMessageBox->hide();
+      
+      if (tooManyResults)
+        (new MessageBox("Too many candidates found! Selection has been truncated. \n \n The next search won't include any of the truncated addresses.", MessageBox::OKAY))->show();
 
       m_debugger->continueProcess();
 

@@ -46,6 +46,11 @@ public:
   STRING
   } searchType_t;
 
+  typedef enum {
+    SEARCH_BEGIN,
+    SEARCH_CONTINUE
+  } searchMode_t;
+
 private:
   Debugger *m_debugger;
   u8 m_ramBuffer[0x10 * 14] = { 0 };
@@ -67,11 +72,8 @@ private:
   u64 m_codeBaseAddr = 0x00;
   u8 m_buildID[0x20];
 
+  searchMode_t m_searchMode;
+
   DmntCheatEntry *m_cheats;
   u64 m_cheatCnt;
-
-  enum {
-    SEARCH_BEGIN,
-    SEARCH_CONTINUE
-  } m_searchMode;
 };

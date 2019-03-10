@@ -249,8 +249,10 @@ int main(int argc, char** argv) {
 
     kheldOld = kheld;
 
-    if (kdown & KEY_PLUS)
-      break;
+    if (kdown & KEY_PLUS) {
+      if (Gui::g_currMessageBox == nullptr)
+        break;
+    }
 
     if (GuiMain::g_shouldUpdate) {
       Gui::g_currMessageBox->hide();

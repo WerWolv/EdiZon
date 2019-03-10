@@ -19,9 +19,11 @@ static std::string titleNameStr, tidStr, pidStr, buildIDStr;
 
 static u32 cheatListOffset = 0;
 
+Result _searchMemoryBegin(Debugger *debugger, s128 searchValue, GuiRAMEditor::searchType_t type, std::vector<GuiRAMEditor::ramAddr_t> &foundAddrs, std::vector<MemoryInfo> &memInfos);
+Result _searchMemoryContinue(Debugger *debugger, s128 searchValue, GuiRAMEditor::searchType_t type, std::vector<GuiRAMEditor::ramAddr_t> &foundAddrs);
 
-bool isAddressFrozen(uintptr_t address);
-std::string getAddressDisplayString(GuiRAMEditor::ramAddr_t address, Debugger *debugger, GuiRAMEditor::searchType_t searchType, u64 heapBaseAddr, u64 codeBaseAddr, u64 addressSpaceBaseAddr);
+bool _isAddressFrozen(uintptr_t address);
+std::string _getAddressDisplayString(GuiRAMEditor::ramAddr_t address, Debugger *debugger, GuiRAMEditor::searchType_t searchType, u64 heapBaseAddr, u64 codeBaseAddr, u64 addressSpaceBaseAddr);
 
 
 GuiRAMEditor::GuiRAMEditor() : Gui() {
@@ -323,7 +325,7 @@ void GuiRAMEditor::draw() {
     ss.str("");
 
     if (line < 7 && m_foundAddresses.size() != 8) {
-      ss << getAddressDisplayString(m_foundAddresses[line], m_debugger, (GuiRAMEditor::searchType_t)m_searchType, m_heapBaseAddr, m_codeBaseAddr, m_addressSpaceBaseAddr);
+      ss << _getAddressDisplayString(m_foundAddresses[line], m_debugger, (GuiRAMEditor::searchType_t)m_searchType, m_heapBaseAddr, m_codeBaseAddr, m_addressSpaceBaseAddr);
 
     if (m_frozenAddresses.find(m_foundAddresses[line].addr) != m_frozenAddresses.end())
       ss << "   \uE130";
@@ -390,11 +392,13 @@ void GuiRAMEditor::onInput(u32 kdown) {
       if (m_cheatCnt > 0) {
         m_menuLocation = CHEATS;
         m_selectedEntry = 0;
+        cheatListOffset = 0;
       }
 
     if (kdown & KEY_RIGHT) {
       m_menuLocation = CANDIDATES;
       m_selectedEntry = 0;
+      cheatListOffset = 0;
     }
   }
 
@@ -403,7 +407,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
     if (m_foundAddresses.size() == 0) return;
     if (m_searchMode == SEARCH_CONTINUE) { 
       if (kdown & KEY_X && m_sysmodulePresent) {
-        if (!isAddressFrozen(m_foundAddresses[m_selectedEntry].addr)) {
+        if (!_isAddressFrozen(m_foundAddresses[m_selectedEntry].addr)) {
           u64 outValue;
 
           if (R_SUCCEEDED(dmntchtEnableFrozenAddress(m_foundAddresses[m_selectedEntry].addr, dataTypeSizes[m_searchType], &outValue))) {
@@ -524,7 +528,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
         return;
       
       for (u64 addr : m_frozenAddresses)
-        options.push_back(getAddressDisplayString({ addr, MemType_Normal }, m_debugger, (GuiRAMEditor::searchType_t)m_searchType, m_heapBaseAddr, m_codeBaseAddr, m_addressSpaceBaseAddr));
+        options.push_back(_getAddressDisplayString({ addr, MemType_Normal }, m_debugger, (GuiRAMEditor::searchType_t)m_searchType, m_heapBaseAddr, m_codeBaseAddr, m_addressSpaceBaseAddr));
 
       (new ListSelector("Frozen Addresses", "\uE0E0 Unfreeze     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
         if (k & KEY_A) {
@@ -584,7 +588,6 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
 
     if (entered) {
-      bool tooManyResults = false;
 
       if (searchValue > dataTypeMaxValues[m_searchType] || searchValue < dataTypeMinValues[m_searchType]) {
         (new Snackbar("Entered value isn't inside the range of this data type. Please choose a different one."))->show();
@@ -596,79 +599,28 @@ void GuiRAMEditor::onInput(u32 kdown) {
       (new MessageBox("Searching RAM \n \n This may take a while...", MessageBox::NONE))->show();
       requestDraw();
 
-      if (m_searchMode == SEARCH_CONTINUE) {
-        m_selectedEntry = 0;
+      m_selectedEntry = 0;
+      cheatListOffset = 0;
 
-        std::vector<GuiRAMEditor::ramAddr_t> newAddresses;
-        for (GuiRAMEditor::ramAddr_t addr : m_foundAddresses) {
-          u64 value = 0, realValue = 0;
-
-          m_debugger->readMemory(&value, 8, addr.addr);
-          memcpy(&realValue, &value, dataTypeSizes[m_searchType]);
-
-          if (realValue == searchValue) {
-            newAddresses.push_back(addr);
-          }
+      if (m_searchMode == SEARCH_BEGIN) {
+        m_searchMode = SEARCH_CONTINUE;
+        if(R_FAILED(_searchMemoryBegin(m_debugger, searchValue, (GuiRAMEditor::searchType_t)m_searchType, m_foundAddresses, m_memoryInfo)))
+          (new MessageBox("Too many candidates found! Selection has been truncated. \n \n The next search won't include any of the truncated addresses.", MessageBox::OKAY))->show();
+        else if (m_foundAddresses.empty()) {
+          m_searchMode = SEARCH_BEGIN;
+          remove("/EdiZon/addresses.dat");
+          (new Snackbar("Value not found in memory. Try again with a different one."))->show();
         }
-
-        m_foundAddresses.clear();
-        std::copy(newAddresses.begin(), newAddresses.end(), std::back_inserter(m_foundAddresses));
-
-        if (m_foundAddresses.empty()) {
+      } else {
+        if (R_FAILED(_searchMemoryContinue(m_debugger, searchValue, (GuiRAMEditor::searchType_t)m_searchType, m_foundAddresses))) {
           m_searchMode = SEARCH_BEGIN;
           remove("/EdiZon/addresses.dat");
           
           Gui::g_currMessageBox->hide();
           m_debugger->continueProcess();
           (new Snackbar("None of your previously found addresses got changed to the entered value."))->show();
-          return;
-        }
-
-      } else {
-        m_searchMode = SEARCH_CONTINUE;
-        m_selectedEntry = 0;
-
-        for (MemoryInfo meminfo : m_memoryInfo) {
-          if (m_searchType != POINTER && meminfo.type != MemType_Heap) continue;
-          u64 offset = 0;
-          u64 bufferSize = 0x10000;
-          u8 *buffer = new u8[bufferSize];
-          while (offset < meminfo.size) {
-            
-            if (meminfo.size - offset < bufferSize)
-              bufferSize = meminfo.size - offset;
-
-            m_debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
-
-            u64 realValue = 0;
-            for (u64 i = 0; i < bufferSize; i++) {
-              memcpy(&realValue, buffer + i, dataTypeSizes[m_searchType]);
-
-              if (realValue == searchValue) {
-                m_foundAddresses.push_back({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
-              }
-
-              if (m_foundAddresses.size() >= 0x7FFFF) {
-                tooManyResults = true;
-                delete[] buffer;
-                goto done;  //TODO: find a better solution
-              }
-            }
-
-            offset += bufferSize;
-          }
-
-          delete[] buffer;
-        }
-
-        if (m_foundAddresses.empty()) {
-          m_searchMode = SEARCH_BEGIN;
-          remove("/EdiZon/addresses.dat");
-          (new Snackbar("Value not found in memory. Try again with a different one."))->show();
         }
       }
-
-      done:
 
       std::ofstream file("/EdiZon/addresses.dat", std::ios::out | std::ios::binary);
       if (file.is_open()) {
@@ -682,9 +634,6 @@ void GuiRAMEditor::onInput(u32 kdown) {
 
       Gui::g_currMessageBox->hide();
       
-      if (tooManyResults)
-        (new MessageBox("Too many candidates found! Selection has been truncated. \n \n The next search won't include any of the truncated addresses.", MessageBox::OKAY))->show();
-
       m_debugger->continueProcess();
 
     }
@@ -699,7 +648,7 @@ void GuiRAMEditor::onGesture(touchPosition startPosition, touchPosition endPosit
 
 }
 
-bool isAddressFrozen(uintptr_t address) {
+bool _isAddressFrozen(uintptr_t address) {
   DmntFrozenAddressEntry *addresses;
   u64 addressCnt = 0;
   bool frozen = false;
@@ -721,7 +670,7 @@ bool isAddressFrozen(uintptr_t address) {
   return frozen;
 }
 
-std::string getAddressDisplayString(GuiRAMEditor::ramAddr_t address, Debugger *debugger, GuiRAMEditor::searchType_t searchType, u64 heapBaseAddr, u64 codeBaseAddr, u64 addressSpaceBaseAddr) {
+std::string _getAddressDisplayString(GuiRAMEditor::ramAddr_t address, Debugger *debugger, GuiRAMEditor::searchType_t searchType, u64 heapBaseAddr, u64 codeBaseAddr, u64 addressSpaceBaseAddr) {
   std::stringstream ss;
 
   if (address.type == MemType_Heap)
@@ -777,4 +726,62 @@ std::string getAddressDisplayString(GuiRAMEditor::ramAddr_t address, Debugger *d
   }
 
   return ss.str();
+}
+
+Result _searchMemoryBegin(Debugger *debugger, s128 searchValue, GuiRAMEditor::searchType_t type, std::vector<GuiRAMEditor::ramAddr_t> &foundAddrs, std::vector<MemoryInfo> &memInfos) {
+  for (MemoryInfo meminfo : memInfos) {
+    if (meminfo.type != MemType_Heap) continue;
+    u64 offset = 0;
+    u64 bufferSize = 0x10000;
+    u8 *buffer = new u8[bufferSize];
+    while (offset < meminfo.size) {
+      
+      if (meminfo.size - offset < bufferSize)
+        bufferSize = meminfo.size - offset;
+
+      debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+
+      u64 realValue = 0;
+      for (u64 i = 0; i < bufferSize; i++) {
+        memcpy(&realValue, buffer + i, dataTypeSizes[type]);
+
+        if (realValue == searchValue) {
+          foundAddrs.push_back({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+        }
+
+        if (foundAddrs.size() >= 0x7FFFF) {
+          delete[] buffer;
+          return 1;
+        }
+      }
+
+      offset += bufferSize;
+    }
+
+    delete[] buffer;
+  }
+
+  return 0;
+}
+
+Result _searchMemoryContinue(Debugger *debugger, s128 searchValue, GuiRAMEditor::searchType_t type, std::vector<GuiRAMEditor::ramAddr_t> &foundAddrs) {
+  std::vector<GuiRAMEditor::ramAddr_t> newAddresses;
+  for (GuiRAMEditor::ramAddr_t addr : foundAddrs) {
+    u64 value = 0, realValue = 0;
+
+    debugger->readMemory(&value, 8, addr.addr);
+    memcpy(&realValue, &value, dataTypeSizes[type]);
+
+    if (realValue == searchValue) {
+      newAddresses.push_back(addr);
+    }
+  }
+
+  foundAddrs.clear();
+  std::copy(newAddresses.begin(), newAddresses.end(), std::back_inserter(foundAddrs));
+
+  if (foundAddrs.empty())
+    return 1;
+
+  return 0;
 }

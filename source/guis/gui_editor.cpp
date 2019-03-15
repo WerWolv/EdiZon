@@ -480,7 +480,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
             << "/" << std::string(backupName);
 
             uploadBackup(backupPath.str(), backupName);
-          }
+          } else Gui::g_currMessageBox->hide();
         })->show();
         
       }
@@ -510,7 +510,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
                   Gui::g_currListSelector->hide();
                   Gui::g_currMessageBox->hide();
-                }
+                } else Gui::g_currMessageBox->hide();
               })->show();
           }
         }
@@ -621,7 +621,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
             m_widgets.clear();
             Widget::g_categories.clear();
             Gui::g_currMessageBox->hide();
-          }
+          } else Gui::g_currMessageBox->hide();
         })->show();
 
         return;
@@ -679,7 +679,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           Widget::g_categories.clear();
           m_widgets.clear();
           Gui::g_currMessageBox->hide();
-        }
+        } else Gui::g_currMessageBox->hide();
       })->show();
 
       return;

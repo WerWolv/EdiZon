@@ -220,7 +220,7 @@ void GuiMain::onInput(u32 kdown) {
           }
                   
           Gui::g_currMessageBox->hide();
-        }
+        } else Gui::g_currMessageBox->hide();
       })->show();
     }
     else {

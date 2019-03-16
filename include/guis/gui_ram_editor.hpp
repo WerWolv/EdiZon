@@ -47,9 +47,25 @@ public:
   } searchType_t;
 
   typedef enum {
-    SEARCH_BEGIN,
-    SEARCH_CONTINUE
+    EQ,
+    NEQ,
+    GT,
+    GTE,
+    LT,
+    LTE,
+    RANGE,
+    SAME,
+    DIFF,
+    INC,
+    DEC
   } searchMode_t;
+
+  typedef enum {
+    HEAP,
+    MAIN,
+    HEAP_AND_MAIN,
+    RAM
+  } searchRange_t;
 
 private:
   Debugger *m_debugger;
@@ -59,7 +75,7 @@ private:
   u8 m_selectedEntry = 0;
   enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
   searchType_t m_searchType = UNSIGNED_8BIT;
-  searchMode_t m_searchMode = SEARCH_BEGIN;
+
   s128 m_searchValue;
 
   std::vector<MemoryInfo> m_memoryInfo;

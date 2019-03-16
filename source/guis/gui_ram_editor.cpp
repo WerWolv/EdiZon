@@ -120,7 +120,6 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   std::ifstream file("/EdiZon/addresses.dat", std::ios::in | std::ios::binary);
 
   if (file.is_open()) {
-    m_searchMode = SEARCH_CONTINUE;
     file.read((char*)&addressCnt, 8);
     file.read((char*)&m_searchType, 1);
     file.read((char*)&oldHeapBaseAddr, 8);
@@ -138,7 +137,6 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   }
 
   if (m_heapBaseAddr != oldHeapBaseAddr && oldHeapBaseAddr != 0) {
-    m_searchMode = SEARCH_BEGIN;
     remove("/EdiZon/addresses.dat");
     m_foundAddresses.clear();
     m_searchType = SIGNED_8BIT;
@@ -214,12 +212,12 @@ void GuiRAMEditor::draw() {
     return;
   }
 
-  if (m_searchMode == SEARCH_BEGIN) {
+  if (m_foundAddresses.size() == 0) {
     if (m_frozenAddresses.size() != 0)
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Frozen addresses     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
     else
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
-  } else if (m_searchMode == SEARCH_CONTINUE) {
+  } else {
     if (m_foundAddresses.size() > 0) {
       if (m_sysmodulePresent)
         Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0EF Exit     \uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
@@ -271,19 +269,6 @@ void GuiRAMEditor::draw() {
 
   Gui::drawRectangle(256, 186, 92, 70, currTheme.selectedColor);
   Gui::drawRectangle(Gui::g_framebuffer_width - 92, 186, 92, 70, currTheme.selectedColor);
-
-  for (u8 i = 0; i < 12; i++) {
-    Gui::drawRectangle(348 + i * 70, 186, 70, 70, currTheme.textColor);
-    Gui::drawRectangle(350 + i * 70, 186 + 2, 70 - 4, 70 - 4, m_searchType == i ? m_searchMode == SEARCH_BEGIN ? currTheme.highlightColor : currTheme.selectedColor : currTheme.separatorColor);
-    Gui::drawTextAligned(font20, 385 + i * 70, 203, m_searchType == i ? COLOR_BLACK : currTheme.textColor, dataTypes[i].c_str(), ALIGNED_CENTER);
-    
-    if (i >= 8)
-      Gui::drawRectangled(350 + i * 70, 186 + 2, 70 - 4, 70 - 4, Gui::makeColor(0x80, 0x80, 0x80, 0x80));
-  }
-
-  Gui::drawTextAligned(font20, 290, 203, COLOR_BLACK, "\uE0E4", ALIGNED_LEFT);
-  Gui::drawTextAligned(font20, 1222, 203, COLOR_BLACK, "\uE0E5", ALIGNED_LEFT);
-
 
   if (m_cheatCnt > 0 && m_sysmodulePresent) {
     Gui::drawRectangle(50, 256, 650, 46 + std::min(static_cast<u32>(m_cheatCnt), 8U) * 40, currTheme.textColor);
@@ -379,16 +364,6 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
   }
 
-  if (m_searchMode == SEARCH_BEGIN) {
-    if (kdown & KEY_L)
-      if (m_searchType > 0)
-        m_searchType = static_cast<searchType_t>(m_searchType - 1);
-
-    if (kdown & KEY_R)
-      if (m_searchType < 7)
-        m_searchType = static_cast<searchType_t>(m_searchType + 1);
-  }
-
   if (m_foundAddresses.size() > 0) {
     if (kdown & KEY_LEFT)
       if (m_cheatCnt > 0) {
@@ -404,10 +379,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
   }
 
-
   if (m_menuLocation == CANDIDATES) { /* Candidates menu */
-    if (m_foundAddresses.size() == 0) return;
-    if (m_searchMode == SEARCH_CONTINUE) { 
+    if (m_foundAddresses.size() != 0) { 
       if (kdown & KEY_X && m_sysmodulePresent) {
         if (!_isAddressFrozen(m_foundAddresses[m_selectedEntry].addr)) {
           u64 outValue;
@@ -534,7 +507,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_MINUS) {
-    if (m_foundAddresses.size() == 0 && m_searchMode == SEARCH_BEGIN) {
+    if (m_foundAddresses.size() == 0 &&m_foundAddresses.size() == 0) {
       std::vector<std::string> options;
       
       if (m_frozenAddresses.size() == 0)
@@ -559,8 +532,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
           Gui::g_currListSelector->hide();
         }
       })->show();
-    } else if (m_searchMode == SEARCH_CONTINUE) {
-      m_searchMode = SEARCH_BEGIN;
+    } else if (m_foundAddresses.size() != 0) {
       m_foundAddresses.clear();
       m_menuLocation = CHEATS;
       remove("/EdiZon/addresses.dat");
@@ -581,7 +553,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       case SIGNED_32BIT: [[fallthrough]]
       case SIGNED_64BIT: 
 
-        if (m_searchMode == SEARCH_CONTINUE)
+        if (m_foundAddresses.size() != 0)
           strcpy(initialText, std::to_string(static_cast<s64>(m_searchValue)).c_str());
 
         entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which's negated value the game's memory should be searched. (50 -> -50)", initialText, SwkbdType::SwkbdType_NumPad, input, 20);
@@ -591,7 +563,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       case UNSIGNED_16BIT: [[fallthrough]]
       case UNSIGNED_32BIT: [[fallthrough]]
       case UNSIGNED_64BIT: 
-        if (m_searchMode == SEARCH_CONTINUE)
+        if (m_foundAddresses.size() != 0)
           strcpy(initialText, std::to_string(static_cast<u64>(m_searchValue)).c_str());
 
         entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which the game's memory should be searched.", initialText, SwkbdType::SwkbdType_NumPad, input, 20);
@@ -618,18 +590,16 @@ void GuiRAMEditor::onInput(u32 kdown) {
       m_selectedEntry = 0;
       cheatListOffset = 0;
 
-      if (m_searchMode == SEARCH_BEGIN) {
-        m_searchMode = SEARCH_CONTINUE;
+      if (m_foundAddresses.size() == 0) {
         if(R_FAILED(_searchMemoryBegin(m_debugger, m_searchValue, (GuiRAMEditor::searchType_t)m_searchType, m_foundAddresses, m_memoryInfo)))
           (new MessageBox("Too many candidates found! Selection has been truncated. \n \n The next search won't include any of the truncated addresses.", MessageBox::OKAY))->show();
         else if (m_foundAddresses.empty()) {
-          m_searchMode = SEARCH_BEGIN;
           remove("/EdiZon/addresses.dat");
           (new Snackbar("Value not found in memory. Try again with a different one."))->show();
         }
       } else {
         if (R_FAILED(_searchMemoryContinue(m_debugger, m_searchValue, (GuiRAMEditor::searchType_t)m_searchType, m_foundAddresses))) {
-          m_searchMode = SEARCH_BEGIN;
+          m_foundAddresses.clear();
           remove("/EdiZon/addresses.dat");
           
           Gui::g_currMessageBox->hide();

@@ -10,6 +10,9 @@ extern "C" {
   #include "util.h"
 }
 
+#include "edizon_logo_bin.h"
+
+
 static const std::vector<std::string> dataTypes = { "u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "f32", "f64", "ptr", "str" };
 static const std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,     4,     4,     8,     8,     4,     8,     8,     0  };
 static const std::vector<s128> dataTypeMaxValues = { std::numeric_limits<u8>::max(), std::numeric_limits<s8>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max() };
@@ -191,9 +194,21 @@ void GuiRAMEditor::update() {
 }
 
 void GuiRAMEditor::draw() {
+  static u32 splashCnt = 0;
   std::stringstream ss;
 
   Gui::beginDraw();
+
+  if (!Gui::g_splashDisplayed) {
+    Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x5D, 0x4F, 0x4E, 0xFF));
+    Gui::drawImage(Gui::g_framebuffer_width / 2 - 128, Gui::g_framebuffer_height / 2 - 128, 256, 256, edizon_logo_bin, IMAGE_MODE_BGR24);
+
+    if (splashCnt++ >= 70)
+      Gui::g_splashDisplayed = true;
+
+    Gui::endDraw();
+    return;
+  }
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 

@@ -42,6 +42,8 @@ public:
   static inline u32 g_framebuffer_width = 1280;
   static inline u32 g_framebuffer_height = 720;
 
+  static inline bool g_splashDisplayed = false;
+
   static inline Snackbar *g_currSnackbar = nullptr;
   static inline ListSelector *g_currListSelector = nullptr;
   static inline MessageBox *g_currMessageBox = nullptr;

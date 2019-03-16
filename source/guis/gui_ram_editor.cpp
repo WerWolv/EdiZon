@@ -543,8 +543,6 @@ void GuiRAMEditor::onInput(u32 kdown) {
           
           dmntchtDisableFrozenAddress(itr->first);
           m_frozenAddresses.erase(itr->first);
-
-          Gui::g_currListSelector->hide();
         }
       })->show();
     } else if (m_foundAddresses.size() != 0) {

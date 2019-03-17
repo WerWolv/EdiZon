@@ -56,6 +56,9 @@ void GuiMain::draw() {
 
   Gui::beginDraw();
 
+  finishedDrawing = false;
+
+
   if (!Gui::g_splashDisplayed) {
     Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x5D, 0x4F, 0x4E, 0xFF));
     Gui::drawImage(Gui::g_framebuffer_width / 2 - 128, Gui::g_framebuffer_height / 2 - 128, 256, 256, edizon_logo_bin, IMAGE_MODE_BGR24);
@@ -66,9 +69,7 @@ void GuiMain::draw() {
     Gui::endDraw();
     return;
   }
-
-  finishedDrawing = false;
-
+  
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 10, COLOR_BLACK);
 

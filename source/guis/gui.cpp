@@ -125,6 +125,7 @@ bool Gui::setFontType(u32 font) {
     case font14: scale = 4; break;
     case font20: scale = 6; break;
     case font24: scale = 7; break;
+    case fontTitle: scale = 10; break;
     case fontHuge: scale = 20; break;
     default: return false;
   }
@@ -183,8 +184,8 @@ void Gui::drawGlyph(s16 x, s16 y, color_t clr, const glyph_t* glyph) {
   x += glyph->posX;
   y -= glyph->posY;
 
-  for (u32 j = 0; j < glyph->height; j ++) {
-    for (u32 i = 0; i < glyph->width; i ++) {
+  for (u32 j = 0; j < glyph->height; j++) {
+    for (u32 i = 0; i < glyph->width; i++) {
       color_t pixelColor = clr;
       pixelColor.a = data[i] * (static_cast<float>(clr.a) / 0xFF);
       if (!pixelColor.a) continue;

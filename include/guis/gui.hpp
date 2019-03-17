@@ -20,7 +20,8 @@ extern "C" {
 
 #define FONT_FACES_MAX PlSharedFontType_Total
 
-#define fontHuge 4
+#define fontHuge 5
+#define fontTitle 4
 #define font24 3
 #define font20 2
 #define font14 1

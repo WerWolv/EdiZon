@@ -370,10 +370,10 @@ void GuiRAMEditor::drawSearchRAMMenu() {
   Gui::drawTextAligned(font20, 100, 160, currTheme.textColor, "\uE149 \uE0A4", ALIGNED_LEFT);
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, 160, currTheme.textColor, "\uE0A5 \uE14A", ALIGNED_RIGHT);
 
-  Gui::drawTextAligned(font20, 260, 160,  m_searchMenuLocation == SEARCH_TYPE  ? currTheme.selectedColor : currTheme.textColor, "TYPE",  ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, 510, 160,  m_searchMenuLocation == SEARCH_MODE  ? currTheme.selectedColor : currTheme.textColor, "MODE",  ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, 760, 160,  m_searchMenuLocation == SEARCH_VALUE ? currTheme.selectedColor : currTheme.textColor, "VALUE", ALIGNED_CENTER);
-  Gui::drawTextAligned(font20, 1010, 160, m_searchMenuLocation == SEARCH_REGION ? currTheme.selectedColor : currTheme.textColor, "REGION", ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, 260, 160,  m_searchMenuLocation == SEARCH_TYPE   ? currTheme.selectedColor : currTheme.textColor, "TYPE",   ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, 510, 160,  m_searchMenuLocation == SEARCH_MODE   ? currTheme.selectedColor : currTheme.textColor, "MODE",   ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, 760, 160,  m_searchMenuLocation == SEARCH_REGION ? currTheme.selectedColor : currTheme.textColor, "REGION", ALIGNED_CENTER);
+  Gui::drawTextAligned(font20, 1010, 160, m_searchMenuLocation == SEARCH_VALUE  ? currTheme.selectedColor : currTheme.textColor, "VALUE",  ALIGNED_CENTER);
 
   static const char* const typeNames[]  = { "u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "flt", "dbl", "void*" };
   static const char* const modeNames[]  = { "==", "!=", ">", ">=", "<", "<=", "A : B", "SAME", "DIFF", "+ +", "- -" };
@@ -410,14 +410,6 @@ void GuiRAMEditor::drawSearchRAMMenu() {
                                                                                             "SAME and DIFF will be pretty slow but allow you to find values that stayed the same or changed between two searches. \n"
                                                                                             "The modes + + and - - work similar and are equally slow. They will filter values that increased or decresed between searches.", ALIGNED_CENTER);
       break;
-    case SEARCH_VALUE:
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Here you can set the value you want to look for. The value(s) you enter here will depend on what options you chose in the \n"
-                                                                                            "first two sections. Either it's the exact integer you want to search for, a floating point number or even two values that \n"
-                                                                                            "will be used as range. EdiZon will let you know if there's something wrong with your input. \n"
-                                                                                            "By default, the input is in decimal. If you want to use hexadecimal number, prefix it with \"0x\" and use only the characters \n"
-                                                                                            "0..9 and A..F.", ALIGNED_CENTER);
-
-      break;
     case SEARCH_REGION:
       for (u8 i = 0; i < 4; i++) {
         if (m_selectedEntry == i)
@@ -433,6 +425,14 @@ void GuiRAMEditor::drawSearchRAMMenu() {
                                                                                             "Only use this option if you can't find the value you're looking for in the HEAP or if you want to create cheats. HEAP + MAIN \n"
                                                                                             "searches both HEAP and MAIN. The RAM option should only be used if absolutely necessary. It will traverse the entire RAM of \n"
                                                                                             "the current game without caring about memory regions. This will generate a lot of false positives.", ALIGNED_CENTER);
+      break;
+    case SEARCH_VALUE:
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Here you can set the value you want to look for. The value(s) you enter here will depend on what options you chose in the \n"
+                                                                                            "first two sections. Either it's the exact integer you want to search for, a floating point number or even two values that \n"
+                                                                                            "will be used as range. EdiZon will let you know if there's something wrong with your input. \n"
+                                                                                            "By default, the input is in decimal. If you want to use hexadecimal number, prefix it with \"0x\" and use only the characters \n"
+                                                                                            "0..9 and A..F.", ALIGNED_CENTER);
+
       break;
     case SEARCH_NONE: break;
   }
@@ -636,11 +636,11 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if (m_selectedEntry % 2 == 1)
               m_selectedEntry--;
             break;
-          case SEARCH_VALUE:
-            break;
           case SEARCH_REGION:
             if (m_selectedEntry > 0)
               m_selectedEntry--;
+            break;
+          case SEARCH_VALUE:
             break;
           case SEARCH_NONE: break;
         }
@@ -653,11 +653,11 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if ((m_selectedEntry + 1) < 10 && m_selectedEntry % 2 == 0)
               m_selectedEntry++;
             break;
-          case SEARCH_VALUE:
-            break;
           case SEARCH_REGION:
             if (m_selectedEntry < 3)
               m_selectedEntry++;
+            break;
+          case SEARCH_VALUE:
             break;
           case SEARCH_NONE: break;
         }
@@ -670,9 +670,9 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if (m_selectedEntry >= 2)
               m_selectedEntry -= 2;
             break;
-          case SEARCH_VALUE:
-            break;
           case SEARCH_REGION:
+            break;
+          case SEARCH_VALUE:
             break;
           case SEARCH_NONE: break;
         }
@@ -685,9 +685,9 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if (m_selectedEntry <= 8)
               m_selectedEntry += 2;
             break;
-          case SEARCH_VALUE:
-            break;
           case SEARCH_REGION:
+            break;
+          case SEARCH_VALUE:
             break;
           case SEARCH_NONE: break;
         }
@@ -704,11 +704,11 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
 
     if (kdown & KEY_L) {
-      if (m_searchMenuLocation == SEARCH_REGION) {
-        m_searchMenuLocation = SEARCH_VALUE;
-        m_selectedEntry = 0;
+      if (m_searchMenuLocation == SEARCH_VALUE) {
+        m_searchMenuLocation = SEARCH_REGION;
+        m_selectedEntry = m_searchRegion == SEARCH_REGION_NONE ? 0 : static_cast<u32>(m_searchRegion);
       }
-      else if (m_searchMenuLocation == SEARCH_VALUE) {
+      else if (m_searchMenuLocation == SEARCH_REGION) {
         m_searchMenuLocation = SEARCH_MODE;
         m_selectedEntry = m_searchMode == SEARCH_MODE_NONE ? 0 : static_cast<u32>(m_searchMode);
       }
@@ -724,11 +724,11 @@ void GuiRAMEditor::onInput(u32 kdown) {
         m_selectedEntry = m_searchMode == SEARCH_MODE_NONE ? 0 : static_cast<u32>(m_searchMode);
       }
       else if (m_searchMenuLocation == SEARCH_MODE) {
-        m_searchMenuLocation = SEARCH_VALUE;
-      }
-      else if (m_searchMenuLocation == SEARCH_VALUE) {
         m_searchMenuLocation = SEARCH_REGION;
         m_selectedEntry = m_searchRegion == SEARCH_REGION_NONE ? 0 : static_cast<u32>(m_searchRegion);
+      }
+      else if (m_searchMenuLocation == SEARCH_REGION) {
+        m_searchMenuLocation = SEARCH_VALUE;
       }
     }
 

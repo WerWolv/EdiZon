@@ -92,7 +92,7 @@ private:
   searchValue_t m_searchValue;
 
   enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
-  enum { SEARCH_NONE, SEARCH_TYPE, SEARCH_VALUE, SEARCH_MODE, SEARCH_REGION } m_searchMenuLocation = SEARCH_NONE;
+  enum { SEARCH_NONE, SEARCH_TYPE, SEARCH_MODE, SEARCH_REGION, SEARCH_VALUE } m_searchMenuLocation = SEARCH_NONE;
   searchType_t m_searchType = SEARCH_TYPE_NONE;
   searchMode_t m_searchMode = SEARCH_MODE_NONE;
   searchRegion_t m_searchRegion = SEARCH_REGION_NONE;

@@ -22,6 +22,8 @@ bool isServiceRunning(const char *serviceName) {
   Handle handle;
   bool running = R_FAILED(smRegisterService(&handle, serviceName, false, 1));
 
+  svcCloseHandle(handle);
+
   if (!running)
     smUnregisterService(serviceName);
 

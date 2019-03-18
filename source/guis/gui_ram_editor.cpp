@@ -34,6 +34,7 @@ Result _searchMemoryContinue(Debugger *debugger, GuiRAMEditor::searchValue_t sea
 
 bool _isAddressFrozen(uintptr_t address);
 std::string _getAddressDisplayString(u64 address, Debugger *debugger, GuiRAMEditor::searchType_t searchType);
+std::string _getValueDisplayString(GuiRAMEditor::searchValue_t searchValue, GuiRAMEditor::searchType_t searchType);
 
 GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_sysmodulePresent = isServiceRunning("dmnt:cht");
@@ -359,6 +360,10 @@ void GuiRAMEditor::draw() {
 }
 
 void GuiRAMEditor::drawSearchRAMMenu() {
+  static u32 cursorBlinkCnt = 0;
+  u32 strWidth = 0;
+  std::stringstream ss;
+
   if (m_searchMenuLocation == SEARCH_NONE) return;
 
   Gui::drawRectangled(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x00, 0x00, 0x00, 0xA0));
@@ -375,9 +380,9 @@ void GuiRAMEditor::drawSearchRAMMenu() {
   Gui::drawTextAligned(font20, 760, 160,  m_searchMenuLocation == SEARCH_REGION ? currTheme.selectedColor : currTheme.textColor, "REGION", ALIGNED_CENTER);
   Gui::drawTextAligned(font20, 1010, 160, m_searchMenuLocation == SEARCH_VALUE  ? currTheme.selectedColor : currTheme.textColor, "VALUE",  ALIGNED_CENTER);
 
-  static const char* const typeNames[]  = { "u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "flt", "dbl", "void*" };
-  static const char* const modeNames[]  = { "==", "!=", ">", ">=", "<", "<=", "A : B", "SAME", "DIFF", "+ +", "- -" };
-  static const char* const regionNames[] = { "HEAP", "MAIN", "HEAP + MAIN", "RAM" };
+  static const char* const typeNames[]    = { "u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "flt", "dbl", "void*" };
+  static const char* const modeNames[]    = { "==", "!=", ">", ">=", "<", "<=", "A : B", "SAME", "DIFF", "+ +", "- -" };
+  static const char* const regionNames[]  = { "HEAP", "MAIN", "HEAP + MAIN", "RAM" };
 
   switch (m_searchMenuLocation) {
     case SEARCH_TYPE:
@@ -389,11 +394,14 @@ void GuiRAMEditor::drawSearchRAMMenu() {
         Gui::drawTextAligned(font20, 400 + (i / 2) * 100, 250 + (i % 2) * 100, currTheme.textColor, typeNames[i], ALIGNED_CENTER);
       }
 
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Set the data type of the value you're searching. The prefix \"u\" means unsigned (positive natural numbers), \"s\" \n"
-                                                                                            "means signed (positive and negative integer numbers), \"flt\" and \"dbl\" are floats (rational numbers) and \"void*\" \n"
-                                                                                            "stands for pointer (address search) which is useful if you want to create cheats. The number behind it describes \n"
-                                                                                            "the numbers of bits used by the number which determens the range of numbers that fit into it. Choose the data type \n"
-                                                                                            "that you think fits the best for the number you're looking for. The smaller the type, the more canditates will be found!", ALIGNED_CENTER);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Set the data type of the value you’re searching here. The prefix [u] means unsigned (positive integers), [s] means \n"
+                                                                                            "signed (positive and negative integers), [flt] is for floating point numbers (rational numbers), [dbl] is for double (bigger \n"
+                                                                                            "rational numbers) and [ptr] stands for pointer (link to another memory address) which is useful for creating cheats. The \n"
+                                                                                            "number that follows is the number of bits used in memory which determines the maximum value. Choose the data type that \n"
+                                                                                            "best fits for the type of data you’re looking for.", ALIGNED_CENTER);
+
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+
       break;
     case SEARCH_MODE:
       for (u8 i = 0; i < 11; i++) {
@@ -404,11 +412,13 @@ void GuiRAMEditor::drawSearchRAMMenu() {
         Gui::drawTextAligned(font20, 400 + (i / 2) * 100, 250 + (i % 2) * 100, currTheme.textColor, modeNames[i], ALIGNED_CENTER);
       }
 
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Set the mode you want to use to search for values. The modes ==, !=, <, <=, > and >= are pretty self explanatory. \n"
-                                                                                            "With these modes, EdiZon will search for values that are equals to, not equals to, greater than or less than the \n"
-                                                                                            "value you'll enter in the next step. A : B is a range search to find values that are greater than A but less than B. \n"
-                                                                                            "SAME and DIFF will be pretty slow but allow you to find values that stayed the same or changed between two searches. \n"
-                                                                                            "The modes + + and - - work similar and are equally slow. They will filter values that increased or decresed between searches.", ALIGNED_CENTER);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Set the mode you want to use for finding values. With these modes EdiZon will search for values that are equal to [==], \n"
+                                                                                            "not equal to [!=], greater than [>], greater than or equal to [>=], less than [<], or less than or equal to [<=] the value \n"
+                                                                                            "that you input. [A : B] allows you to set a (min : max) range of values, SAME and DIFF search allows you to find values that \n"
+                                                                                            "stayed the same or changed since the last search, [+ +] and [- -] checks for values that increased or decreased since the \n"
+                                                                                            "previous search.", ALIGNED_CENTER);
+      
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
       break;
     case SEARCH_REGION:
       for (u8 i = 0; i < 4; i++) {
@@ -420,18 +430,48 @@ void GuiRAMEditor::drawSearchRAMMenu() {
       }
 
 
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Set the memory region you want to search. Heap is where all dynamically allocated values end up and should be used \n"
-                                                                                            "mainly for manual memory editing. Static data (variables in the .data section) can be found in the MAIN region (game NSO). \n"
-                                                                                            "Only use this option if you can't find the value you're looking for in the HEAP or if you want to create cheats. HEAP + MAIN \n"
-                                                                                            "searches both HEAP and MAIN. The RAM option should only be used if absolutely necessary. It will traverse the entire RAM of \n"
-                                                                                            "the current game without caring about memory regions. This will generate a lot of false positives.", ALIGNED_CENTER);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Set the memory region you want to search in. HEAP contains dynamically allocated values and will be where the majority of \n"
+                                                                                            "values worth changing will be found. MAIN contains global variables and instructions for game operation. You may find some \n"
+                                                                                            "values here but it’s mainly for finding pointers to HEAP values or changing game code. RAM will search the entirety of the Games \n"
+                                                                                            "used memory including memory shared memory and resources. Should only be used as a final resort as this will be extremely slow. \n", ALIGNED_CENTER);
+      
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
       break;
     case SEARCH_VALUE:
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Here you can set the value you want to look for. The value(s) you enter here will depend on what options you chose in the \n"
-                                                                                            "first two sections. Either it's the exact integer you want to search for, a floating point number or even two values that \n"
-                                                                                            "will be used as range. EdiZon will let you know if there's something wrong with your input. \n"
-                                                                                            "By default, the input is in decimal. If you want to use hexadecimal number, prefix it with \"0x\" and use only the characters \n"
-                                                                                            "0..9 and A..F.", ALIGNED_CENTER);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,  "Set the value you want to search for. The value(s) you enter here will depend on what options you've chosen in the \n"
+                                                                                            "first three sections. Either it's the exact integer you want to search for, a floating point number or even two values that \n"
+                                                                                            "will be used as range.", ALIGNED_CENTER);
+
+      //Gui::drawRectangle(300, 250, Gui::g_framebuffer_width - 600, 80, currTheme.separatorColor);
+      Gui::drawRectangle(300, 327, Gui::g_framebuffer_width - 600, 3, currTheme.textColor);
+      if (m_searchValueFormat == FORMAT_DEC)
+        ss << _getValueDisplayString(m_searchValue, m_searchType);
+      else if (m_searchValueFormat == FORMAT_HEX)
+        ss << "0x" << std::uppercase << std::hex << m_searchValue._u64;
+
+      Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
+      Gui::drawTextAligned(font20, 310, 285, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+
+      if (cursorBlinkCnt++ % 20 > 10 && m_selectedEntry == 0)
+        Gui::drawRectangled(312 + strWidth, 285, 3, 35, currTheme.highlightColor);
+
+      if (m_searchValueFormat == FORMAT_DEC)
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0E2 Hexadecimal view     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+      else if (m_searchValueFormat == FORMAT_HEX)
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0E2 Decimal view     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+      
+      if (m_selectedEntry == 1)
+        Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 155, 345, 310, 90, currTheme.highlightColor);
+
+      if (m_searchType != SEARCH_TYPE_NONE && m_searchMode != SEARCH_MODE_NONE && m_searchRegion != SEARCH_REGION_NONE) {
+        Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 150, 350, 300, 80, currTheme.selectedColor);
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 375, currTheme.backgroundColor, "Search Now!", ALIGNED_CENTER);
+      }
+      else {
+        Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 150, 350, 300, 80, currTheme.selectedButtonColor);
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 375, currTheme.separatorColor, "Search Now!", ALIGNED_CENTER);
+      }
+      
 
       break;
     case SEARCH_NONE: break;
@@ -628,7 +668,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
   else {
     if ((m_searchMenuLocation == SEARCH_TYPE && m_searchType == SEARCH_TYPE_NONE) ||
         (m_searchMenuLocation == SEARCH_MODE && m_searchMode == SEARCH_MODE_NONE) ||
-        (m_searchMenuLocation == SEARCH_REGION && m_searchRegion == SEARCH_REGION_NONE)) {
+        (m_searchMenuLocation == SEARCH_REGION && m_searchRegion == SEARCH_REGION_NONE) ||
+        (m_searchMenuLocation == SEARCH_VALUE)) {
       if (kdown & KEY_UP) {
         switch (m_searchMenuLocation) {
           case SEARCH_TYPE: [[fallthrough]]
@@ -641,6 +682,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
               m_selectedEntry--;
             break;
           case SEARCH_VALUE:
+            m_selectedEntry = 0;
             break;
           case SEARCH_NONE: break;
         }
@@ -658,6 +700,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
               m_selectedEntry++;
             break;
           case SEARCH_VALUE:
+            if (m_searchType != SEARCH_TYPE_NONE && m_searchMode != SEARCH_MODE_NONE && m_searchRegion != SEARCH_REGION_NONE)
+              m_selectedEntry = 1;
             break;
           case SEARCH_NONE: break;
         }
@@ -700,6 +744,63 @@ void GuiRAMEditor::onInput(u32 kdown) {
           m_searchRegion = static_cast<searchRegion_t>(m_selectedEntry);
         else if (m_searchMenuLocation == SEARCH_MODE)
           m_searchMode = static_cast<searchMode_t>(m_selectedEntry);
+        else if (m_searchMenuLocation == SEARCH_VALUE) {
+          if (m_selectedEntry == 0) {
+            char str[0x21];
+            Gui::requestKeyboardInput("Enter the value you want to search for", "Based on your previously chosen options, EdiZon will expect different input here.", "", m_searchValueFormat == FORMAT_DEC ? SwkbdType_NumPad : SwkbdType_QWERTY, str, 0x20);
+
+            if (std::string(str) == "") return;
+
+            //TODO: Handle Hex input
+            switch(m_searchType) {
+              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_8BIT:
+                m_searchValue._u8 = static_cast<u8>(std::stoi(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_16BIT:
+                m_searchValue._u16 = static_cast<u16>(std::stoi(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_32BIT:
+                m_searchValue._u32 = static_cast<u32>(std::stoi(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_64BIT:
+                m_searchValue._u64 = static_cast<u64>(std::stol(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_SIGNED_8BIT:
+                m_searchValue._s8 = static_cast<s8>(std::stoi(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_SIGNED_16BIT:
+                m_searchValue._s16 = static_cast<s16>(std::stoi(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_SIGNED_32BIT:
+                m_searchValue._s32 = static_cast<s32>(std::stoi(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_SIGNED_64BIT:
+                m_searchValue._s64 = static_cast<s64>(std::stol(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_FLOAT_32BIT:
+                m_searchValue._f32 = static_cast<float>(std::stof(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_FLOAT_64BIT:
+                m_searchValue._f64 = static_cast<double>(std::stod(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_POINTER:
+                m_searchValue._u64 = static_cast<u64>(std::stol(str));
+                break;
+              case GuiRAMEditor::SEARCH_TYPE_NONE: break;
+            }
+          } else if (m_selectedEntry == 1) {
+            (new Snackbar("Searching will be here soon"))->show();
+          }
+        }
+      }
+    }
+
+    if (kdown & KEY_X) {
+      if (m_searchMenuLocation == SEARCH_VALUE) {
+        if (m_searchValueFormat == FORMAT_DEC)
+          m_searchValueFormat = FORMAT_HEX;
+        else
+          m_searchValueFormat = FORMAT_DEC;
       }
     }
 
@@ -729,6 +830,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       }
       else if (m_searchMenuLocation == SEARCH_REGION) {
         m_searchMenuLocation = SEARCH_VALUE;
+        m_selectedEntry = 0;
       }
     }
 
@@ -857,6 +959,49 @@ std::string _getAddressDisplayString(u64 address, Debugger *debugger, GuiRAMEdit
 
   GuiRAMEditor::searchValue_t searchValue;
   searchValue._u64 = debugger->peekMemory(address);
+
+  switch(searchType) {
+    case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_8BIT:
+      ss << std::dec << static_cast<u64>(searchValue._u8);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_16BIT:
+      ss << std::dec << static_cast<u64>(searchValue._u16);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_32BIT:
+      ss << std::dec << static_cast<u64>(searchValue._u32);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_64BIT:
+      ss << std::dec << static_cast<u64>(searchValue._u64);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_SIGNED_8BIT:
+      ss << std::dec << static_cast<s64>(searchValue._s8);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_SIGNED_16BIT:
+      ss << std::dec << static_cast<s64>(searchValue._s16);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_SIGNED_32BIT:
+      ss << std::dec << static_cast<s64>(searchValue._s32);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_SIGNED_64BIT:
+      ss << std::dec << static_cast<s64>(searchValue._s64);
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_FLOAT_32BIT:
+      ss << std::dec << searchValue._f32;
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_FLOAT_64BIT:
+      ss << std::dec << searchValue._f64;
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_POINTER:
+      ss << std::dec << searchValue._u64;
+      break;
+    case GuiRAMEditor::SEARCH_TYPE_NONE: break;
+  }
+
+  return ss.str();
+}
+
+std::string _getValueDisplayString(GuiRAMEditor::searchValue_t searchValue, GuiRAMEditor::searchType_t searchType) {
+  std::stringstream ss;
 
   switch(searchType) {
     case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_8BIT:

@@ -90,6 +90,7 @@ private:
   u8 m_selectedEntry = 0;
   
   searchValue_t m_searchValue;
+  enum { FORMAT_DEC, FORMAT_HEX } m_searchValueFormat = FORMAT_DEC;
 
   enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
   enum { SEARCH_NONE, SEARCH_TYPE, SEARCH_MODE, SEARCH_REGION, SEARCH_VALUE } m_searchMenuLocation = SEARCH_NONE;

@@ -10,8 +10,6 @@ extern "C" {
 }
 
 Account::Account(u128 userID) : m_userID(userID) {
-  accountInitialize();
-
   accountGetProfile(&m_profile, userID);
 
   if (!serviceIsActive(&m_profile.s)) return;
@@ -37,7 +35,6 @@ Account::Account(u128 userID) : m_userID(userID) {
   njDone();
 
   accountProfileClose(&m_profile);
-  accountExit();
 }
 
 Account::~Account() {

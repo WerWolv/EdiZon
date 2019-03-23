@@ -45,8 +45,22 @@ void initTitles() {
 
   _getSaveList(saveInfoList);
 
+  s32 userCount = 0;
+  size_t foundUserCount = 0;
+  
+  accountGetUserCount(&userCount);
+
+  u128 userIDs[userCount];
+  accountListAllUsers(userIDs, userCount, &foundUserCount);
+
   for (auto saveInfo : saveInfoList) {
-    if (saveInfo.titleID == 0 || saveInfo.userID == 0) continue;
+    bool accountPresent = false;
+
+    for (u32 i = 0; i < foundUserCount; i++)
+      if (userIDs[i] == saveInfo.userID)
+        accountPresent = true;
+
+    if (!accountPresent) continue;
 
     if (Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
       Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
@@ -101,6 +115,7 @@ int main(int argc, char** argv) {
 
   setsysInitialize();
   socketInitializeDefault();
+  accountInitialize();
 
 #ifdef NXLINK
   nxlinkStdio();
@@ -291,6 +306,7 @@ int main(int argc, char** argv) {
   delete currGui;
 
   socketExit();
+  accountExit();
 
   close(file);
 

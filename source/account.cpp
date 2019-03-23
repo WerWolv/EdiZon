@@ -10,12 +10,12 @@ extern "C" {
 }
 
 Account::Account(u128 userID) : m_userID(userID) {
-  accountGetProfile(&m_profile, userID);
+  if (R_FAILED(accountGetProfile(&m_profile, userID))) return;
 
   if (!serviceIsActive(&m_profile.s)) return;
 
-  accountProfileGet(&m_profile, &m_userData, &m_profileBase);
-  accountProfileGetImageSize(&m_profile, &m_profileImageSize);
+  if (R_FAILED(accountProfileGet(&m_profile, &m_userData, &m_profileBase))) return;
+  if (R_FAILED(accountProfileGetImageSize(&m_profile, &m_profileImageSize))) return;
 
   m_userName = std::string(m_profileBase.username);
 
@@ -23,7 +23,7 @@ Account::Account(u128 userID) : m_userID(userID) {
   u8 *decodedBuffer;
   size_t imageSize = 0;
 
-  accountProfileLoadImage(&m_profile, &buffer[0], m_profileImageSize, &imageSize);
+  if (R_FAILED(accountProfileLoadImage(&m_profile, &buffer[0], m_profileImageSize, &imageSize))) return;
 
   njInit();
   njDecode(&buffer[0], imageSize);
@@ -35,6 +35,8 @@ Account::Account(u128 userID) : m_userID(userID) {
   njDone();
 
   accountProfileClose(&m_profile);
+
+  m_isInitialized = true;
 }
 
 Account::~Account() {
@@ -50,4 +52,8 @@ std::string Account::getUserName() {
 
 u8* Account::getProfileImage() {
   return &m_profileImage[0];
+}
+
+bool Account::isInitialized() {
+  return m_isInitialized;
 }

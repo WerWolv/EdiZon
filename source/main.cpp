@@ -67,8 +67,15 @@ void initTitles() {
       
     Title::g_titles[saveInfo.titleID]->addUserID(saveInfo.userID);
 
-    if (Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end())
-      Account::g_accounts.insert(std::make_pair(static_cast<u128>(saveInfo.userID), new Account(saveInfo.userID)));
+    if (Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end()) {
+      Account *account =  new Account(saveInfo.userID);
+
+      if (!account->isInitialized()) {
+        delete account;
+        continue;
+      }
+      Account::g_accounts.insert(std::make_pair(static_cast<u128>(saveInfo.userID), account));
+    }
   }
 }
 

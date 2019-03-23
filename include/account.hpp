@@ -17,6 +17,7 @@ public:
   std::string getUserName();
   u128 getUserID();
   u8* getProfileImage();
+  bool isInitialized();
 
 private:
   AccountProfile m_profile;
@@ -27,4 +28,5 @@ private:
   std::vector<u8> m_profileImage;
   size_t m_profileImageSize;
   std::string m_userName;
+  bool m_isInitialized;
 };

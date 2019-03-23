@@ -20,7 +20,8 @@ extern "C" {
 
 #define FONT_FACES_MAX PlSharedFontType_Total
 
-#define fontHuge 4
+#define fontHuge 5
+#define fontTitle 4
 #define font24 3
 #define font20 2
 #define font14 1
@@ -41,6 +42,8 @@ public:
   static inline Framebuffer g_fb_obj;
   static inline u32 g_framebuffer_width = 1280;
   static inline u32 g_framebuffer_height = 720;
+
+  static inline bool g_splashDisplayed = false;
 
   static inline Snackbar *g_currSnackbar = nullptr;
   static inline ListSelector *g_currListSelector = nullptr;

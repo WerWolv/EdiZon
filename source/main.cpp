@@ -196,21 +196,23 @@ int main(int argc, char** argv) {
     if (currGui != nullptr) {
       currGui->draw();
 
-      if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0) {
-        if (Gui::g_currMessageBox != nullptr)
-          Gui::g_currMessageBox->onInput(kheld);
-        else if (Gui::g_currListSelector != nullptr)
-          Gui::g_currListSelector->onInput(kheld);
-        else
-          currGui->onInput(kheld);
-      } else if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
-        if (Gui::g_currMessageBox != nullptr)
-          Gui::g_currMessageBox->onInput(kdown);
-        else if (Gui::g_currListSelector != nullptr)
-          Gui::g_currListSelector->onInput(kdown);
-        else
-          currGui->onInput(kdown);
-      }
+      if (Gui::g_splashDisplayed) {
+        if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0) {
+          if (Gui::g_currMessageBox != nullptr)
+            Gui::g_currMessageBox->onInput(kheld);
+          else if (Gui::g_currListSelector != nullptr)
+            Gui::g_currListSelector->onInput(kheld);
+          else
+            currGui->onInput(kheld);
+        } else if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
+          if (Gui::g_currMessageBox != nullptr)
+            Gui::g_currMessageBox->onInput(kdown);
+          else if (Gui::g_currListSelector != nullptr)
+            Gui::g_currListSelector->onInput(kdown);
+          else
+            currGui->onInput(kdown);
+        }
+      }     
     }
 
     if (kheld != kheldOld) {

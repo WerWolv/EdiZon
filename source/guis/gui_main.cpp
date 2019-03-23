@@ -6,6 +6,7 @@
 #include "account.hpp"
 
 #include "beta_bin.h"
+#include "edizon_logo_bin.h"
 
 #include "threads.hpp"
 
@@ -51,11 +52,24 @@ void GuiMain::draw() {
   s64 x = 0, y = 10, currItem = 0;
   s64 selectedX = 0, selectedY = 0;
   bool tmpEditableOnly = m_editableOnly;
+  static u32 splashCnt = 0;
 
   Gui::beginDraw();
 
   finishedDrawing = false;
 
+
+  if (!Gui::g_splashDisplayed) {
+    Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x5D, 0x4F, 0x4E, 0xFF));
+    Gui::drawImage(Gui::g_framebuffer_width / 2 - 128, Gui::g_framebuffer_height / 2 - 128, 256, 256, edizon_logo_bin, IMAGE_MODE_BGR24);
+
+    if (splashCnt++ >= 70)
+      Gui::g_splashDisplayed = true;
+
+    Gui::endDraw();
+    return;
+  }
+  
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 10, COLOR_BLACK);
 

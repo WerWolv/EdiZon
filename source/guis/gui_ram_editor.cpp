@@ -29,8 +29,7 @@ Result _searchMemoryBegin(Debugger *debugger, GuiRAMEditor::searchValue_t search
 
 Result _searchMemoryContinue(Debugger *debugger, GuiRAMEditor::searchValue_t searchValue1,
   GuiRAMEditor::searchValue_t searchValue2, GuiRAMEditor::searchType_t searchType,
-  GuiRAMEditor::searchMode_t searchMode, GuiRAMEditor::searchRegion_t searchRegion,
-  std::vector<GuiRAMEditor::ramAddr_t> &foundAddrs);
+  GuiRAMEditor::searchMode_t searchMode, std::vector<GuiRAMEditor::ramAddr_t> &foundAddrs);
 
 bool _isAddressFrozen(uintptr_t address);
 std::string _getAddressDisplayString(u64 address, Debugger *debugger, GuiRAMEditor::searchType_t searchType);
@@ -42,7 +41,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_debugger = new Debugger(m_sysmodulePresent);
 
   if (m_debugger->getRunningApplicationPID() == 0) {
-    remove("/EdiZon/addresses.dat");
+    remove("/EdiZon/memdump.dat");
     return;
   }
 
@@ -128,13 +127,13 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   u64 oldHeapBaseAddr = 0;
   size_t addressCnt = 0;
-  std::ifstream file("/EdiZon/addresses.dat", std::ios::in | std::ios::binary);
-
+  std::ifstream file("/EdiZon/memdump.dat", std::ios::in | std::ios::binary);
   if (file.is_open()) {
     file.read((char*)&addressCnt, 8);
-    file.read((char*)&m_searchType, 1);
-    file.read((char*)&oldHeapBaseAddr, 8);
-    file.read((char*)&m_searchValue, 16);
+    file.read((char*)&m_searchType, sizeof(m_searchType));
+    file.read((char*)&m_searchRegion, sizeof(m_searchRegion));
+    file.read((char*)&m_searchValue, sizeof(m_searchValue));
+    file.read((char*)&oldHeapBaseAddr, sizeof(m_heapBaseAddr));
     ramAddr_t *buffer = new ramAddr_t[addressCnt];
     m_foundAddresses.reserve(addressCnt);
 
@@ -148,7 +147,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   }
 
   if (m_heapBaseAddr != oldHeapBaseAddr && oldHeapBaseAddr != 0) {
-    remove("/EdiZon/addresses.dat");
+    remove("/EdiZon/memdump.dat");
     m_foundAddresses.clear();
     Gui::g_nextGui = GUI_MAIN;
   }
@@ -498,6 +497,8 @@ void GuiRAMEditor::onInput(u32 kdown) {
       else 
         m_searchRegion = SEARCH_REGION_NONE;
     }
+    else if (m_searchMenuLocation == SEARCH_VALUE)
+      m_searchMenuLocation = SEARCH_NONE;
     else Gui::g_nextGui = GUI_MAIN;
   }
 
@@ -654,14 +655,14 @@ void GuiRAMEditor::onInput(u32 kdown) {
       } else if (m_foundAddresses.size() != 0) {
         m_foundAddresses.clear();
         m_menuLocation = CHEATS;
-        remove("/EdiZon/addresses.dat");
+        remove("/EdiZon/memdump.dat");
       }
     }
 
     if (kdown & KEY_Y) {
       if (m_searchMenuLocation == SEARCH_NONE) {
         m_searchMenuLocation = SEARCH_TYPE;
-        m_selectedEntry = 0;
+        m_selectedEntry = m_searchType == SEARCH_TYPE_NONE ? 0 : m_searchType;
       }
     }
   }
@@ -789,7 +790,28 @@ void GuiRAMEditor::onInput(u32 kdown) {
               case GuiRAMEditor::SEARCH_TYPE_NONE: break;
             }
           } else if (m_selectedEntry == 1) {
-            (new Snackbar("Searching will be here soon"))->show();
+            (new MessageBox("Traversing title memory. \n This may take a while...", MessageBox::NONE))->show();
+
+            if (m_foundAddresses.size() == 0)
+              _searchMemoryBegin(m_debugger, m_searchValue, { 0 }, m_searchType, m_searchMode, m_searchRegion, m_foundAddresses, m_memoryInfo);
+            else
+              _searchMemoryContinue(m_debugger, m_searchValue, { 0 }, m_searchType, m_searchMode, m_foundAddresses);
+
+            std::ofstream file("/EdiZon/memdump.dat", std::ios::out | std::ios::binary);
+            if (file.is_open()) {
+              u64 addressCount = m_foundAddresses.size();
+              file.write((char*)&addressCount, 8);
+              file.write((char*)&m_searchType, sizeof(m_searchType));
+              file.write((char*)&m_searchRegion, sizeof(m_searchRegion));
+              file.write((char*)&m_searchValue, sizeof(m_searchValue));
+              file.write((char*)&m_heapBaseAddr, sizeof(m_heapBaseAddr));
+              file.write((char*)&m_foundAddresses[0], m_foundAddresses.size() * sizeof(GuiRAMEditor::ramAddr_t));
+              file.close();
+            } else printf("Didn't save!\n");
+
+            Gui::g_currMessageBox->hide();
+
+            m_searchMenuLocation = SEARCH_NONE;
           }
         }
       }
@@ -835,93 +857,6 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
 
   }
-  
-
-  /*if (kdown & KEY_Y) {
-    char input[21];
-    char initialText[21];
-
-    bool entered = false;
-
-    memset(initialText, 0, sizeof(initialText));
-
-    switch(m_searchType) {
-      case SIGNED_8BIT:  [[fallthrough]]
-      case SIGNED_16BIT: [[fallthrough]]
-      case SIGNED_32BIT: [[fallthrough]]
-      case SIGNED_64BIT: 
-
-        if (m_foundAddresses.size() != 0)
-          strcpy(initialText, std::to_string(m_searchValue._s64).c_str());
-
-        entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which's negated value the game's memory should be searched. (50 -> -50)", initialText, SwkbdType::SwkbdType_NumPad, input, 20);
-        m_searchValue = -atol(input);
-        break;
-      case UNSIGNED_8BIT:  [[fallthrough]]
-      case UNSIGNED_16BIT: [[fallthrough]]
-      case UNSIGNED_32BIT: [[fallthrough]]
-      case UNSIGNED_64BIT: 
-        if (m_foundAddresses.size() != 0)
-          strcpy(initialText, std::to_string(m_searchValue._u64).c_str());
-
-        entered = Gui::requestKeyboardInput("Enter value", "Enter a value for which the game's memory should be searched.", initialText, SwkbdType::SwkbdType_NumPad, input, 20);
-        m_searchValue = atol(input);
-        break;
-      case FLOAT_32BIT:  [[fallthrough]]
-      case FLOAT_64BIT: [[fallthrough]]
-      case POINTER:
-        break; 
-    }
-
-    if (entered) {
-      if (m_searchValue._u64 > dataTypeMaxValues[m_searchType] || m_searchValue._u64 < dataTypeMinValues[m_searchType]) {
-        (new Snackbar("Entered value isn't inside the range of this data type. Please choose a different one."))->show();
-        return;
-      }
-
-      m_debugger->breakProcess();
-
-      (new MessageBox("Searching RAM \n \n This may take a while...", MessageBox::NONE))->show();
-      requestDraw();
-
-      m_selectedEntry = 0;
-      cheatListOffset = 0;
-
-      if (m_foundAddresses.size() == 0) {
-        if(R_FAILED(_searchMemoryBegin(m_debugger, m_searchValue, (GuiRAMEditor::searchType_t)m_searchType, m_foundAddresses, m_memoryInfo)))
-          (new MessageBox("Too many candidates found! Selection has been truncated. \n \n The next search won't include any of the truncated addresses.", MessageBox::OKAY))->show();
-        else if (m_foundAddresses.empty()) {
-          remove("/EdiZon/addresses.dat");
-          (new Snackbar("Value not found in memory. Try again with a different one."))->show();
-        }
-      } else {
-        if (R_FAILED(_searchMemoryContinue(m_debugger, m_searchValue, (GuiRAMEditor::searchType_t)m_searchType, m_foundAddresses))) {
-          m_foundAddresses.clear();
-          remove("/EdiZon/addresses.dat");
-          
-          Gui::g_currMessageBox->hide();
-          m_debugger->continueProcess();
-          (new Snackbar("None of your previously found addresses got changed to the entered value."))->show();
-        }
-      }
-
-      std::ofstream file("/EdiZon/addresses.dat", std::ios::out | std::ios::binary);
-      if (file.is_open()) {
-        u64 addressCount = m_foundAddresses.size();
-        file.write((char*)&addressCount, 8);
-        file.write((char*)&m_searchType, 1);
-        file.write((char*)&m_heapBaseAddr, 8);
-        file.write((char*)&m_searchValue, 16);
-        file.write((char*)&m_foundAddresses[0], m_foundAddresses.size() * sizeof(GuiRAMEditor::ramAddr_t));
-        file.close();
-      } else printf("Didn't save!\n");
-
-      Gui::g_currMessageBox->hide();
-      
-      m_debugger->continueProcess();
-
-    }
-  }*/
 }
 
 void GuiRAMEditor::onTouch(touchPosition &touch) {
@@ -1048,10 +983,10 @@ Result _searchMemoryBegin(Debugger *debugger, GuiRAMEditor::searchValue_t search
     if (searchRegion == GuiRAMEditor::SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
      continue;
     else if (searchRegion == GuiRAMEditor::SEARCH_REGION_MAIN &&
-     (meminfo.type != MemType_CodeWritable || meminfo.type != MemType_CodeMutable))
+     (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
       continue;
     else if (searchRegion == GuiRAMEditor::SEARCH_REGION_HEAP_AND_MAIN &&
-     (meminfo.type != MemType_Heap || meminfo.type != MemType_CodeWritable || meminfo.type != MemType_CodeMutable))
+     (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
       continue;
     else if (searchRegion == GuiRAMEditor::SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
       continue;
@@ -1176,11 +1111,11 @@ Result _searchMemoryContinue(Debugger *debugger, GuiRAMEditor::searchValue_t sea
     }
   }
 
-  foundAddrs.clear();
-  std::copy(newAddresses.begin(), newAddresses.end(), std::back_inserter(foundAddrs));
-
-  if (foundAddrs.empty())
+  if (newAddresses.size() > 0) {
+    foundAddrs.clear();
+    std::copy(newAddresses.begin(), newAddresses.end(), std::back_inserter(foundAddrs));
     return 1;
+  }
 
   return 0;
 }

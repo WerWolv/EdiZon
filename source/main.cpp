@@ -111,11 +111,11 @@ void requestDraw() {
 }
 
 int main(int argc, char** argv) {
-  u8 *haddr;
+  void *haddr;
   extern char *fake_heap_end;
 
   // Setup Heap for swkbd on applets
-  Result rc = svcSetHeapSize((void**)&haddr, 0x10000000);
+  Result rc = svcSetHeapSize(&haddr, 0x10000000);
   if (R_FAILED(rc))
     fatalSimple(rc);
   fake_heap_end = (char*) haddr + 0x10000000;
@@ -322,7 +322,7 @@ int main(int argc, char** argv) {
   framebufferClose(&Gui::g_fb_obj);
   setsysExit();
 
-  svcSetHeapSize((void**) &haddr, ((u8*) envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - haddr); // clean up the heap
+  svcSetHeapSize(&haddr, ((u8*) envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*) haddr); // clean up the heap
 
   return 0;
 }

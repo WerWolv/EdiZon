@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <chrono>
+#include <thread>
 
 #include <iostream>
 #include <unistd.h>
@@ -79,7 +80,7 @@ void initTitles() {
   }
 }
 
-void update(void *args) {
+void update() {
   while (updateThreadRunning) {
     auto begin = std::chrono::steady_clock::now();
 
@@ -123,6 +124,7 @@ int main(int argc, char** argv) {
   setsysInitialize();
   socketInitializeDefault();
   accountInitialize();
+  plInitialize();
 
 #ifdef NXLINK
   nxlinkStdio();
@@ -162,7 +164,7 @@ int main(int argc, char** argv) {
   mutexInit(&mutexCurrGui);
 
   updateThreadRunning = true;
-  Threads::create(&update);
+  std::thread updateThread(update);
 
   while (appletMainLoop()) {
     hidScanInput();
@@ -171,8 +173,10 @@ int main(int argc, char** argv) {
 
     if (Gui::g_nextGui != GUI_INVALID) {
       mutexLock(&mutexCurrGui);
-      if (currGui != nullptr)
+      if (currGui != nullptr) {
         delete currGui;
+        currGui = nullptr;
+      }
 
       do {
         gui_t nextGuiStart = Gui::g_nextGui;
@@ -299,7 +303,7 @@ int main(int argc, char** argv) {
 
   updateThreadRunning = false;
 
-  Threads::joinAll();
+  updateThread.join();
 
   delete[] g_edizonPath;
 
@@ -312,7 +316,10 @@ int main(int argc, char** argv) {
   Title::g_titles.clear();
   Account::g_accounts.clear();
 
-  delete currGui;
+  plExit();
+
+  if (currGui != nullptr)
+    delete currGui;
 
   socketExit();
   accountExit();

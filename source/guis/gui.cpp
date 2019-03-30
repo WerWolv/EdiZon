@@ -14,10 +14,7 @@ Gui::Gui() {
   m_fontLibret = 1;
   m_fontFacesTotal = 0;
 
-  if(R_FAILED(plInitialize())) printf("plInitialize failed!\n");
-
-  if(!fontInit())
-    printf("Font not initialied!\n");
+  fontInit();
 }
 
 Gui::~Gui() {
@@ -26,7 +23,6 @@ Gui::~Gui() {
   Gui::g_currMessageBox = nullptr;
 
   fontExit();
-  plExit();
 }
 
 void Gui::update() {

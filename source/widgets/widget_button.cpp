@@ -21,7 +21,7 @@ void WidgetButton::draw(Gui *gui, u16 x, u16 y) {
     displayText += "...";
   }
 
-    gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), currTheme.separatorColor, displayText.c_str(), ALIGNED_RIGHT);
+    gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), gui->makeColor(0x00, 0x00, 0x00, 0xFF), displayText.c_str(), ALIGNED_RIGHT);
 }
 
 void WidgetButton::onInput(u32 kdown) {

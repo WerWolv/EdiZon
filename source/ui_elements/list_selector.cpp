@@ -54,7 +54,7 @@ void ListSelector::draw(Gui *gui) {
 
   if (m_listItems.size() != 0) {
     for (s8 currItem = -1; currItem < (s8) m_listItems.size(); currItem++)
-        gui->drawRectangle(250, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 45, Gui::g_framebuffer_width - 500, 1, currTheme.separatorColor);
+        gui->drawRectangle(250, fmax(440 + 60 * currItem - yOffset, 220) + startYOffset + 45, Gui::g_framebuffer_width - 500, 1, gui->makeColor(0x00, 0x00, 0x00, 0xFF));
 
     gui->drawRectangled(220, 305 + 60 * 2 + deltaOffset - 5 + startYOffset, Gui::g_framebuffer_width - 440, 71, currTheme.highlightColor);
     gui->drawRectangle(226, 305 + 60 * 2 + deltaOffset + startYOffset, Gui::g_framebuffer_width - 455, 61, currTheme.selectedButtonColor);

@@ -50,7 +50,7 @@ void Widget::drawWidgets(Gui *gui, WidgetItems &widgets, u16 start, u16 end) {
     }
 
     gui->drawTextAligned(font20, widgetInset + 50 + X_OFFSET, widgetY + (WIDGET_HEIGHT / 2.0F) - 13, currTheme.textColor, currWidgets[start].title.c_str(), ALIGNED_LEFT);
-    gui->drawRectangle(widgetInset + 30 + X_OFFSET, widgetY + WIDGET_HEIGHT + (WIDGET_SEPARATOR / 2) - 1, WIDGET_WIDTH - 60, 1, currTheme.separatorColor);
+    gui->drawRectangle(widgetInset + 30 + X_OFFSET, widgetY + WIDGET_HEIGHT + (WIDGET_SEPARATOR / 2) - 1, WIDGET_WIDTH - 60, 1, gui->makeColor(0x00, 0x00, 0x00, 0xFF));
     currWidgets[start].widget->draw(gui, widgetInset + 50 + X_OFFSET, widgetY - 13);
 
     widgetY += WIDGET_HEIGHT + WIDGET_SEPARATOR;

@@ -19,7 +19,7 @@ void WidgetComment::draw(Gui *gui, u16 x, u16 y) {
     displayString += "...";
   }
 
-    gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), currTheme.separatorColor, displayString.c_str(), ALIGNED_RIGHT);
+    gui->drawTextAligned(font20, x + WIDGET_WIDTH - 140, y + (WIDGET_HEIGHT / 2.0F), gui->makeColor(0x00, 0x00, 0x00, 0xFF), displayString.c_str(), ALIGNED_RIGHT);
 }
 
 void WidgetComment::onInput(u32 kdown) {

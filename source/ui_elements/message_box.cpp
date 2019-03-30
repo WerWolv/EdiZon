@@ -50,7 +50,7 @@ void MessageBox::draw(Gui *gui) {
   }
 
   if (m_progress >= 0) {
-    gui->drawRectangle(350, Gui::g_framebuffer_height - 300, Gui::g_framebuffer_width - 700, 10, currTheme.separatorColor);
+    gui->drawRectangle(350, Gui::g_framebuffer_height - 300, Gui::g_framebuffer_width - 700, 10, gui->makeColor(0x00, 0x00, 0x00, 0xFF));
     gui->drawRectangle(350, Gui::g_framebuffer_height - 300, ((Gui::g_framebuffer_width - 700) / 100.0F) * m_progress, 10, currTheme.selectedColor);
   }
 

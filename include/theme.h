@@ -11,6 +11,7 @@ typedef struct {
   color_t separatorColor;
   color_t selectedButtonColor;
   color_t tooltipColor;
+  color_t tooltipTextColor;
 } theme_t;
 
 extern theme_t currTheme;

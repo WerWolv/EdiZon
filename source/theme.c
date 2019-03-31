@@ -14,7 +14,8 @@ void setTheme(ColorSetId colorSetId) {
         .selectedColor        =      RGBA8(0x50, 0x2D, 0xE4, 0xFF),
         .separatorColor       =      RGBA8(0xA0, 0xA0, 0xA0, 0xFF),
         .selectedButtonColor  =      RGBA8(0xFD, 0xFD, 0xFD, 0xFF),
-        .tooltipColor         =      RGBA8(0xFF, 0xFF, 0xFF, 0xFF)
+        .tooltipColor         =      RGBA8(0xFF, 0xFF, 0xFF, 0xFF),
+        .tooltipTextColor     =      RGBA8(0x08, 0xC4, 0xD0, 0xFF)
       };
       break;
     case ColorSetId_Dark:
@@ -25,7 +26,8 @@ void setTheme(ColorSetId colorSetId) {
         .selectedColor        =      RGBA8(0x59, 0xED, 0xC0, 0xFF),
         .separatorColor       =      RGBA8(0x60, 0x60, 0x60, 0xFF),
         .selectedButtonColor  =      RGBA8(0x25, 0x26, 0x2A, 0xFF),
-        .tooltipColor         =      RGBA8(0x60, 0x60, 0x60, 0xFF)
+        .tooltipColor         =      RGBA8(0x60, 0x60, 0x60, 0xFF),
+        .tooltipTextColor     =      RGBA8(0x14, 0xBD, 0xFE, 0xFF)
       };
       break;
   }

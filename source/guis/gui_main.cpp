@@ -119,11 +119,11 @@ void GuiMain::draw() {
   getCurrBatteryPercentage(batteryBuffer);
 
   Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 8, 3, currTheme.separatorColor, timeBuffer, ALIGNED_RIGHT);
-  Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 90, 3, currTheme.separatorColor, batteryBuffer, ALIGNED_RIGHT);
+  Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 80, 3, currTheme.separatorColor, batteryBuffer, ALIGNED_RIGHT);
   Gui::drawTextAligned(font14, 8, 3, currTheme.separatorColor, "EdiZon v" VERSION_STRING, ALIGNED_LEFT);
 
-  Gui::drawRectangled(Gui::g_framebuffer_width - 82, 5, 7, 18, currTheme.separatorColor);
-  Gui::drawRectangled(Gui::g_framebuffer_width - 85, 8, 13, 18, currTheme.separatorColor);
+  Gui::drawRectangled(Gui::g_framebuffer_width - 72, 5, 7, 18, currTheme.separatorColor);
+  Gui::drawRectangled(Gui::g_framebuffer_width - 75, 8, 13, 18, currTheme.separatorColor);
 
   if (tmpEditableOnly && m_editableCount == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
@@ -152,7 +152,7 @@ void GuiMain::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
 
     if (m_selected.titleIndex != -1)
-      Gui::drawTooltip(selectedX + 128, 266, Title::g_titles[m_selected.titleId]->getTitleName().c_str(), currTheme.tooltipColor, Gui::makeColor(0x27, 0xA3, 0xC7, 0xFF), 0xFF, m_selected.titleIndex % 2);
+      Gui::drawTooltip(selectedX + 128, 288, Title::g_titles[m_selected.titleId]->getTitleName().c_str(), currTheme.tooltipColor, currTheme.tooltipTextColor, 0xFF, m_selected.titleIndex % 2);
   }
 
   finishedDrawing = true;

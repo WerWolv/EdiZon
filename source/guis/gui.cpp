@@ -523,7 +523,7 @@ void Gui::drawTooltip(s16 x, s16 y, const char *text, color_t backgroundColor, c
   textColor.a = alpha;
 
   s16 tipX, tipY;
-  for (tipY = 0; tipY < 20; tipY++) {
+  for (tipY = 0; tipY < 10; tipY++) {
     for (tipX = x - tipY; tipX < x + tipY; tipX++) {
       if(tipX >= 0 && tipX < 1280 && tipY >= 0 && tipY <= 1280)
         Gui::drawPixel(tipX, (flipped ? -tipY : tipY) + y, backgroundColor);
@@ -534,13 +534,13 @@ void Gui::drawTooltip(s16 x, s16 y, const char *text, color_t backgroundColor, c
   tipY += y;
 
   u32 textWidth, textHeight;
-  Gui::getTextDimensions(font14, text, &textWidth, &textHeight);
+  Gui::getTextDimensions(font20, text, &textWidth, &textHeight);
 
   s16 overlapRight = std::max(static_cast<s32>((tipX + textWidth - 20)) - 1280, 0);
   s16 overlapLeft = std::min(tipX - 50 - overlapRight, 0);
 
-  Gui::drawRectangled(tipX - 50 - overlapRight - overlapLeft, flipped ? tipY - textHeight - 69 : tipY, textWidth + 30, textHeight + 30, backgroundColor);
-  Gui::drawTextAligned(font14, tipX - 35 + static_cast<s32>(textWidth) / 2 - overlapRight - overlapLeft, flipped ? tipY - textHeight - 59 : tipY + 10, textColor, text, ALIGNED_CENTER);
+  Gui::drawRectangled(tipX - 50 - overlapRight - overlapLeft, flipped ? tipY - textHeight - 49 : tipY, textWidth + 30, textHeight + 30, backgroundColor);
+  Gui::drawTextAligned(font20, tipX - 35 + static_cast<s32>(textWidth) / 2 - overlapRight - overlapLeft, flipped ? tipY - textHeight - 39 : tipY + 10, textColor, text, ALIGNED_CENTER);
 }
 
 inline u8 getPixel(u8* in, size_t src_width, size_t src_height, u16 x, u16 y, s32 channel) {

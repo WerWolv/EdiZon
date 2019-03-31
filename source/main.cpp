@@ -125,6 +125,7 @@ int main(int argc, char** argv) {
   socketInitializeDefault();
   accountInitialize();
   plInitialize();
+  psmInitialize();
 
 #ifdef NXLINK
   nxlinkStdio();
@@ -316,13 +317,13 @@ int main(int argc, char** argv) {
   Title::g_titles.clear();
   Account::g_accounts.clear();
 
-  plExit();
-
   if (currGui != nullptr)
     delete currGui;
 
   socketExit();
   accountExit();
+  plExit();
+  psmExit();
 
   close(file);
 

@@ -16,6 +16,11 @@
 #include <stdlib.h>
 #include <numeric>
 
+
+extern "C" {
+  #include "util.h"
+}
+
 static s64 xOffset, xOffsetNext;
 static bool finishedDrawing = true;
 static s64 startOffset = 0;
@@ -49,7 +54,7 @@ void GuiMain::update() {
 }
 
 void GuiMain::draw() {
-  s64 x = 0, y = 10, currItem = 0;
+  s64 x = 0, y = 32, currItem = 0;
   s64 selectedX = 0, selectedY = 0;
   bool tmpEditableOnly = m_editableOnly;
   static u32 splashCnt = 0;
@@ -71,7 +76,6 @@ void GuiMain::draw() {
   }
   
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
-  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 10, COLOR_BLACK);
 
   if (Title::g_titles.size() == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No games or saves found on this system! Please press \uE0EF to exit EdiZon!", ALIGNED_CENTER);
@@ -95,16 +99,31 @@ void GuiMain::draw() {
         if (ConfigParser::g_betaTitles[title.first])
           Gui::drawImage(x - xOffset, y, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
-        if (y == 266 || title.first == (--Title::g_titles.end())->first)
+        if (y == 320 || title.first == (--Title::g_titles.end())->first)
           Gui::drawShadow(x - xOffset, y, 256, 256);
       }
 
-      y = y == 10 ? 266 : 10;
+      y = y == 32 ? 288 : 32;
       x = floor(++currItem / 2.0F) * 256;
 
       m_editableCount++;
     }
   }
+
+  Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, 32, currTheme.selectedButtonColor);
+  Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 32);
+
+  char timeBuffer[6];
+  char batteryBuffer[5];
+  getCurrTimeString(timeBuffer);
+  getCurrBatteryPercentage(batteryBuffer);
+
+  Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 8, 3, currTheme.separatorColor, timeBuffer, ALIGNED_RIGHT);
+  Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 90, 3, currTheme.separatorColor, batteryBuffer, ALIGNED_RIGHT);
+  Gui::drawTextAligned(font14, 8, 3, currTheme.separatorColor, "EdiZon v" VERSION_STRING, ALIGNED_LEFT);
+
+  Gui::drawRectangled(Gui::g_framebuffer_width - 82, 5, 7, 18, currTheme.separatorColor);
+  Gui::drawRectangled(Gui::g_framebuffer_width - 85, 8, 13, 18, currTheme.separatorColor);
 
   if (tmpEditableOnly && m_editableCount == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
@@ -279,8 +298,10 @@ void GuiMain::onTouch(touchPosition &touch) {
   if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
 
   u8 x = floor((touch.px + xOffset) / 256.0F);
-  u8 y = floor(touch.py / 256.0F);
+  u8 y = floor((touch.py - 32) / 256.0F);
   u8 title = y + x * 2;
+
+  if (touch.py < 32) return;
 
   if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;

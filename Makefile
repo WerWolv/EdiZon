@@ -56,7 +56,8 @@ CFLAGS	:=	-g -Wall -O3 -ffunction-sections \
 			$(ARCH) $(DEFINES) \
 			-DVERSION_MAJOR=${VERSION_MAJOR} \
 			-DVERSION_MINOR=${VERSION_MINOR} \
-			-DVERSION_MICRO=${VERSION_MICRO}
+			-DVERSION_MICRO=${VERSION_MICRO} \
+			-DVERSION_STRING=\"${APP_VERSION}\"
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -I$(PORTLIBS)/include/freetype2 $(pkg-config --cflags --libs python3)
 

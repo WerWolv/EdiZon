@@ -278,7 +278,7 @@ int main(int argc, char** argv) {
 
     kheldOld = kheld;
 
-    if (kdown & KEY_PLUS) {
+    if (Gui::g_requestExit) {
       if (Gui::g_currMessageBox == nullptr)
         break;
     }

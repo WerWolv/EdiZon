@@ -89,7 +89,7 @@ void GuiMain::draw() {
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 
   if (Title::g_titles.size() == 0) {
-    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No games or saves found on this system! Please press \uE0EF to exit EdiZon!", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No games or saves found on this system! Please press \uE0E1 to exit EdiZon!", ALIGNED_CENTER);
     Gui::endDraw();
     return;
   }
@@ -168,7 +168,7 @@ void GuiMain::draw() {
 
     buttonHintStr  = !tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";
     buttonHintStr += m_backupAll ? "(\uE0E7) + \uE0E2 Backup all     " : "(\uE0E7) + \uE0E2 Backup     ";
-    buttonHintStr += "\uE0E3 Cheats     \uE0F0 Update     \uE0EF Exit     \uE0E1 Back     \uE0E0 OK";
+    buttonHintStr += "\uE0E3 Cheats     \uE0F0 Update     \uE0E1 Back     \uE0E0 OK";
 
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
 
@@ -182,6 +182,9 @@ void GuiMain::draw() {
 }
 
 void GuiMain::onInput(u32 kdown) {
+  if (kdown & KEY_B)
+    Gui::g_requestExit = true;
+
   if (Title::g_titles.size() == 0) return;
 
   if (kdown & KEY_Y)
@@ -248,7 +251,7 @@ void GuiMain::onInput(u32 kdown) {
       (new Snackbar("The save files of a running game cannot be accessed."))->show();
       return;
     }
-    
+
     if (m_backupAll) {
       (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         bool batchFailed = false;

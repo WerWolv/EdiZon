@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
   if (isServiceRunning("tx") && !isServiceRunning("rnx") && access("/EdiZon/.hide_sxos", F_OK) == -1)
     Gui::g_nextGui = GUI_TX_WARNING;
 
-  if (access("/EdiZon/addresses.dat", F_OK) != -1)
+  if (access("/EdiZon/memdump.dat", F_OK) != -1)
     Gui::g_nextGui = GUI_RAM_EDITOR;
 
   g_edizonPath = new char[strlen(argv[0]) + 1];

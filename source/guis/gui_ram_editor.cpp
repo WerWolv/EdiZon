@@ -39,9 +39,11 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_sysmodulePresent = isServiceRunning("dmnt:cht");
 
   m_debugger = new Debugger(m_sysmodulePresent);
+  m_cheats = nullptr;
 
   if (m_debugger->getRunningApplicationPID() == 0) {
-    remove("/EdiZon/memdump.dat");
+    if (!remove("/EdiZon/memdump.dat"))
+      Gui::g_nextGui = GUI_MAIN;
     return;
   }
 
@@ -172,7 +174,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   ss << "BID: ";
   for (u8 i = 0; i < 8; i++)
-    ss << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+    ss << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
   
   buildIDStr = ss.str();
 
@@ -190,7 +192,9 @@ GuiRAMEditor::~GuiRAMEditor() {
   m_debugger->detachFromProcess();
 
   delete m_debugger;
-  delete[] m_cheats;
+
+  if (m_cheats != nullptr)
+    delete[] m_cheats;
 
   if (m_sysmodulePresent) {
     amspmdmntExit();
@@ -479,8 +483,13 @@ void GuiRAMEditor::drawSearchRAMMenu() {
 
 void GuiRAMEditor::onInput(u32 kdown) {
   if (kdown & KEY_B) {
-    if (m_searchMenuLocation == SEARCH_TYPE) {
-      if (m_searchType == SEARCH_TYPE_NONE)
+
+    if (m_searchMenuLocation == SEARCH_NONE) {
+      Gui::g_nextGui = GUI_MAIN;
+      return;
+    }
+    else if (m_searchMenuLocation == SEARCH_TYPE) {
+      if (m_searchType == SEARCH_TYPE_NONE && m_foundAddresses.size() == 0)
         m_searchMenuLocation = SEARCH_NONE;
       else 
         m_searchType = SEARCH_TYPE_NONE;
@@ -492,14 +501,13 @@ void GuiRAMEditor::onInput(u32 kdown) {
         m_searchMode = SEARCH_MODE_NONE;
     }
     else if (m_searchMenuLocation == SEARCH_REGION) {
-      if (m_searchRegion == SEARCH_REGION_NONE)
+      if (m_searchRegion == SEARCH_REGION_NONE && m_foundAddresses.size() == 0)
         m_searchMenuLocation = SEARCH_NONE;
       else 
         m_searchRegion = SEARCH_REGION_NONE;
     }
     else if (m_searchMenuLocation == SEARCH_VALUE)
       m_searchMenuLocation = SEARCH_NONE;
-    else Gui::g_nextGui = GUI_MAIN;
   }
 
   if (m_debugger->getRunningApplicationPID() == 0)
@@ -663,6 +671,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       if (m_searchMenuLocation == SEARCH_NONE) {
         m_searchMenuLocation = SEARCH_TYPE;
         m_selectedEntry = m_searchType == SEARCH_TYPE_NONE ? 0 : m_searchType;
+        cheatListOffset = 0;
       }
     }
   }
@@ -752,45 +761,37 @@ void GuiRAMEditor::onInput(u32 kdown) {
 
             if (std::string(str) == "") return;
 
-            //TODO: Handle Hex input
-            switch(m_searchType) {
-              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_8BIT:
-                m_searchValue._u8 = static_cast<u8>(std::stoi(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_16BIT:
-                m_searchValue._u16 = static_cast<u16>(std::stoi(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_32BIT:
-                m_searchValue._u32 = static_cast<u32>(std::stoi(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_64BIT:
-                m_searchValue._u64 = static_cast<u64>(std::stol(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_SIGNED_8BIT:
-                m_searchValue._s8 = static_cast<s8>(std::stoi(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_SIGNED_16BIT:
-                m_searchValue._s16 = static_cast<s16>(std::stoi(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_SIGNED_32BIT:
-                m_searchValue._s32 = static_cast<s32>(std::stoi(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_SIGNED_64BIT:
-                m_searchValue._s64 = static_cast<s64>(std::stol(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_FLOAT_32BIT:
-                m_searchValue._f32 = static_cast<float>(std::stof(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_FLOAT_64BIT:
-                m_searchValue._f64 = static_cast<double>(std::stod(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_POINTER:
-                m_searchValue._u64 = static_cast<u64>(std::stol(str));
-                break;
-              case GuiRAMEditor::SEARCH_TYPE_NONE: break;
+            if (m_searchValueFormat == FORMAT_HEX) {
+              m_searchValue._u64 = std::stoul(str, nullptr, 0);
+            } else {
+              switch(m_searchType) {
+                case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_8BIT:
+                case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_16BIT:
+                case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_32BIT:
+                case GuiRAMEditor::SEARCH_TYPE_UNSIGNED_64BIT:
+                  m_searchValue._u64 = static_cast<u64>(std::stoul(str, nullptr, 0));
+                  break;
+                case GuiRAMEditor::SEARCH_TYPE_SIGNED_8BIT:
+                case GuiRAMEditor::SEARCH_TYPE_SIGNED_16BIT:
+                case GuiRAMEditor::SEARCH_TYPE_SIGNED_32BIT:
+                case GuiRAMEditor::SEARCH_TYPE_SIGNED_64BIT:
+                  m_searchValue._s64 = static_cast<s64>(std::stol(str, nullptr, 0));
+                  break;
+                case GuiRAMEditor::SEARCH_TYPE_FLOAT_32BIT:
+                  m_searchValue._f32 = static_cast<float>(std::stof(str));
+                  break;
+                case GuiRAMEditor::SEARCH_TYPE_FLOAT_64BIT:
+                  m_searchValue._f64 = static_cast<double>(std::stod(str));
+                  break;
+                case GuiRAMEditor::SEARCH_TYPE_POINTER:
+                  m_searchValue._u64 = static_cast<u64>(std::stol(str));
+                  break;
+                case GuiRAMEditor::SEARCH_TYPE_NONE: break;
+              }
             }
           } else if (m_selectedEntry == 1) {
             (new MessageBox("Traversing title memory. \n This may take a while...", MessageBox::NONE))->show();
+            requestDraw();
 
             if (m_foundAddresses.size() == 0)
               _searchMemoryBegin(m_debugger, m_searchValue, { 0 }, m_searchType, m_searchMode, m_searchRegion, m_foundAddresses, m_memoryInfo);
@@ -812,6 +813,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
             Gui::g_currMessageBox->hide();
 
             m_searchMenuLocation = SEARCH_NONE;
+            m_searchMode = SEARCH_MODE_NONE;
           }
         }
       }

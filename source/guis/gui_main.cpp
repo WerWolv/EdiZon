@@ -24,6 +24,7 @@ extern "C" {
 static s64 xOffset, xOffsetNext;
 static bool finishedDrawing = true;
 static s64 startOffset = 0;
+static u64 runningTID = 0x00;
 
 GuiMain::GuiMain() : Gui() {
   for (auto title : Title::g_titles) {
@@ -31,6 +32,16 @@ GuiMain::GuiMain() : Gui() {
       ConfigParser::g_editableTitles.insert({title.first, true});
     }
   }
+
+  pmdmntInitialize();
+  pminfoInitialize();
+
+  u64 pid = 0;
+  pmdmntGetApplicationPid(&pid);
+  pminfoGetTitleId(&runningTID, pid);
+
+  pminfoExit();
+  pmdmntExit();
 }
 
 GuiMain::~GuiMain() {
@@ -101,6 +112,11 @@ void GuiMain::draw() {
 
         if (y == 320 || title.first == (--Title::g_titles.end())->first)
           Gui::drawShadow(x - xOffset, y, 256, 256);
+        
+        if (title.first == runningTID) {
+          Gui::drawRectangled(x - xOffset, y, 256, 256, Gui::makeColor(0x30, 0x30, 0x30, 0xA0));
+          Gui::drawTextAligned(fontTitle, x - xOffset + 245, y + 250, currTheme.selectedColor, "\uE12C", ALIGNED_RIGHT);
+        }
       }
 
       y = y == 32 ? 288 : 32;
@@ -137,6 +153,11 @@ void GuiMain::draw() {
 
       if (ConfigParser::g_betaTitles[m_selected.titleId])
         Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
+
+      if (m_selected.titleId == runningTID) {
+        Gui::drawRectangled(selectedX, selectedY, 256, 256, Gui::makeColor(0x30, 0x30, 0x30, 0xA0));
+        Gui::drawTextAligned(fontTitle, selectedX + 245, selectedY + 250, currTheme.selectedColor, "\uE12C", ALIGNED_RIGHT);
+      }
 
       Gui::drawShadow(selectedX - 5, selectedY - 5, 266, 266);
     }
@@ -199,6 +220,10 @@ void GuiMain::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_A) {
+    if (m_selected.titleId == runningTID) {
+      (new Snackbar("The save files of a running game cannot be accessed."))->show();
+      return;
+    }
     u128 userID = Gui::requestPlayerSelection();
     std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
 
@@ -219,6 +244,11 @@ void GuiMain::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_X) {
+    if (m_selected.titleId == runningTID) {
+      (new Snackbar("The save files of a running game cannot be accessed."))->show();
+      return;
+    }
+    
     if (m_backupAll) {
       (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         bool batchFailed = false;
@@ -306,6 +336,11 @@ void GuiMain::onTouch(touchPosition &touch) {
   if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;
       if (m_selected.titleIndex == title) {
+        if (m_selected.titleId == runningTID) {
+          (new Snackbar("The save files of a running game cannot be accessed."))->show();
+          return;
+        }
+
         u128 userID = Gui::requestPlayerSelection();
 
         Title::g_currTitle = Title::g_titles[m_selected.titleId];

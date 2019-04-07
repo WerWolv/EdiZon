@@ -17,13 +17,11 @@
 
 #include "update_manager.hpp"
 
-#include "title.hpp"
-
-#include "threads.hpp"
+#include "helpers/title.hpp"
 
 extern "C" {
   #include "theme.h"
-  #include "util.h"
+  #include "helpers/util.h"
 }
 
 #define NXLINK

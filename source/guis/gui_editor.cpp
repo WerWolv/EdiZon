@@ -1,9 +1,9 @@
 #include "guis/gui_editor.hpp"
 
-#include "title.hpp"
-#include "save.hpp"
+#include "helpers/title.hpp"
+#include "helpers/save.hpp"
 
-#include "config_parser.hpp"
+#include "helpers/config_parser.hpp"
 #include "scripting/interpreter.hpp"
 #include "scripting/lua_interpreter.hpp"
 #include "scripting/python_interpreter.hpp"
@@ -467,7 +467,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
       static char backupName[65];
       std::stringstream initialText;
       initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
-      if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 64))
+      if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
         return;
 
       if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName))) {

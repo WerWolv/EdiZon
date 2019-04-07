@@ -1,7 +1,7 @@
-#include "debugger.hpp"
+#include "helpers/debugger.hpp"
 
 extern "C" {
-  #include "dmntcht.h"
+  #include "helpers/dmntcht.h"
 }
 
 Debugger::Debugger(bool dmntPresent) : m_dmntPresent(dmntPresent) {

@@ -1,4 +1,4 @@
-#include "encoding.hpp"
+#include "helpers/encoding.hpp"
 
 std::vector<u8> Encoding::uft16leToUtf8(u8 *data, size_t length) {
   std::vector<u16> utf16Chars(length / 2);

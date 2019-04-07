@@ -1,14 +1,12 @@
 #include "guis/gui_main.hpp"
 
-#include "save.hpp"
-#include "title.hpp"
-#include "config_parser.hpp"
-#include "account.hpp"
+#include "helpers/save.hpp"
+#include "helpers/title.hpp"
+#include "helpers/config_parser.hpp"
+#include "helpers/account.hpp"
 
 #include "beta_bin.h"
 #include "edizon_logo_bin.h"
-
-#include "threads.hpp"
 
 #include <string>
 #include <sstream>
@@ -18,7 +16,7 @@
 
 
 extern "C" {
-  #include "util.h"
+  #include "helpers/util.h"
 }
 
 static s64 xOffset, xOffsetNext;
@@ -262,7 +260,7 @@ void GuiMain::onInput(u32 kdown) {
         initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");        
 
         if (selection) {
-          if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 64))
+          if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
             return;
 
           s16 res;
@@ -298,7 +296,7 @@ void GuiMain::onInput(u32 kdown) {
       std::stringstream initialText;
       initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
 
-      if (!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 64))
+      if (!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
         return;
 
       for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {

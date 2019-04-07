@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "encoding.hpp"
+#include "helpers/encoding.hpp"
 
 int lua_getSaveFileBuffer(lua_State *state);
 int lua_getStrArguments(lua_State *state);

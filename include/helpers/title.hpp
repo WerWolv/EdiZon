@@ -6,8 +6,8 @@
 #include <memory>
 
 #include "types.h"
-#include "save.hpp"
-#include "account.hpp"
+#include "helpers/save.hpp"
+#include "helpers/account.hpp"
 
 class Title {
 public:

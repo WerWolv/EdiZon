@@ -1,11 +1,11 @@
-#include "save.hpp"
+#include "helpers/save.hpp"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "account.hpp"
-#include "title.hpp"
+#include "helpers/account.hpp"
+#include "helpers/title.hpp"
 
 using json = nlohmann::json;
 

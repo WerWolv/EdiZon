@@ -6,7 +6,7 @@
 
 #include <curl/curl.h>
 
-#include "title.hpp"
+#include "helpers/title.hpp"
 
 class UploadManager {
 public:

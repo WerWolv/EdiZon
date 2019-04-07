@@ -1,4 +1,4 @@
-#include "title.hpp"
+#include "helpers/title.hpp"
 
 extern "C" {
 #include "nanojpeg.h"

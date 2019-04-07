@@ -4,7 +4,7 @@
 #include <cstring>
 #include <unordered_map>
 
-#include "title.hpp"
+#include "helpers/title.hpp"
 
 #include "ui_elements/snackbar.hpp"
 #include "ui_elements/list_selector.hpp"

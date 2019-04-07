@@ -1,5 +1,5 @@
-#include "config_parser.hpp"
-#include "title.hpp"
+#include "helpers/config_parser.hpp"
+#include "helpers/title.hpp"
 
 #include "widgets/widget_switch.hpp"
 #include "widgets/widget_value.hpp"

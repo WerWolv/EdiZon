@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstring>
 
-#include "encoding.hpp"
+#include "helpers/encoding.hpp"
 
 static void *python_extraspace;
 static PyMethodDef *edizonMethods;

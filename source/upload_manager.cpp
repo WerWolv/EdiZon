@@ -36,10 +36,6 @@ size_t writefunc(void *ptr, size_t size, size_t nmemb, std::string* s) {
   return size*nmemb;
 }
 
-static s32 seek_cb(void *userp, curl_off_t offset, s32 origin) {
-  return CURL_SEEKFUNC_OK;
-}
-
 std::vector<std::string> listFiles(const std::string &path) {
   std::vector<std::string> paths;
     if (auto dir = opendir(path.c_str())) {

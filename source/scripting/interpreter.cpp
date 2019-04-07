@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "encoding.hpp"
+#include "helpers/encoding.hpp"
 
 #define LLONG_MAX INT64_MAX
 #define LLONG_MIN INT64_MIN

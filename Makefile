@@ -151,7 +151,7 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(BUILD) clean all run
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
@@ -160,6 +160,10 @@ $(BUILD):
 	@[ -d $@ ] || mkdir -p $@ $(BUILD) $(OUTDIR)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
+#--------------------------------------------------------------------------------
+run: $(BUILD)
+	@echo Starting nxlink
+	@nxlink $(OUTPUT).nro -s -p "EdiZon/EdiZon.nro"
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...

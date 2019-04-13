@@ -59,4 +59,13 @@ private:
   u64 m_cheatCnt;
 
   void drawSearchRAMMenu();
+
+  void searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1,
+    searchValue_t searchValue2, searchType_t searchType,
+    searchMode_t searchMode, searchRegion_t searchRegion,
+    MemoryDump *foundAddrs, std::vector<MemoryInfo> memInfos);
+
+  void searchMemoryContinue(Debugger *debugger, searchValue_t searchValue1,
+    searchValue_t searchValue2, searchType_t searchType,
+    searchMode_t searchMode, MemoryDump *foundAddrs);
 };

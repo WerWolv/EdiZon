@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <bits/stdc++.h>
+#include <thread>
 
 extern "C" {
   #include "helpers/util.h"
@@ -21,15 +22,6 @@ static const std::vector<s128> dataTypeMinValues = { std::numeric_limits<u8>::mi
 static std::string titleNameStr, tidStr, pidStr, buildIDStr;
 
 static u32 cheatListOffset = 0;
-
-Result _searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1,
-  searchValue_t searchValue2, searchType_t searchType,
-  searchMode_t searchMode, searchRegion_t searchRegion,
-  MemoryDump *foundAddrs, std::vector<MemoryInfo> &memInfos);
-
-Result _searchMemoryContinue(Debugger *debugger, searchValue_t searchValue1,
-  searchValue_t searchValue2, searchType_t searchType,
-  searchMode_t searchMode, MemoryDump *foundAddrs);
 
 bool _isAddressFrozen(uintptr_t );
 std::string _getAddressDisplayString(u64 , Debugger *debugger, searchType_t searchType);
@@ -83,18 +75,8 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
         m_frozenAddresses.insert({ frozenAddresses[i].address, frozenAddresses[i].value.value });
 
     }
-  } else {
-    Handle appHandle = INVALID_HANDLE;
-
-    amspmdmntInitialize();
-    amspmdmntAtmosphereGetProcessHandle(&appHandle);
-
-    if (appHandle != INVALID_HANDLE) {
-      svcGetInfo(&m_addressSpaceBaseAddr, 12, appHandle, 0);
-      svcGetInfo(&m_heapBaseAddr, 4, appHandle, 0);
-      m_codeBaseAddr = 0x00;
-    }
-  }  
+  } else
+    return;
 
   m_attached = true;
 
@@ -219,12 +201,14 @@ void GuiRAMEditor::draw() {
 
 
   if (m_debugger->getRunningApplicationPID() == 0) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "A title needs to be running in the background to use the RAM editor. \n Please launch an application and try again.", ALIGNED_CENTER);
+    Gui::drawTextAligned(fontHuge, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, currTheme.textColor, "\uE12C", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2, currTheme.textColor, "A title needs to be running in the background to use the RAM editor. \n Please launch an application and try again.", ALIGNED_CENTER);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E1 Back", ALIGNED_RIGHT);
     Gui::endDraw();
     return;
   } else if (!m_attached) {
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 50, currTheme.textColor, "EdiZon couldn't attach to the running Application. Please restart \n EdiZon and try again.", ALIGNED_CENTER);
+    Gui::drawTextAligned(fontHuge, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, currTheme.textColor, "\uE142", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2, currTheme.textColor, "EdiZon couldn't attach to the running Application. Please restart \n EdiZon and try again.", ALIGNED_CENTER);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E1 Back", ALIGNED_RIGHT);
     Gui::endDraw();
     return;
@@ -785,12 +769,15 @@ void GuiRAMEditor::onInput(u32 kdown) {
             delete m_foundAddresses;
             m_foundAddresses = new MemoryDump("/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue, m_searchType, m_searchRegion, m_foundAddresses->size() == 0);
 
-            if (m_foundAddresses->size() == 0) 
-              _searchMemoryBegin(m_debugger, m_searchValue, { 0 }, m_searchType, m_searchMode, m_searchRegion, m_foundAddresses, m_memoryInfo);
-            else
-              _searchMemoryContinue(m_debugger, m_searchValue, { 0 }, m_searchType, m_searchMode, m_foundAddresses);
-
-            m_foundAddresses->flush();
+            
+            if (m_foundAddresses->size() == 0) {
+              std::thread t(&GuiRAMEditor::searchMemoryBegin, this, m_debugger, m_searchValue, (searchValue_t){ 0 }, m_searchType, m_searchMode, m_searchRegion, m_foundAddresses, m_memoryInfo);
+              t.join();
+            }
+            else {
+              std::thread t(&GuiRAMEditor::searchMemoryContinue, this, m_debugger, m_searchValue, (searchValue_t){ 0 }, m_searchType, m_searchMode, m_foundAddresses);
+              t.join();
+            }
 
             Gui::g_currMessageBox->hide();
 
@@ -962,7 +949,7 @@ std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searc
   return ss.str();
 }
 
-Result _searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump *foundAddrs, std::vector<MemoryInfo> &memInfos) {
+void GuiRAMEditor::searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump *foundAddrs, std::vector<MemoryInfo> memInfos) {
   for (MemoryInfo meminfo : memInfos) {
     if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
      continue;
@@ -1036,10 +1023,10 @@ Result _searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1, search
     delete[] buffer;
   }
 
-  return 0;
+  foundAddrs->flush();
 }
 
-Result _searchMemoryContinue(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump *foundAddrs) {
+void GuiRAMEditor::searchMemoryContinue(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump *foundAddrs) {
   std::vector<ramAddr_t> newAddresses;
   for (s64 i = 0; i < foundAddrs->size(); i++) {
     searchValue_t value = { 0 };
@@ -1100,11 +1087,8 @@ Result _searchMemoryContinue(Debugger *debugger, searchValue_t searchValue1, sea
     foundAddrs->clearAddresses();
     for (u64 i = 0; i < newAddresses.size(); i++) {
       foundAddrs->pushAddress(newAddresses[i]);
-    }
-    
-
-    return 1;
+    }    
   }
-
-  return 0;
+  
+  foundAddrs->flush();
 }

@@ -153,6 +153,8 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     m_menuLocation = CANDIDATES;
   if (m_foundAddresses->size() == 0)
     m_menuLocation = CHEATS;
+
+  appletSetMediaPlaybackState(true);
 }
 
 GuiRAMEditor::~GuiRAMEditor() {
@@ -170,6 +172,8 @@ GuiRAMEditor::~GuiRAMEditor() {
     amspmdmntExit();
     dmntchtExit();
   }
+
+  appletSetMediaPlaybackState(false);
 }
 
 

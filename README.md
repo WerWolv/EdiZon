@@ -12,7 +12,7 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   - **Save file management**
     - Extraction of game saves.
     - Injection of extracted game saves (Your own and your friends save files).
-    - Uploading of savefiles directly to https://transfer.sh.
+    - Uploading of savefiles directly to https://anonfile.com.
     - Batch extraction of all save files of all games on the system.
   - **Save file editing**
     - Easy to use, scriptable and easily expandable on-console save editing.

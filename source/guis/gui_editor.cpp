@@ -200,7 +200,7 @@ void GuiEditor::updateBackupList() {
 
   std::stringstream path;
 
-  path << "/EdiZon/restore";
+  path << "/switch/EdiZon/restore";
   if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
     while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
       if (ent_timestamp->d_type != DT_DIR) continue;
@@ -219,23 +219,23 @@ void GuiEditor::updateBackupList() {
   }
 
   //Read batch saves
-  if ((dir_batch = opendir("/EdiZon/batch")) != nullptr) {
+  if ((dir_batch = opendir("/switch/EdiZon/batch_saves")) != nullptr) {
     while ((ent_timestamp = readdir(dir_batch)) != nullptr) {
       path.str("");
-      path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name);
+      path << "/switch/EdiZon/batch_saves/" << std::string(ent_timestamp->d_name);
       if ((dir_users = opendir(path.str().c_str())) != nullptr) {
         while ((ent_user = readdir(dir_users)) != nullptr) {
           if (ent_user->d_type != DT_DIR) continue;
 
           path.str("");
-          path << "/EdiZon/batch/" << std::string(ent_timestamp->d_name) << "/" << std::string(ent_user->d_name) << "/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+          path << "/switch/EdiZon/batch_saves/" << std::string(ent_timestamp->d_name) << "/" << std::string(ent_user->d_name) << "/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
           if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
             metadataUsername = GuiEditor::readMetaDataUsername(path.str() + "/edizon_save_metadata.json");
 
             if (metadataUsername.empty())
-              metadataUsername = "By an unknown user [B]";
+              metadataUsername = "By an unknown user [Batch]";
             else
-              metadataUsername = "By " + metadataUsername + " [B]";
+              metadataUsername = "By " + metadataUsername + " [Batch]";
 
             backups.push_back(std::string(ent_timestamp->d_name) +  ", " + metadataUsername);
             backups.push_back(path.str());
@@ -253,7 +253,7 @@ void GuiEditor::updateBackupList() {
     path.str("");
 
   //Read root saves
-  path << "/EdiZon/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
+  path << "/switch/EdiZon/saves/" << std::setfill('0') << std::setw(16) << std::uppercase << std::hex << Title::g_currTitle->getTitleID();
   if ((dir_titles = opendir(path.str().c_str())) != nullptr) {
     while ((ent_timestamp = readdir(dir_titles)) != nullptr) {
       if (ent_timestamp->d_type != DT_DIR) continue;
@@ -496,7 +496,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         (new MessageBox("Successfully created backup!\n \n Would you like to upload it to anonfile.com?", MessageBox::YES_NO))->setSelectionAction([&](u8 selection) {
           if (selection) {
             std::stringstream backupPath;
-            backupPath << "/EdiZon/" << std::uppercase << std::setfill('0') 
+            backupPath << "/switch/EdiZon/saves/" << std::uppercase << std::setfill('0') 
             << std::setw(sizeof(Title::g_currTitle->getTitleID())*2) 
             << std::hex << Title::g_currTitle->getTitleID()
             << "/" << std::string(backupName);

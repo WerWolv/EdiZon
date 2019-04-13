@@ -10,9 +10,9 @@
 #include "types.h"
 #include "json.hpp"
 
-#define CONFIG_ROOT "/EdiZon/editor/"
-
 using json = nlohmann::json;
+
+#define CONFIG_ROOT "/switch/EdiZon/editor/"
 
 class Interpreter;
 

@@ -251,7 +251,7 @@ void GuiMain::onInput(u32 kdown) {
     }
 
     if (m_backupAll) {
-      (new MessageBox("Are you sure you want to backup all saves\non this console?\nThis might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
+      (new MessageBox("Are you sure you want to backup all saves \n on this console? \n This might take a while.", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         bool batchFailed = false;
 
         char backupName[65];
@@ -263,6 +263,9 @@ void GuiMain::onInput(u32 kdown) {
           if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
             return;
 
+          (new MessageBox("Creating batch backup. \n \n This might take a while...", MessageBox::NONE))->show();
+          requestDraw();
+
           s16 res;
           u16 failed_titles = 0;
           
@@ -273,6 +276,8 @@ void GuiMain::onInput(u32 kdown) {
                 failed_titles++;
               }
             }
+
+            Gui::g_currMessageBox->hide();
 
             if (!batchFailed)
               (new Snackbar("Successfully created backups!"))->show();

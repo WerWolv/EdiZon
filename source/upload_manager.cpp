@@ -158,9 +158,9 @@ bool UploadManager::zip(std::vector<std::string> paths, std::vector<u8> *zipData
   u8 pathOffset = 25;
   u32 currFile = 0;
 
-  if (paths[0].find("/EdiZon/batch/") != std::string::npos)
+  if (paths[0].find("/switch/EdiZon/batch/") != std::string::npos)
     pathOffset = 14;
-  else if (paths[0].find("/EdiZon/restore/") != std::string::npos)
+  else if (paths[0].find("/switch/EdiZon/restore/") != std::string::npos)
     pathOffset = 16;
 
   for(auto path : paths) { 

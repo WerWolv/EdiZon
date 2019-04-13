@@ -93,13 +93,15 @@ void update() {
 }
 
 void createFolders() {
-  mkdir("/EdiZon", 0777);
-  mkdir("/EdiZon/restore", 0777);
-  mkdir("/EdiZon/batch", 0777);
-  mkdir("/EdiZon/editor", 0777);
-  mkdir("/EdiZon/editor/scripts", 0777);
-  mkdir("/EdiZon/editor/scripts/lib", 0777);
-  mkdir("/EdiZon/editor/scripts/lib/python3.5", 0777);
+  mkdir("/switch", 0777);
+  mkdir("/switch/EdiZon", 0777);
+  mkdir("/switch/EdiZon/saves", 0777);
+  mkdir("/switch/EdiZon/batch_saves", 0777);
+  mkdir("/switch/EdiZon/restore", 0777);
+  mkdir("/switch/EdiZon/editor", 0777);
+  mkdir("/switch/EdiZon/editor/scripts", 0777);
+  mkdir("/switch/EdiZon/editor/scripts/lib", 0777);
+  mkdir("/switch/EdiZon/editor/scripts/lib/python3.5", 0777);
 }
 
 void requestDraw() {
@@ -133,7 +135,7 @@ int main(int argc, char** argv) {
   nxlinkStdio();
 #endif
 
-  int file = open("/EdiZon/EdiZon.log", O_APPEND | O_WRONLY);
+  int file = open("/switch/EdiZon/EdiZon.log", O_APPEND | O_WRONLY);
 
   if (file >= 0) {
     fflush(stdout);
@@ -155,10 +157,10 @@ int main(int argc, char** argv) {
 
   Gui::g_nextGui = GUI_MAIN;
 
-  if (isServiceRunning("tx") && !isServiceRunning("rnx") && access("/EdiZon/.hide_sxos", F_OK) == -1)
+  if (isServiceRunning("tx") && !isServiceRunning("rnx") && access("/switch/EdiZon/.hide_sxos", F_OK) == -1)
     Gui::g_nextGui = GUI_TX_WARNING;
 
-  if (access("/EdiZon/memdump.dat", F_OK) != -1)
+  if (access("/switch/EdiZon/memdump.dat", F_OK) != -1)
     Gui::g_nextGui = GUI_RAM_EDITOR;
 
   g_edizonPath = new char[strlen(argv[0]) + 1];

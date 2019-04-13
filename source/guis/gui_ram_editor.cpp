@@ -35,7 +35,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_foundAddresses = nullptr;
 
   if (m_debugger->getRunningApplicationPID() == 0) {
-    if (!remove("/EdiZon/memdump.dat"))
+    if (!remove("/switch/EdiZon/memdump.dat"))
       Gui::g_nextGui = GUI_MAIN;
     return;
   }
@@ -111,9 +111,9 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     }
   }
 
-  bool memdumpFileExists = access("/EdiZon/memdump.dat", F_OK) == 0;
+  bool memdumpFileExists = access("/switch/EdiZon/memdump.dat", F_OK) == 0;
 
-  m_foundAddresses = new MemoryDump("/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue, m_searchType, m_searchRegion, !memdumpFileExists);
+  m_foundAddresses = new MemoryDump("/switch/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue, m_searchType, m_searchRegion, !memdumpFileExists);
 
   if (memdumpFileExists) {
     m_searchType = m_foundAddresses->getSearchType();
@@ -767,7 +767,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
             requestDraw();
 
             delete m_foundAddresses;
-            m_foundAddresses = new MemoryDump("/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue, m_searchType, m_searchRegion, m_foundAddresses->size() == 0);
+            m_foundAddresses = new MemoryDump("/switch/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue, m_searchType, m_searchRegion, m_foundAddresses->size() == 0);
 
             
             if (m_foundAddresses->size() == 0) {

@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#define CONFIG_ROOT "/EdiZon/editor/"
+#define CONFIG_ROOT "/switch/EdiZon/editor/"
 
 using json = nlohmann::json;
 

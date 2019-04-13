@@ -35,7 +35,7 @@ void GuiTXWarning::onInput(u32 kdown) {
   if (kdown & KEY_A) {
     Gui::g_nextGui = GUI_MAIN;
     if (hideWarning) {
-      FILE *fp = fopen("/EdiZon/.hide_sxos", "ab+");
+      FILE *fp = fopen("/switch/EdiZon/.hide_sxos", "ab+");
       fclose(fp);
     }
   }

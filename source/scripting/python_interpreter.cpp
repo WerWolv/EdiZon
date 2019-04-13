@@ -69,7 +69,7 @@ bool PythonInterpreter::initialize(std::string filetype) {
   char *stripped_cwd = strchr(cwd, '/');
   if (stripped_cwd == NULL) stripped_cwd = cwd;
 
-  Py_SetPythonHome(Py_DecodeLocale("/EdiZon/editor/scripts/", NULL));
+  Py_SetPythonHome(Py_DecodeLocale("/switch/EdiZon/editor/scripts/", NULL));
 
 	PyImport_AppendInittab("edizon", PyInit_edizon);
 
@@ -78,7 +78,7 @@ bool PythonInterpreter::initialize(std::string filetype) {
 	PyObject *moduleMainString = PyUnicode_FromString("__main__");
 	m_mainObject = PyImport_Import(moduleMainString);
 
-  std::string path = "/EdiZon/editor/scripts/";
+  std::string path = "/switch/EdiZon/editor/scripts/";
   path += filetype;
   path += ".py";
 

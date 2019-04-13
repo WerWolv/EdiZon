@@ -17,9 +17,12 @@
 #include <netinet/in.h>
 
 #include "guis/gui.hpp"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 UploadManager::UploadManager() {
-  curl_global_init(CURL_GLOBAL_DEFAULT);
+  curl_global_init(CURL_GLOBAL_ALL);
   m_curl = curl_easy_init();
 
   if (!m_curl)
@@ -64,9 +67,9 @@ static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ul
 
 std::string UploadManager::upload(std::string path, std::string fileName, Title *title, std::string hash) {
   if (gethostid() == INADDR_LOOPBACK) return "";
-
+  
   std::vector<u8> zipData;
-  std::string returnAddress;
+  std::string returnData;
 
   std::vector<std::string> filePaths;
   std::filesystem::recursive_directory_iterator end;
@@ -82,32 +85,60 @@ std::string UploadManager::upload(std::string path, std::string fileName, Title 
   mime = curl_mime_init(m_curl);
   part = curl_mime_addpart(mime);
 
+  m_returnCode = "";
+  
   curl_mime_data(part, reinterpret_cast<const char*>(&zipData[0]), zipData.size());
   curl_mime_filename(part, std::string(fileName + ".zip").c_str());
   curl_mime_name(part, "file");
 
+  struct curl_slist * headers = NULL;
+  headers = curl_slist_append(headers, "Cache-Control: no-cache");
+
+  curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(m_curl, CURLOPT_MIMEPOST, mime);
-  curl_easy_setopt(m_curl, CURLOPT_URL, "http://werwolv.teamatlasnx.com/v1/upload");
+  curl_easy_setopt(m_curl, CURLOPT_URL, "https://anonfile.com/api/upload/");
   curl_easy_setopt(m_curl, CURLOPT_CUSTOMREQUEST, "POST");
   curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, writefunc);
-  curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &returnAddress);
+  curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYPEER, 0L);
+  curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYHOST, 0L);
+  curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &returnData);
   curl_easy_setopt(m_curl, CURLOPT_XFERINFOFUNCTION, &xferinfo);
   curl_easy_setopt(m_curl, CURLOPT_NOPROGRESS, 0L);
 
-  if (curl_easy_perform(m_curl) != CURLE_OK) returnAddress = "";
+  
+  if (curl_easy_perform(m_curl) != CURLE_OK) {
+    returnData = "";
+  }
 
-  if (returnAddress.find("https://transfer.sh/") != std::string::npos) {
+  std::string anonFileAddress;
+
+  try {
+    json anonFileJson = json::parse(returnData);
+
+    anonFileAddress = anonFileJson["data"]["file"]["url"]["short"];
+  } catch(json::parse_error &e) {
+    printf("Parse error: %s\n", returnData.c_str());
+  }
+
+  if (anonFileAddress.find("https://anonfile.com/") != std::string::npos) {
     std::stringstream ss;
-    ss << "http://werwolv.net/edizon_upload/sharedlink.php";
-    ss << "?link=" << curl_easy_escape(m_curl, returnAddress.c_str(), returnAddress.length());
+    ss << "http://vps.werwolv.net/edizon_upload/sharedlink.php";
+    ss << "?link=" << curl_easy_escape(m_curl, anonFileAddress.c_str(), anonFileAddress.length());
     ss << "&hash=" << hash;
     ss << "&backupname=" << curl_easy_escape(m_curl, fileName.c_str(), fileName.length());
     ss << "&gamename=" << curl_easy_escape(m_curl, title->getTitleName().c_str(), title->getTitleName().length());
     ss << "&titleid=" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << title->getTitleID();
 
+
+    struct curl_slist * headers = NULL;
+    headers = curl_slist_append(headers, "Cache-Control: no-cache");
+
+    curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(m_curl, CURLOPT_URL, ss.str().c_str());
     curl_easy_setopt(m_curl, CURLOPT_NOPROGRESS, 1L);
     curl_easy_setopt(m_curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, writefunc);
     curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &m_returnCode);
 

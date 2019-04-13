@@ -33,6 +33,27 @@ GuiEditor::GuiEditor() : Gui() {
 
   m_dominantColor = Gui::makeColor(0xA0, 0xA0, 0xA0, 0xFF);
 
+  if (Title::g_currTitle->getTitleID()  == Gui::g_runningTitleID) {
+    Title *nextTitle = nullptr;
+    bool isCurrTitle = false;
+
+    for (auto title : Title::g_titles) {
+      if (isCurrTitle) {
+        nextTitle = title.second;
+        break;
+      }
+      isCurrTitle = title.second == Title::g_currTitle;
+    }
+
+    if (nextTitle == nullptr) 
+        nextTitle = Title::g_titles.begin()->second;
+
+    Title::g_currTitle = nextTitle;
+    Account::g_currAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];
+    Gui::g_nextGui = GUI_EDITOR;
+  }
+
+
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), &m_titleIcon[0], 256, 256, 128, 128);
   Gui::resizeImage(Title::g_currTitle->getTitleIcon(), &smallTitleIcon[0], 256, 256, 32, 32);
 
@@ -363,7 +384,8 @@ void uploadBackup(std::string path, std::string fileName) {
     hashStr << std::hex << (serialHash[i] >>   4);
   }
 
-  static std::string retCode = um.upload(path, fileName, Title::g_currTitle, hashStr.str());
+  static std::string retCode;
+  retCode = um.upload(path, fileName, Title::g_currTitle, hashStr.str());
   retCode = retCode.substr(0, retCode.find("\n") - 1);
 
   if (retCode.length() == 6) {
@@ -471,7 +493,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         return;
 
       if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName))) {
-        (new MessageBox("Successfully created backup!\n \n Would you like to upload it to transfer.sh?", MessageBox::YES_NO))->setSelectionAction([&](u8 selection) {
+        (new MessageBox("Successfully created backup!\n \n Would you like to upload it to anonfile.com?", MessageBox::YES_NO))->setSelectionAction([&](u8 selection) {
           if (selection) {
             std::stringstream backupPath;
             backupPath << "/EdiZon/" << std::uppercase << std::setfill('0') 
@@ -539,14 +561,15 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
       for (auto title : Title::g_titles) {
         if (isCurrTitle) {
           nextTitle = title.second;
+
           break;
         }
 
         isCurrTitle = title.second == Title::g_currTitle;
       }
 
-      if (nextTitle == nullptr)
-        nextTitle = Title::g_titles.begin()->second;
+      if (nextTitle == nullptr) 
+          nextTitle = Title::g_titles.begin()->second;
 
       Title::g_currTitle = nextTitle;
       Account::g_currAccount = Account::g_accounts[Title::g_currTitle->getUserIDs()[0]];

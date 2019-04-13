@@ -45,6 +45,7 @@ public:
 
   static inline bool g_splashDisplayed = false;
   static inline bool g_requestExit = false;
+  static inline u64 g_runningTitleID = 0x00;
 
   static inline Snackbar *g_currSnackbar = nullptr;
   static inline ListSelector *g_currListSelector = nullptr;

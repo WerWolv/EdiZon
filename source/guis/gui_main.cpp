@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <numeric>
 
+#include "update_manager.hpp"
+
 
 extern "C" {
   #include "helpers/util.h"
@@ -22,24 +24,13 @@ extern "C" {
 static s64 xOffset, xOffsetNext;
 static bool finishedDrawing = true;
 static s64 startOffset = 0;
-static u64 runningTID = 0x00;
+
+static color_t arrowColor;
 
 GuiMain::GuiMain() : Gui() {
-  for (auto title : Title::g_titles) {
-    if (ConfigParser::hasConfig(title.first) == 0) {
-      ConfigParser::g_editableTitles.insert({title.first, true});
-    }
-  }
+  updateEditableTitlesList();
 
-  pmdmntInitialize();
-  pminfoInitialize();
-
-  u64 pid = 0;
-  pmdmntGetApplicationPid(&pid);
-  pminfoGetTitleId(&runningTID, pid);
-
-  pminfoExit();
-  pmdmntExit();
+  arrowColor = COLOR_WHITE;
 }
 
 GuiMain::~GuiMain() {
@@ -60,6 +51,11 @@ void GuiMain::update() {
 
     startOffset = xOffsetNext;
   }
+
+  if (xOffset > 0)
+    arrowColor.a = arrowColor.a > 0 ? arrowColor.a - 1 : 0;
+  else 
+    arrowColor.a = arrowColor.a < 0xFF ? arrowColor.a + 1 : 0xFF;
 }
 
 void GuiMain::draw() {
@@ -111,7 +107,7 @@ void GuiMain::draw() {
         if (y == 320 || title.first == (--Title::g_titles.end())->first)
           Gui::drawShadow(x - xOffset, y, 256, 256);
         
-        if (title.first == runningTID) {
+        if (title.first == Gui::g_runningTitleID) {
           Gui::drawRectangled(x - xOffset, y, 256, 256, Gui::makeColor(0x30, 0x30, 0x30, 0xA0));
           Gui::drawTextAligned(fontTitle, x - xOffset + 245, y + 250, currTheme.selectedColor, "\uE12C", ALIGNED_RIGHT);
         }
@@ -152,7 +148,7 @@ void GuiMain::draw() {
       if (ConfigParser::g_betaTitles[m_selected.titleId])
         Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
-      if (m_selected.titleId == runningTID) {
+      if (m_selected.titleId == Gui::g_runningTitleID) {
         Gui::drawRectangled(selectedX, selectedY, 256, 256, Gui::makeColor(0x30, 0x30, 0x30, 0xA0));
         Gui::drawTextAligned(fontTitle, selectedX + 245, selectedY + 250, currTheme.selectedColor, "\uE12C", ALIGNED_RIGHT);
       }
@@ -173,6 +169,10 @@ void GuiMain::draw() {
     if (m_selected.titleIndex != -1)
       Gui::drawTooltip(selectedX + 128, 288, Title::g_titles[m_selected.titleId]->getTitleName().c_str(), currTheme.tooltipColor, currTheme.tooltipTextColor, 0xFF, m_selected.titleIndex % 2);
   }
+
+  static float i = 0.0;
+  Gui::drawTextAligned(fontHuge, Gui::g_framebuffer_width - 60 + std::sin(i) * 20, Gui::g_framebuffer_height / 2 - 50, arrowColor, "\uE090", ALIGNED_RIGHT);
+  i += 0.1;
 
   finishedDrawing = true;
 
@@ -221,7 +221,7 @@ void GuiMain::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_A) {
-    if (m_selected.titleId == runningTID) {
+    if (m_selected.titleId == Gui::g_runningTitleID) {
       (new Snackbar("The save files of a running game cannot be accessed."))->show();
       return;
     }
@@ -245,7 +245,7 @@ void GuiMain::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_X) {
-    if (m_selected.titleId == runningTID) {
+    if (m_selected.titleId == Gui::g_runningTitleID) {
       (new Snackbar("The save files of a running game cannot be accessed."))->show();
       return;
     }
@@ -318,8 +318,19 @@ void GuiMain::onInput(u32 kdown) {
   }
 
   if (kdown & KEY_MINUS) {
-    (new MessageBox("Checking for updates...", MessageBox::NONE))->show();
-    GuiMain::g_shouldUpdate = true;
+    UpdateManager updateManager;
+
+    (new MessageBox("Updating configs and EdiZon...\n \nThis may take a while.", MessageBox::NONE))->show();
+    requestDraw();
+
+    switch (updateManager.checkUpdate()) {
+      case NONE: (new MessageBox("Latest configs and scripts are already installed!", MessageBox::OKAY))->show(); break;
+      case ERROR: (new MessageBox("An error while downloading the updates has occured.", MessageBox::OKAY))->show(); break;
+      case EDITOR: (new MessageBox("Updated editor configs and scripts to the latest version!", MessageBox::OKAY))->show(); break;
+      case EDIZON: (new MessageBox("Updated EdiZon and editor configs and scripts to\nthe latest version! Please restart EdiZon!", MessageBox::OKAY))->show(); break;
+    }
+
+    updateEditableTitlesList();
   }
 
   m_backupAll = (kdown & KEY_ZR) > 0;
@@ -337,7 +348,7 @@ void GuiMain::onTouch(touchPosition &touch) {
   if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;
       if (m_selected.titleIndex == title) {
-        if (m_selected.titleId == runningTID) {
+        if (m_selected.titleId == Gui::g_runningTitleID) {
           (new Snackbar("The save files of a running game cannot be accessed."))->show();
           return;
         }
@@ -374,7 +385,7 @@ void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition,
   if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
 
   if (finish) {
-    s32 velocity = std::accumulate(positions.begin(), positions.end(), 0) / static_cast<s32>(positions.size());
+    s32 velocity = (std::accumulate(positions.begin(), positions.end(), 0) / static_cast<s32>(positions.size())) * 2;
     
     xOffsetNext = std::min(std::max<s32>(xOffset + velocity * 1.5F, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5)));
 
@@ -399,4 +410,15 @@ void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition,
     positions.erase(positions.begin());
 
   oldPosition = currPosition;
+}
+
+void GuiMain::updateEditableTitlesList() {
+  ConfigParser::g_editableTitles.clear();
+  ConfigParser::g_betaTitles.clear();
+
+  for (auto title : Title::g_titles) {
+    if (ConfigParser::hasConfig(title.first) == 0) {
+      ConfigParser::g_editableTitles.insert({title.first, true});
+    }
+  }
 }

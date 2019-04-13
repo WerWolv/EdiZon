@@ -16,11 +16,15 @@
 #include <filesystem>
 
 #include "json.hpp"
-#include "sha256.h"
+
+extern "C" {
+  #include "sha256.h"
+
+}
 
 #define API_VERSION "v2"
 
-#define EDIZON_URL "http://api.edizon.werwolv.net/" API_VERSION
+#define EDIZON_URL "https://vps.werwolv.net/api/edizon/" API_VERSION 
 
 using json = nlohmann::json;
 
@@ -29,7 +33,7 @@ extern char* g_edizonPath;
 static CURL *curl;
 
 UpdateManager::UpdateManager() {
-  curl_global_init(CURL_GLOBAL_DEFAULT);
+  curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
 
   if (!curl)
@@ -130,6 +134,8 @@ void updateFile(std::string path) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToFile);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
   CURLcode res = curl_easy_perform(curl);
@@ -165,6 +171,8 @@ Updates UpdateManager::checkUpdate() {
 
   curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/versionlist.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToString);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &str);
 
   res = curl_easy_perform(curl);
@@ -189,14 +197,14 @@ Updates UpdateManager::checkUpdate() {
     FILE *fp = fopen(iter.key().c_str(), "rb");
 
     progress++;
+    
+    if (Gui::g_currMessageBox != nullptr && progress % 10 == 0)
+      Gui::g_currMessageBox->setProgress((static_cast<float>(progress) / fileCnt) * 100);
 
     if (fp != nullptr) {
       char *content;
       size_t fileSize;
       u8 fileHash[0x20];
-
-      if (Gui::g_currMessageBox != nullptr)
-        Gui::g_currMessageBox->setProgress((static_cast<float>(progress) / fileCnt) * 100);
 
       fseek(fp, 0, SEEK_END);
       fileSize = ftell(fp);

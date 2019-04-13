@@ -15,8 +15,6 @@
 #include "guis/gui_tx_warning.hpp"
 #include "guis/gui_ram_editor.hpp"
 
-#include "update_manager.hpp"
-
 #include "helpers/title.hpp"
 
 extern "C" {
@@ -116,7 +114,7 @@ int main(int argc, char** argv) {
   // Setup Heap for swkbd on applets
   Result rc = svcSetHeapSize(&haddr, 0x10000000);
   if (R_FAILED(rc))
-    fatalSimple(rc);
+    fatalSimple(0xDEAD);
   fake_heap_end = (char*) haddr + 0x10000000;
 
   setsysInitialize();
@@ -124,6 +122,12 @@ int main(int argc, char** argv) {
   accountInitialize();
   plInitialize();
   psmInitialize();
+  pmdmntInitialize();
+  pminfoInitialize();
+
+  u64 pid = 0;
+  pmdmntGetApplicationPid(&pid);
+  pminfoGetTitleId(&Gui::g_runningTitleID, pid);
 
 #ifdef NXLINK
   nxlinkStdio();
@@ -241,7 +245,7 @@ int main(int argc, char** argv) {
     if(touchCount > 0 && touchCountOld == 0)
       hidTouchRead(&touchPosStart, 0);
 
-    if (abs(static_cast<s16>(touchPosStart.px - touchPosCurr.px)) < 50 && abs(static_cast<s16>(touchPosStart.py - touchPosCurr.py)) < 50) {
+    if (abs(static_cast<s16>(touchPosStart.px - touchPosCurr.px)) < 10 && abs(static_cast<s16>(touchPosStart.py - touchPosCurr.py)) < 10) {
       if (touchCount == 0 && touchCountOld > 0) {
         touchHappend = true;
 
@@ -280,24 +284,6 @@ int main(int argc, char** argv) {
       if (Gui::g_currMessageBox == nullptr)
         break;
     }
-
-    if (GuiMain::g_shouldUpdate) {
-      Gui::g_currMessageBox->hide();
-
-      UpdateManager updateManager;
-
-      (new MessageBox("Updating configs and EdiZon...\n \nThis may take a while.", MessageBox::NONE))->show();
-      requestDraw();
-
-      switch (updateManager.checkUpdate()) {
-        case NONE: (new MessageBox("Latest configs and scripts are already installed!", MessageBox::OKAY))->show(); break;
-        case ERROR: (new MessageBox("An error while downloading the updates has occured.", MessageBox::OKAY))->show(); break;
-        case EDITOR: (new MessageBox("Updated editor configs and scripts to the latest version!", MessageBox::OKAY))->show(); break;
-        case EDIZON: (new MessageBox("Updated EdiZon and editor configs and scripts to\nthe latest version! Please restart EdiZon!", MessageBox::OKAY))->show(); break;
-      }
-
-      GuiMain::g_shouldUpdate = false;
-    }
   }
 
   updateThreadRunning = false;
@@ -322,6 +308,8 @@ int main(int argc, char** argv) {
   accountExit();
   plExit();
   psmExit();
+  pminfoExit();
+  pmdmntExit();
 
   close(file);
 

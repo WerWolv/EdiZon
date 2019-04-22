@@ -17,10 +17,6 @@
 
 #include "json.hpp"
 
-extern "C" {
-  #include "sha256.h"
-
-}
 
 #define API_VERSION "v2"
 
@@ -214,11 +210,11 @@ Updates UpdateManager::checkUpdate() {
 
       fread(content, 1, fileSize, fp);
 
-      struct sha256_state sha_ctx;
-      sha256_init(&sha_ctx);
-      sha256_update(&sha_ctx, (u8 *)content, fileSize);
-      sha256_finalize(&sha_ctx);
-      sha256_finish(&sha_ctx, fileHash);
+      Sha256Context shaCtx;
+
+      sha256ContextCreate(&shaCtx);
+      sha256ContextUpdate(&shaCtx, (u8 *)content, fileSize);
+      sha256ContextGetHash(&shaCtx, fileHash);
 
       delete[] content;
       fclose(fp);

@@ -10,8 +10,6 @@
 
 #include "upload_manager.hpp"
 
-#include "sha256.h"
-
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -371,11 +369,11 @@ void uploadBackup(std::string path, std::string fileName) {
   u8 serialHash[0x20];
   setsysGetSerialNumber(serial);
 
-  struct sha256_state sha_ctx;
-  sha256_init(&sha_ctx);
-  sha256_update(&sha_ctx, (u8 *)serial, 0x19);
-  sha256_finalize(&sha_ctx);
-  sha256_finish(&sha_ctx, serialHash);
+
+  Sha256Context shaCtx;
+  sha256ContextCreate(&shaCtx);
+  sha256ContextUpdate(&shaCtx, (u8 *)serial, 0x19);
+  sha256ContextGetHash(&shaCtx, serialHash);
 
   hashStr.str("");
 

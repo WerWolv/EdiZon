@@ -1,0 +1,7 @@
+EdiZon is a all-in-one Homebrew for save file management, save file editing, 
+memory manipulation and cheat management. This quick start guide will guide you 
+through all of the features EdiZon has to offer. 
+ 
+If you have any questions about a topic that isn't covered in this guide (like for example 
+how to create your own save file editors or cheats) please visit EdiZon's GitHub 
+Readme and Wiki or join our Discord server. 

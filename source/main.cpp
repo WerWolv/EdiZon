@@ -13,7 +13,8 @@
 #include "guis/gui_main.hpp"
 #include "guis/gui_editor.hpp"
 #include "guis/gui_tx_warning.hpp"
-#include "guis/gui_ram_editor.hpp"
+#include "guis/gui_cheats.hpp"
+#include "guis/gui_information.hpp"
 
 #include "helpers/title.hpp"
 
@@ -126,6 +127,7 @@ int main(int argc, char** argv) {
   psmInitialize();
   pmdmntInitialize();
   pminfoInitialize();
+  romfsInit();
 
   u64 pid = 0;
   pmdmntGetApplicationPid(&pid);
@@ -161,7 +163,7 @@ int main(int argc, char** argv) {
     Gui::g_nextGui = GUI_TX_WARNING;
 
   if (access("/switch/EdiZon/memdump.dat", F_OK) != -1)
-    Gui::g_nextGui = GUI_RAM_EDITOR;
+    Gui::g_nextGui = GUI_CHEATS;
 
   g_edizonPath = new char[strlen(argv[0]) + 1];
   strcpy(g_edizonPath, argv[0] + 5);
@@ -195,8 +197,11 @@ int main(int argc, char** argv) {
           case GUI_TX_WARNING:
             currGui = new GuiTXWarning();
             break;
-          case GUI_RAM_EDITOR:
+          case GUI_CHEATS:
             currGui = new GuiRAMEditor();
+            break;
+          case GUI_INFORMATION:
+            currGui = new GuiInformation();
             break;
 
           case GUI_INVALID: [[fallthrough]]
@@ -312,6 +317,7 @@ int main(int argc, char** argv) {
   psmExit();
   pminfoExit();
   pmdmntExit();
+  romfsExit();
 
   close(file);
 

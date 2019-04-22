@@ -1,0 +1,12 @@
+{
+	"images" : [
+	],
+	"text" : [
+		{
+			"title" : "How do I edit my save files?",
+			"path" : "text.txt",
+			"x" : 50,
+			"y" : 100
+		}
+	]
+}

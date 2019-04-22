@@ -1,0 +1,19 @@
+There are mutliple different ways to create a save file backup.
+ 
+The first one creates a backup for the selected user. For this select the game you want to backup 
+the save files for in the EdiZon main menu and select the user the save belongs to. In the newly 
+opened interface, press the (X) button to create a backup. The keyboard will pop up where you can 
+enter a custom name for the backup folder. By default the current date and time will be used. 
+Afterwards you'll have the choice to upload the save file to anonfile.com in which case you'll 
+receive a console-unique key that can be entered on https://edizon.werwolv.net to access all files. 
+The save file will get stored in /switch/EdiZon/saves/<titleID> in both cases. 
+ 
+The second option will create a backup containing all save files of all users for one specific 
+game. To do this hover over a game's icon in EdiZon's main menu and press the (X) button. 
+The keyboard will pop up asking you for a name for the backup. After entering the save files 
+will get copied to /switch/EdiZon/batch. 
+ 
+The last option is called a batch backup. It will create a backup of all save files on the system. 
+This can be done by holding down the (ZR) button while pressing the (X) button in the EdiZon 
+main menu. A warning will pop up and after accepting, the save files will be copied into 
+/switch/EdiZon/batch.

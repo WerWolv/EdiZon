@@ -28,6 +28,8 @@ private:
     u128 userId;
   } m_selected;
 
+  s8 m_selectedExtraOption;
+
   static inline bool m_editableOnly = false;
   bool m_backupAll = false;
   u16 m_editableCount = 0;

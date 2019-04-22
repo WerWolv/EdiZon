@@ -1,0 +1,20 @@
+{
+	"images" : [
+		{
+			"title" : "",
+			"path" : "banner.bin",
+			"x" : 0,
+			"y" : 142,
+			"w" : 1280,
+			"h" : 256
+		}
+	],
+	"text" : [
+		{
+			"title" : "Introduction",
+			"path" : "text.txt",
+			"x" : 50,
+			"y" : 420
+		}
+	]
+}

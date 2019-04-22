@@ -1,0 +1,13 @@
+{
+	"images" : [
+
+	],
+	"text" : [
+		{
+			"title" : "How to create a save file backup?",
+			"path" : "text.txt",
+			"x" : 50,
+			"y" : 100
+		}
+	]
+}

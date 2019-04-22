@@ -334,7 +334,7 @@ void Gui::drawTextAligned(u32 font, s16 x, s16 y, color_t clr, const char* text,
           m_stringDimensions.insert(std::make_pair(strHash, std::pair<u16, u16>(textWidth, textHeight)));
         }
 
-        drawText_(font, x, y, clr, text, 0, nullptr);
+        drawText_(font, x, y, clr, line.c_str(), 0, nullptr);
         y += m_stringDimensions[strHash].second;
 
       }
@@ -601,14 +601,14 @@ bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText
   swkbdConfigSetHeaderText(&kbd, headerText.c_str());
   swkbdConfigSetSubText(&kbd, subHeaderText.c_str());
 
-  kbd.arg.arg.leftButtonText = '.';
-  kbd.arg.arg.rightButtonText = '-';
-  kbd.arg.arg.stringLenMax = maxLength;
-  kbd.arg.arg.stringLenMaxExt = 1;
-  kbd.arg.arg.textDrawType = SwkbdTextDrawType_Line;
-  kbd.arg.arg.returnButtonFlag = false;
-  kbd.arg.arg.type = type;
-  kbd.arg.arg.keySetDisableBitmask = SwkbdKeyDisableBitmask_At | SwkbdKeyDisableBitmask_Percent | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Backslash;
+  kbd.arg.arg.arg.leftButtonText = '.';
+  kbd.arg.arg.arg.rightButtonText = '-';
+  kbd.arg.arg.arg.stringLenMax = maxLength;
+  kbd.arg.arg.arg.stringLenMaxExt = 1;
+  kbd.arg.arg.arg.textDrawType = SwkbdTextDrawType_Line;
+  kbd.arg.arg.arg.returnButtonFlag = false;
+  kbd.arg.arg.arg.type = type;
+  kbd.arg.arg.arg.keySetDisableBitmask = SwkbdKeyDisableBitmask_At | SwkbdKeyDisableBitmask_Percent | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Backslash;
 
   swkbdShow(&kbd, out_text, maxLength + 1);
   swkbdClose(&kbd);

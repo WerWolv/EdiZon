@@ -1,0 +1,6 @@
+EdiZon features a integrated and easily expandable save file editor based on user-made script files. 
+At this time more than thirty different games are supported and can be edited at any time without 
+the need for a computer. The most noticable ones include The Legend of Zelda: Breath of the Wild, 
+Super Mario Odyssey, Super Smash Bros Ultimate and New Super Mario Bros. U Deluxe. 
+ 
+Thanks a lot to the awesome community who developed all of these scripts!

@@ -41,11 +41,11 @@ APP_VERSION	:=	${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
 TARGET		:=	$(notdir $(CURDIR))
 OUTDIR		:=	out
 BUILD		:=	build
-SOURCES		:=	source source/widgets source/guis source/scripting source/ui_elements source/helpers libs/lua/source libs/nanojpeg/source libs/minizip/source libs/sha256/source
+SOURCES		:=	source source/widgets source/guis source/scripting source/ui_elements source/helpers libs/lua/source libs/nanojpeg/source libs/minizip/source
 DATA		:=	data
-INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include libs/sha256/include
+INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include
 EXEFS_SRC	:=	exefs_src
-#ROMFS	:=	romfs
+ROMFS		:=	romfs
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -151,7 +151,7 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all run
+.PHONY: $(BUILD) clean all run $(ROMFS)
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
@@ -163,7 +163,8 @@ $(BUILD):
 #--------------------------------------------------------------------------------
 run: $(BUILD)
 	@echo Starting nxlink
-	@nxlink $(OUTPUT).nro -s -p "EdiZon/EdiZon.nro"
+	@nxlink $(OUTPUT).nro -s -p "EdiZon/EdiZon.nro" -a 192.168.1.110
+	
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
@@ -171,7 +172,7 @@ clean:
 
 #---------------------------------------------------------------------------------
 else
-.PHONY:	all
+.PHONY:	all $(ROMFS)
 
 DEPENDS	:=	$(OFILES:.o=.d)
 
@@ -185,7 +186,7 @@ $(OUTPUT).pfs0	:	$(OUTPUT).nso
 $(OUTPUT).nso	:	$(OUTPUT).elf
 
 ifeq ($(strip $(NO_NACP)),)
-$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
+$(OUTPUT).nro	:	$(OUTPUT).elf $(ROMFS) $(OUTPUT).nacp
 else
 $(OUTPUT).nro	:	$(OUTPUT).elf
 endif

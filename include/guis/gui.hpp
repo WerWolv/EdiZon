@@ -31,7 +31,8 @@ enum gui_t {
   GUI_MAIN,
   GUI_EDITOR,
   GUI_TX_WARNING,
-  GUI_RAM_EDITOR
+  GUI_CHEATS,
+  GUI_INFORMATION
 };
 
 class Gui {

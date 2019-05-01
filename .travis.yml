@@ -6,6 +6,8 @@ before_install:
   - wget https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb
   - sudo dpkg -i devkitpro-pacman.deb
   - sudo dkp-pacman -S switch-{dev,curl,freetype} --noconfirm
+  - sudo git clone https://github.com/switchbrew/libnx
+  - sudo make install -C ./libnx
   - source /etc/profile.d/devkit-env.sh
 script:
   - make

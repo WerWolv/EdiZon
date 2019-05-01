@@ -23,12 +23,12 @@ extern "C" {
   #include "helpers/util.h"
 }
 
-#define NXLINK
-
 #define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   300
 
 char* g_edizonPath;
+
+static int debugOutputFile;
 
 static bool updateThreadRunning = false;
 static Mutex mutexCurrGui;
@@ -110,6 +110,56 @@ void requestDraw() {
     currGui->draw();
 }
 
+void serviceInitialize() {
+  setsysInitialize();
+  socketInitializeDefault();
+  accountInitialize();
+  plInitialize();
+  psmInitialize();
+  pmdmntInitialize();
+  pminfoInitialize();
+  romfsInit();
+  hidsysInitialize();
+  pcvInitialize();
+  clkrstInitialize();
+  ledInit();
+
+  u64 pid = 0;
+  pmdmntGetApplicationPid(&pid);
+  pminfoGetTitleId(&Gui::g_runningTitleID, pid);
+
+}
+
+void serviceExit() {
+  socketExit();
+  accountExit();
+  plExit();
+  psmExit();
+  pminfoExit();
+  pmdmntExit();
+  romfsExit();
+  setsysExit();
+  hidsysExit();
+  pcvExit();
+  clkrstExit();
+
+  close(debugOutputFile);
+
+}
+
+void redirectStdio() {
+  nxlinkStdio();
+
+  debugOutputFile = open("/switch/EdiZon/EdiZon.log", O_APPEND | O_WRONLY);
+
+  if (debugOutputFile >= 0) {
+    fflush(stdout);
+    dup2(debugOutputFile, STDOUT_FILENO);
+    fflush(stderr);
+    dup2(debugOutputFile, STDERR_FILENO);
+  }
+}
+
 int main(int argc, char** argv) {
   void *haddr;
   extern char *fake_heap_end;
@@ -120,31 +170,9 @@ int main(int argc, char** argv) {
     fatalSimple(0xDEAD);
   fake_heap_end = (char*) haddr + 0x10000000;
 
-  setsysInitialize();
-  socketInitializeDefault();
-  accountInitialize();
-  plInitialize();
-  psmInitialize();
-  pmdmntInitialize();
-  pminfoInitialize();
-  romfsInit();
+  serviceInitialize();
 
-  u64 pid = 0;
-  pmdmntGetApplicationPid(&pid);
-  pminfoGetTitleId(&Gui::g_runningTitleID, pid);
-
-#ifdef NXLINK
-  nxlinkStdio();
-#endif
-
-  int file = open("/switch/EdiZon/EdiZon.log", O_APPEND | O_WRONLY);
-
-  if (file >= 0) {
-    fflush(stdout);
-    dup2(file, STDOUT_FILENO);
-    fflush(stderr);
-    dup2(file, STDERR_FILENO);
-  }
+  redirectStdio();
 
   framebufferCreate(&Gui::g_fb_obj, nwindowGetDefault(), 1280, 720, PIXEL_FORMAT_RGBA_8888, 2);
   framebufferMakeLinear(&Gui::g_fb_obj);
@@ -311,18 +339,9 @@ int main(int argc, char** argv) {
   if (currGui != nullptr)
     delete currGui;
 
-  socketExit();
-  accountExit();
-  plExit();
-  psmExit();
-  pminfoExit();
-  pmdmntExit();
-  romfsExit();
-
-  close(file);
-
   framebufferClose(&Gui::g_fb_obj);
-  setsysExit();
+
+  serviceExit();
 
   svcSetHeapSize(&haddr, ((u8*) envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*) haddr); // clean up the heap
 

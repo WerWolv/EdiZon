@@ -387,29 +387,30 @@ void GuiMain::onTouch(touchPosition &touch) {
 
   if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;
-      if (m_selected.titleIndex == title) {
-        if (m_selected.titleId == Gui::g_runningTitleID) {
-          (new Snackbar("The save files of a running game cannot be accessed."))->show();
-          return;
-        }
-
-        u128 userID = Gui::requestPlayerSelection();
-
-        Title::g_currTitle = Title::g_titles[m_selected.titleId];
-        std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
-
-        if(userID == 0x00)
-          return;
-
-        if (std::find(users.begin(), users.end(), userID) != users.end()) {
-          Title::g_currTitle = Title::g_titles[m_selected.titleId];
-          Account::g_currAccount = Account::g_accounts[userID];
-          Gui::g_nextGui = GUI_EDITOR;
-        } else (new Snackbar("No save file available for this user!"))->show();      
+    
+    if (m_selected.titleIndex == title) {
+      if (m_selected.titleId == Gui::g_runningTitleID) {
+        (new Snackbar("The save files of a running game cannot be accessed."))->show();
+        return;
       }
 
-      m_selected.titleIndex = title;
+      u128 userID = Gui::requestPlayerSelection();
+
+      Title::g_currTitle = Title::g_titles[m_selected.titleId];
+      std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
+
+      if(userID == 0x00)
+        return;
+
+      if (std::find(users.begin(), users.end(), userID) != users.end()) {
+        Title::g_currTitle = Title::g_titles[m_selected.titleId];
+        Account::g_currAccount = Account::g_accounts[userID];
+        Gui::g_nextGui = GUI_EDITOR;
+      } else (new Snackbar("No save file available for this user!"))->show();      
     }
+
+    m_selected.titleIndex = title;
+  }
 }
 
 inline s8 sign(s32 value) {

@@ -24,9 +24,10 @@ public:
   void setSearchValue(searchValue_t searchValue);
 
   ramAddr_t operator[](u32 index);
+  void initFile(bool discard);
 
   size_t size();
-  void clear();
+  int clear();
 
   inline searchValue_t getSearchValue1() {
     return m_searchValue1;

@@ -110,17 +110,19 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     }
   }
 
-  bool memdumpFileExists = access("/switch/EdiZon/memdump.dat", F_OK) == 0;
-
-  m_foundAddresses = new MemoryDump("/switch/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue1, m_searchValue2, m_searchType, m_searchRegion, !memdumpFileExists);
+  m_foundAddresses = new MemoryDump("/switch/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue1, m_searchValue2, m_searchType, m_searchRegion, false);
   
   if (m_debugger->getRunningApplicationPID() == 0 || m_heapBaseAddr != m_foundAddresses->getHeapBase()) {
-    if (remove("/switch/EdiZon/memdump.dat") == 0)
+    if (m_foundAddresses->clear() == 0) {
       Gui::g_nextGui = GUI_MAIN;
+    }
+    
     return;
+
+    m_foundAddresses->initFile(true);
   }
 
-  if (memdumpFileExists) {
+  if (access("/switch/EdiZon/memdump.dat", F_OK) == 0) {
     m_searchType = m_foundAddresses->getSearchType();
     m_searchValue1 = m_foundAddresses->getSearchValue1();
     m_searchValue2 = m_foundAddresses->getSearchValue2();
@@ -164,9 +166,11 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 }
 
 GuiRAMEditor::~GuiRAMEditor() {
-  m_debugger->detachFromProcess();
 
-  delete m_debugger;
+  if (m_debugger != nullptr) {
+    m_debugger->detachFromProcess();
+    delete m_debugger;
+  }
 
   if (m_foundAddresses != nullptr)
     delete m_foundAddresses;

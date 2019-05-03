@@ -5,31 +5,11 @@
 
 MemoryDump::MemoryDump(std::string fileLocation, u64& heapBase, searchValue_t& searchValue1, searchValue_t& searchValue2, searchType_t& searchType, searchRegion_t& searchRegion, bool discard) 
  : m_fileLocation(fileLocation), m_heapBase(heapBase), m_searchValue1(searchValue1), m_searchValue2(searchValue2), m_searchType(searchType), m_searchRegion(searchRegion)
-{
-  s64 dumpFileSize = 0;
-  
+{ 
   m_addressCnt = 0;
-  
-  if (discard) {
-    m_dumpFile.open(fileLocation, std::ios::out);
-    m_dumpFile.close();
-  }
 
-  m_dumpFile.open(fileLocation, std::ios::in | std::ios::out | std::ios::ate);
-  dumpFileSize = m_dumpFile.tellg();
+  MemoryDump::initFile(discard);  
 
-  if (dumpFileSize == 0)
-    MemoryDump::flush();
-  else {
-    m_dumpFile.seekg(0, m_dumpFile.beg);
-
-    m_dumpFile.read((char*)&m_addressCnt, sizeof(size_t));
-    m_dumpFile.read((char*)&m_searchType, sizeof(m_searchType));
-    m_dumpFile.read((char*)&m_searchRegion, sizeof(m_searchRegion));
-    m_dumpFile.read((char*)&m_searchValue1, sizeof(m_searchValue1));
-    m_dumpFile.read((char*)&m_searchValue2, sizeof(m_searchValue2));
-    m_dumpFile.read((char*)&m_heapBase, sizeof(m_heapBase));
-  }
   m_addresses.reserve(0x100000);
 }
 
@@ -120,8 +100,36 @@ size_t MemoryDump::size() {
   return m_addressCnt;
 }
 
-void MemoryDump::clear() {
-  remove(m_fileLocation.c_str());
+void MemoryDump::initFile(bool discard) {
+  size_t dumpFileSize = 0;
+
+  if (discard) {
+    m_dumpFile.open(m_fileLocation, std::ios::out);
+    m_dumpFile.close();
+  }
+
+  m_dumpFile.open(m_fileLocation, std::ios::in | std::ios::out | std::ios::ate);
+  dumpFileSize = m_dumpFile.tellg();
+
+  if (dumpFileSize == 0)
+    MemoryDump::flush();
+  else {
+    m_dumpFile.seekg(0, m_dumpFile.beg);
+
+    m_dumpFile.read((char*)&m_addressCnt, sizeof(size_t));
+    m_dumpFile.read((char*)&m_searchType, sizeof(m_searchType));
+    m_dumpFile.read((char*)&m_searchRegion, sizeof(m_searchRegion));
+    m_dumpFile.read((char*)&m_searchValue1, sizeof(m_searchValue1));
+    m_dumpFile.read((char*)&m_searchValue2, sizeof(m_searchValue2));
+    m_dumpFile.read((char*)&m_heapBase, sizeof(m_heapBase));
+  }
+}
+
+int MemoryDump::clear() {
   m_addresses.clear();
   m_addressCnt = 0;
+  
+  m_dumpFile.close();
+
+  return remove(m_fileLocation.c_str());
 }

@@ -34,7 +34,7 @@ private:
 
   u8 m_selectedEntry = 0;
   
-  searchValue_t m_searchValue;
+  searchValue_t m_searchValue1, m_searchValue2;
   enum { FORMAT_DEC, FORMAT_HEX } m_searchValueFormat = FORMAT_DEC;
 
   enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;

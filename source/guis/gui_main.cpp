@@ -108,7 +108,7 @@ void GuiMain::draw() {
         if (y == 320 || title.first == (--Title::g_titles.end())->first)
           Gui::drawShadow(x - xOffset, y, 256, 256);
         
-        if (title.first == Gui::g_runningTitleID) {
+        if (title.first == Title::g_activeTitle) {
           Gui::drawRectangled(x - xOffset, y, 256, 256, Gui::makeColor(0x30, 0x30, 0x30, 0xA0));
           Gui::drawTextAligned(fontTitle, x - xOffset + 245, y + 250, currTheme.selectedColor, "\uE12C", ALIGNED_RIGHT);
         }
@@ -149,7 +149,7 @@ void GuiMain::draw() {
       if (ConfigParser::g_betaTitles[m_selected.titleId])
         Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
-      if (m_selected.titleId == Gui::g_runningTitleID) {
+      if (m_selected.titleId == Title::g_activeTitle) {
         Gui::drawRectangled(selectedX, selectedY, 256, 256, Gui::makeColor(0x30, 0x30, 0x30, 0xA0));
         Gui::drawTextAligned(fontTitle, selectedX + 245, selectedY + 250, currTheme.selectedColor, "\uE12C", ALIGNED_RIGHT);
       }
@@ -225,7 +225,7 @@ void GuiMain::onInput(u32 kdown) {
     }
 
     if (kdown & KEY_A) {
-      if (m_selected.titleId == Gui::g_runningTitleID) {
+      if (m_selected.titleId == Title::g_activeTitle) {
         (new Snackbar("The save files of a running game cannot be accessed."))->show();
         return;
       }
@@ -251,7 +251,7 @@ void GuiMain::onInput(u32 kdown) {
     }
 
     if (kdown & KEY_X) {
-      if (m_selected.titleId == Gui::g_runningTitleID) {
+      if (m_selected.titleId == Title::g_activeTitle) {
         (new Snackbar("The save files of a running game cannot be accessed."))->show();
         return;
       }
@@ -389,7 +389,7 @@ void GuiMain::onTouch(touchPosition &touch) {
     if (m_editableOnly && title > (m_editableCount - 1)) return;
     
     if (m_selected.titleIndex == title) {
-      if (m_selected.titleId == Gui::g_runningTitleID) {
+      if (m_selected.titleId == Title::g_activeTitle) {
         (new Snackbar("The save files of a running game cannot be accessed."))->show();
         return;
       }

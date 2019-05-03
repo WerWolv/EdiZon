@@ -11,6 +11,8 @@ public:
   static inline Account *g_currAccount = nullptr;
   static inline std::unordered_map<u128, Account*> g_accounts;
 
+  static inline u128 g_activeUser = 0;
+
   Account(u128 userID);
   ~Account();
 

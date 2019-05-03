@@ -3,8 +3,8 @@
 #include <iterator>
 #include <cstring>
 
-MemoryDump::MemoryDump(std::string fileLocation, u64 heapBase, searchValue_t searchValue, searchType_t searchType, searchRegion_t searchRegion, bool discard) 
- : m_fileLocation(fileLocation), m_heapBase(heapBase), m_searchValue(searchValue), m_searchType(searchType), m_searchRegion(searchRegion)
+MemoryDump::MemoryDump(std::string fileLocation, u64& heapBase, searchValue_t& searchValue1, searchValue_t& searchValue2, searchType_t& searchType, searchRegion_t& searchRegion, bool discard) 
+ : m_fileLocation(fileLocation), m_heapBase(heapBase), m_searchValue1(searchValue1), m_searchValue2(searchValue2), m_searchType(searchType), m_searchRegion(searchRegion)
 {
   s64 dumpFileSize = 0;
   
@@ -17,7 +17,7 @@ MemoryDump::MemoryDump(std::string fileLocation, u64 heapBase, searchValue_t sea
 
   m_dumpFile.open(fileLocation, std::ios::in | std::ios::out | std::ios::ate);
   dumpFileSize = m_dumpFile.tellg();
-  printf("%d\n", dumpFileSize);
+
   if (dumpFileSize == 0)
     MemoryDump::flush();
   else {
@@ -26,7 +26,8 @@ MemoryDump::MemoryDump(std::string fileLocation, u64 heapBase, searchValue_t sea
     m_dumpFile.read((char*)&m_addressCnt, sizeof(size_t));
     m_dumpFile.read((char*)&m_searchType, sizeof(m_searchType));
     m_dumpFile.read((char*)&m_searchRegion, sizeof(m_searchRegion));
-    m_dumpFile.read((char*)&m_searchValue, sizeof(m_searchValue));
+    m_dumpFile.read((char*)&m_searchValue1, sizeof(m_searchValue1));
+    m_dumpFile.read((char*)&m_searchValue2, sizeof(m_searchValue2));
     m_dumpFile.read((char*)&m_heapBase, sizeof(m_heapBase));
   }
   m_addresses.reserve(0x100000);
@@ -53,7 +54,8 @@ void MemoryDump::flush() {
     m_dumpFile.write((char*)&m_addressCnt, sizeof(size_t));
     m_dumpFile.write((char*)&m_searchType, sizeof(m_searchType));
     m_dumpFile.write((char*)&m_searchRegion, sizeof(m_searchRegion));
-    m_dumpFile.write((char*)&m_searchValue, sizeof(m_searchValue));
+    m_dumpFile.write((char*)&m_searchValue1, sizeof(m_searchValue1));
+    m_dumpFile.write((char*)&m_searchValue2, sizeof(m_searchValue2));
     m_dumpFile.write((char*)&m_heapBase, sizeof(m_heapBase));
     m_dumpFile.flush();
   } else {
@@ -74,7 +76,7 @@ ramAddr_t MemoryDump::getAddress(u32 index) {
     MemoryDump::flush();
 
   ramAddr_t addr = { 0 };
-  m_dumpFile.seekg(0x20 + sizeof(ramAddr_t) * index);
+  m_dumpFile.seekg(0x28 + sizeof(ramAddr_t) * index);
   m_dumpFile.read((char*)&addr, sizeof(ramAddr_t));
   return addr;
 }
@@ -88,10 +90,10 @@ std::vector<ramAddr_t>::iterator MemoryDump::getAddressIterator() {
 }
 
 void MemoryDump::clearAddresses() {
-  char buffer[0x20];
+  char buffer[0x28];
 
   m_dumpFile.seekg(0, m_dumpFile.beg);
-  m_dumpFile.read(buffer, 0x20);
+  m_dumpFile.read(buffer, 0x28);
   std::memset(buffer, 0x00, 8);
 
   m_dumpFile.close();
@@ -101,7 +103,7 @@ void MemoryDump::clearAddresses() {
   m_dumpFile.open(m_fileLocation, std::ios::in | std::ios::out | std::ios::ate);
 
   m_dumpFile.seekg(0, m_dumpFile.beg);
-  m_dumpFile.write(buffer, 0x20);
+  m_dumpFile.write(buffer, 0x28);
 
   m_addresses.clear();
   m_addressCnt = 0;
@@ -114,12 +116,12 @@ void MemoryDump::setSearchValue(searchValue_t searchValue) {
 }
 
 
-s64 MemoryDump::size() {
+size_t MemoryDump::size() {
   return m_addressCnt;
 }
 
 void MemoryDump::clear() {
-  std::remove(m_fileLocation.c_str());
+  remove(m_fileLocation.c_str());
   m_addresses.clear();
   m_addressCnt = 0;
 }

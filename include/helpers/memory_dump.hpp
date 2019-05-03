@@ -12,7 +12,7 @@ extern "C" {
 
 class MemoryDump {
 public:
-  explicit MemoryDump(std::string fileLocation, u64 heapBase, searchValue_t searchValue, searchType_t searchType, searchRegion_t searchRegion, bool discard);
+  explicit MemoryDump(std::string fileLocation, u64& heapBase, searchValue_t& searchValue1, searchValue_t& searchValue2, searchType_t& searchType, searchRegion_t& searchRegion, bool discard);
   ~MemoryDump();
 
   void pushAddress(ramAddr_t addr);
@@ -25,11 +25,15 @@ public:
 
   ramAddr_t operator[](u32 index);
 
-  s64 size();
+  size_t size();
   void clear();
 
-  inline searchValue_t getSearchValue() {
-    return m_searchValue;
+  inline searchValue_t getSearchValue1() {
+    return m_searchValue1;
+  }
+
+  inline searchValue_t getSearchValue2() {
+    return m_searchValue2;
   }
 
   inline searchType_t getSearchType() {
@@ -40,6 +44,10 @@ public:
     return m_searchRegion;
   }
 
+  inline u64 getHeapBase() {
+    return m_heapBase;
+  }
+
 private:
   std::vector<ramAddr_t> m_addresses;
   size_t m_addressCnt;
@@ -48,7 +56,7 @@ private:
   std::string m_fileLocation;
   u64 m_heapBase = 0x00;
 
-  searchValue_t m_searchValue;
+  searchValue_t m_searchValue1, m_searchValue2;
   searchType_t m_searchType;
   searchRegion_t m_searchRegion;
 };

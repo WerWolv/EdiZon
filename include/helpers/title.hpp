@@ -14,6 +14,8 @@ public:
   static inline Title *g_currTitle;
   static inline std::map<u64, Title*> g_titles;
 
+  static inline u64 g_activeTitle = 0;
+
   Title(FsSaveDataInfo& saveInfo);
   ~Title();
 

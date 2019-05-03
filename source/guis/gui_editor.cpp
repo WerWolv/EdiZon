@@ -31,7 +31,7 @@ GuiEditor::GuiEditor() : Gui() {
 
   m_dominantColor = Gui::makeColor(0xA0, 0xA0, 0xA0, 0xFF);
 
-  if (Title::g_currTitle->getTitleID()  == Gui::g_runningTitleID) {
+  if (Title::g_currTitle->getTitleID() == Title::g_activeTitle) {
     Title *nextTitle = nullptr;
     bool isCurrTitle = false;
 

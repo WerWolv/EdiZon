@@ -125,9 +125,15 @@ void serviceInitialize() {
   ledInit();
 
   u64 pid = 0;
-  pmdmntGetApplicationPid(&pid);
-  pminfoGetTitleId(&Gui::g_runningTitleID, pid);
+  u128 activeUser;
+  bool accountSelected;
 
+  pmdmntGetApplicationPid(&pid);
+  pminfoGetTitleId(&Title::g_activeTitle, pid);
+  accountGetActiveUser(&activeUser, &accountSelected);
+
+  if (accountSelected)
+    Account::g_activeUser = activeUser;
 }
 
 void serviceExit() {
@@ -190,7 +196,7 @@ int main(int argc, char** argv) {
   if (isServiceRunning("tx") && !isServiceRunning("rnx") && access("/switch/EdiZon/.hide_sxos", F_OK) == -1)
     Gui::g_nextGui = GUI_TX_WARNING;
 
-  if (access("/switch/EdiZon/memdump.dat", F_OK) != -1)
+  if (access("/switch/EdiZon/memdump.dat", F_OK) == 0)
     Gui::g_nextGui = GUI_CHEATS;
 
   g_edizonPath = new char[strlen(argv[0]) + 1];

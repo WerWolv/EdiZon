@@ -45,7 +45,7 @@ SOURCES		:=	source source/widgets source/guis source/scripting source/ui_element
 DATA		:=	data
 INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include
 EXEFS_SRC	:=	exefs_src
-ROMFS		:=	romfs
+#ROMFS		:=	romfs
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -151,14 +151,14 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-PC   = ${pc}
-BASE = ${b}
-ADDR = $(shell echo $(PC)-$(BASE) | bc)
+PC   = $(shell printf "%d" ${pc})
+BASE = $(shell printf "%d" ${b})
+ADDR = $(shell printf "%x" $(shell echo $(PC)-$(BASE) | bc))
 
 .PHONY: $(BUILD) clean all run errline $(ROMFS)
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(BUILD) $(ROMFS)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@ $(BUILD) $(OUTDIR)
@@ -176,7 +176,7 @@ clean:
 
 #---------------------------------------------------------------------------------
 errline:
-	@aarch64-none-elf-addr2line -e $(OUTPUT).elf -f -p -C -a $(ADDR)
+	@aarch64-none-elf-addr2line -e $(OUTPUT).elf -f -p -C -a 0x$(ADDR)
 
 #---------------------------------------------------------------------------------
 else
@@ -194,7 +194,7 @@ $(OUTPUT).pfs0	:	$(OUTPUT).nso
 $(OUTPUT).nso	:	$(OUTPUT).elf
 
 ifeq ($(strip $(NO_NACP)),)
-$(OUTPUT).nro	:	$(OUTPUT).elf $(ROMFS) $(OUTPUT).nacp
+$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
 else
 $(OUTPUT).nro	:	$(OUTPUT).elf
 endif

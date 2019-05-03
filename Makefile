@@ -151,7 +151,11 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all run $(ROMFS)
+PC   = ${pc}
+BASE = ${b}
+ADDR = $(shell echo $(PC)-$(BASE) | bc)
+
+.PHONY: $(BUILD) clean all run errline $(ROMFS)
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
@@ -163,7 +167,7 @@ $(BUILD):
 #--------------------------------------------------------------------------------
 run: $(BUILD)
 	@echo Starting nxlink
-	@nxlink $(OUTPUT).nro -s -p "EdiZon/EdiZon.nro" -a 192.168.1.110
+	@nxlink $(OUTPUT).nro -s -a 192.168.1.120 -p "EdiZon/EdiZon.nro"
 	
 #---------------------------------------------------------------------------------
 clean:
@@ -171,8 +175,12 @@ clean:
 	@rm -fr $(BUILD) $(OUTDIR)
 
 #---------------------------------------------------------------------------------
+errline:
+	@aarch64-none-elf-addr2line -e $(OUTPUT).elf -f -p -C -a $(ADDR)
+
+#---------------------------------------------------------------------------------
 else
-.PHONY:	all $(ROMFS)
+.PHONY:	all
 
 DEPENDS	:=	$(OFILES:.o=.d)
 

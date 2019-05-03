@@ -58,8 +58,8 @@ typedef struct {
 
 typedef struct{
   u64 addr;
-  MemoryType type;
-} ramAddr_t;
+  u8 type;
+} PACKED ramAddr_t;
 
   typedef union { 
   u8 _u8;

@@ -583,7 +583,6 @@ void GuiRAMEditor::onInput(u32 kdown) {
 
               std::stringstream ss;
               for (u32 i = 7; i < m_foundAddresses->size(); i++) {
-                printf("Start\n");
                 ss.str("");
                 ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << m_foundAddresses->getAddress(i).addr;
 
@@ -766,22 +765,34 @@ void GuiRAMEditor::onInput(u32 kdown) {
             } else {
               switch(m_searchType) {
                 case SEARCH_TYPE_UNSIGNED_8BIT:
+                  m_searchValue1._u8 = static_cast<u8>(std::stoul(str, nullptr, 0));
+                  break;
                 case SEARCH_TYPE_UNSIGNED_16BIT:
+                  m_searchValue1._u16 = static_cast<u16>(std::stoul(str, nullptr, 0));
+                  break;
                 case SEARCH_TYPE_UNSIGNED_32BIT:
+                  m_searchValue1._u32 = static_cast<u32>(std::stoul(str, nullptr, 0));
+                  break;
                 case SEARCH_TYPE_UNSIGNED_64BIT:
                   m_searchValue1._u64 = static_cast<u64>(std::stoul(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_SIGNED_8BIT:
+                  m_searchValue1._s8 = static_cast<s8>(std::stol(str, nullptr, 0));
+                  break;
                 case SEARCH_TYPE_SIGNED_16BIT:
+                  m_searchValue1._s16 = static_cast<s16>(std::stol(str, nullptr, 0));
+                  break;
                 case SEARCH_TYPE_SIGNED_32BIT:
+                  m_searchValue1._s32 = static_cast<s32>(std::stol(str, nullptr, 0));
+                  break;
                 case SEARCH_TYPE_SIGNED_64BIT:
                   m_searchValue1._s64 = static_cast<s64>(std::stol(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_FLOAT_32BIT:
-                  m_searchValue1._f32 = std::stof(str);
+                  m_searchValue1._f32 = static_cast<float>(std::stof(str));
                   break;
                 case SEARCH_TYPE_FLOAT_64BIT:
-                  m_searchValue1._f64 = std::stod(str);
+                  m_searchValue1._f64 = static_cast<double>(std::stod(str));
                   break;
                 case SEARCH_TYPE_POINTER:
                   m_searchValue1._u64 = static_cast<u64>(std::stol(str));
@@ -982,6 +993,7 @@ std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searc
 
 void GuiRAMEditor::searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump *foundAddrs, std::vector<MemoryInfo> memInfos) {
   bool ledOn = false;
+
   for (MemoryInfo meminfo : memInfos) {
     if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
      continue;
@@ -1008,47 +1020,61 @@ void GuiRAMEditor::searchMemoryBegin(Debugger *debugger, searchValue_t searchVal
       debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
 
       searchValue_t realValue = { 0 };
-      for (u64 i = 0; i < bufferSize; i += dataTypeSizes[searchType]) {
+      for (u32 i = 0; i < bufferSize; i += dataTypeSizes[searchType]) {
         memset(&realValue, 0, 8);
         memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
 
         switch(searchMode) {
           case SEARCH_MODE_EQ:
             if (realValue._s64 == searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
             break;
           case SEARCH_MODE_NEQ:
             if (realValue._s64 != searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
             break;
           case SEARCH_MODE_GT:
-            if (realValue._s64 > searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+            if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
+              if (realValue._s64 > searchValue1._s64) {
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+              }
+            } else {
+              if (realValue._u64 > searchValue1._u64) {
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+              }
+            }
             break;
           case SEARCH_MODE_GTE:
-            if (realValue._s64 >= searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+            if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
+              if (realValue._s64 >= searchValue1._s64)
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+            } else {
+              if (realValue._u64 >= searchValue1._u64)
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+            }
             break;
           case SEARCH_MODE_LT:
-            if (realValue._s64 < searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+            if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
+              if (realValue._s64 < searchValue1._s64)
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+            } else {
+              if (realValue._u64 < searchValue1._u64)
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+            }
             break;
           case SEARCH_MODE_LTE:
-            if (realValue._s64 <= searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+            if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
+              if (realValue._s64 <= searchValue1._s64)
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+            } else {
+              if (realValue._u64 <= searchValue1._u64)
+                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+            }
             break;
           case SEARCH_MODE_RANGE:
             if (realValue._s64 >= searchValue1._s64 && realValue._s64 <= searchValue2._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
+              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
             break;
-
-          case SEARCH_MODE_SAME: [[fallthrough]]
-          case SEARCH_MODE_DIFF: [[fallthrough]]
-          case SEARCH_MODE_INC:  [[fallthrough]]
-          case SEARCH_MODE_DEC:
-            foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (MemoryType) meminfo.type });
-            break;
-          case SEARCH_MODE_NONE: break;
         }
       }
 

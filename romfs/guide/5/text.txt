@@ -1,10 +1,11 @@
-For a game save file to be editable, somebody has to make a config/script for it. If you're 
-lucky and your game is supported, editing it is very straight forward. 
- 
-First of all to find out which ones of your currently installed games are editable, press the 
-(ZL) button in the EdiZon main menu. In this mode only games that have a config installed will 
-get shown. To edit a save file now, select the game in this list as if you wanted to backup it's 
-save file. In the new menu, press the (-) button and select the save file you want to edit. 
-The editor will now pop up where you can edit all the values shown to you. 
+There are two different types of multi-save backups. 
 
-Make your changes and once you're done, press the (X) button to apply the changed values.
+The first one will create a backup containing all save files of all users for one specific 
+game. To do this hover over a game's icon in EdiZon's main menu and press the (X) button. 
+The keyboard will pop up asking you for a name for the backup. After entering the save files 
+will get copied to /switch/EdiZon/batch. 
+ 
+The second type is called a batch backup. It will create a backup of all save files on the system. 
+This can be done by holding down the (ZR) button while pressing the (X) button in the EdiZon 
+main menu. A warning will pop up and after accepting, the save files will be copied into 
+/switch/EdiZon/batch.

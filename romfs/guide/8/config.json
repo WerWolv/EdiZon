@@ -1,0 +1,23 @@
+{
+	"images" : [
+		{
+			"title" : "Save file selection",
+			"path" : "editor1.bin",
+			"x" : 100,
+			"y" : 216,
+			"w" : 512,
+			"h" : 288
+		},
+		{
+			"title" : "Editor screen",
+			"path" : "editor2.bin",
+			"x" : 668,
+			"y" : 216,
+			"w" : 512,
+			"h" : 288
+		}
+	],
+	"text" : [
+
+	]
+}

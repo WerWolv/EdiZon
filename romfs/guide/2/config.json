@@ -1,20 +1,18 @@
 {
 	"images" : [
-		{
-			"title" : "",
-			"path" : "banner.bin",
-			"x" : 0,
-			"y" : 142,
-			"w" : 1280,
-			"h" : 256
-		}
 	],
 	"text" : [
 		{
-			"title" : "Introduction",
-			"path" : "text.txt",
+			"title" : "Built-in updater",
+			"path" : "auto_updater.txt",
 			"x" : 50,
-			"y" : 420
+			"y" : 100
+		},
+		{
+			"title" : "Debug logging",
+			"path" : "debug_logs.txt",
+			"x" : 50,
+			"y" : 300
 		}
 	]
 }

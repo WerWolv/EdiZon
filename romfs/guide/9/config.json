@@ -1,0 +1,23 @@
+{
+	"images" : [
+		{
+			"title" : "Edited save file values",
+			"path" : "editor1.bin",
+			"x" : 100,
+			"y" : 216,
+			"w" : 512,
+			"h" : 288
+		},
+		{
+			"title" : "Inject changes",
+			"path" : "editor2.bin",
+			"x" : 668,
+			"y" : 216,
+			"w" : 512,
+			"h" : 288
+		}
+	],
+	"text" : [
+
+	]
+}

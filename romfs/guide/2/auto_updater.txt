@@ -1,0 +1,3 @@
+EdiZon has a built-in auto-updater. To use it make sure that the console is connected to the internet
+and then press the (-) button in the main menu. This will download the latest EdiZon version and all
+latest save editor configs and cheats from the database

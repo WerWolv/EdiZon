@@ -1,0 +1,10 @@
+For a game save file to be editable, somebody has to make a config/script for it. If you're 
+lucky and your game is supported, editing it is very straight forward. 
+ 
+First of all to find out which ones of your currently installed games are editable, press the 
+(ZL) button in the EdiZon main menu. In this mode only games that have a config installed will 
+get shown. To edit a save file now, select the game in this list as if you wanted to backup it's 
+save file. In the new menu, press the (-) button and select the save file you want to edit. 
+The editor will now pop up where you can edit all the values shown to you. 
+
+Make your changes and once you're done, press the (X) button to apply the changed values.

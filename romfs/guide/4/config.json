@@ -1,20 +1,28 @@
 {
 	"images" : [
 		{
-			"title" : "",
-			"path" : "banner.bin",
-			"x" : 0,
-			"y" : 142,
-			"w" : 1280,
-			"h" : 256
+			"title" : "Main menu",
+			"path" : "homemenu.bin",
+			"x" : 100,
+			"y" : 325,
+			"w" : 512,
+			"h" : 288
+		},
+		{
+			"title" : "Save uploading",
+			"path" : "save_upload.bin",
+			"x" : 650,
+			"y" : 325,
+			"w" : 512,
+			"h" : 288
 		}
 	],
 	"text" : [
 		{
-			"title" : "Introduction",
+			"title" : "How to create a save file backup?",
 			"path" : "text.txt",
 			"x" : 50,
-			"y" : 420
+			"y" : 100
 		}
 	]
 }

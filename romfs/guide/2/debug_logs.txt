@@ -1,0 +1,4 @@
+If you experience any issues or if you're a save editor developer it's possible to get some
+debug output from EdiZon. The easiest way to do this is by using nxlink which comes with the
+devkitpro toolchain. Alternatively you can create a file called EdiZon.log in the /switch/EdiZon
+folder on your SD card to redirect all console output into that file.

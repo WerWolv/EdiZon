@@ -1,17 +1,6 @@
-The different kinds of editable values are Number, On-Off-Switch, Text, List, Button and Comment.
+EdiZon features a integrated and easily expandable save file editor based on user-made script files. 
+At this time more than thirty different games are supported and can be edited at any time without 
+the need for a computer. The most noticable ones include The Legend of Zelda: Breath of the Wild, 
+Super Mario Odyssey, Super Smash Bros Ultimate and New Super Mario Bros. U Deluxe. 
  
-Number values can be changed using the left and right dpad buttons. To enter a value using the
-keyboard, use the (A) button. To increase the step size multiplier, press the right stick button. 
-
-On-off-Switches can be either enabled or disabled by selecting them and pressing the (A) button. 
-
-Text values allow you to enter your own text using the keyboard. Press the (A) button to open it. 
-
-Lists allow you to choose from a preselected list of values to set the value to. Press the (A) button
-to open the list and press the (A) button again to confirm your choice. 
-
-Buttons allow for custom one-time options to be executed. Be aware that these are often not resetable.
-Press the (A) button to execute the underlying command. 
-
-Comments are there just to help you. When pressing the (A) button, the entire text will be displayed
-in a popup window.
+Thanks a lot to the awesome community who developed all of these scripts!

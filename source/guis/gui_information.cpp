@@ -12,26 +12,36 @@ GuiInformation::GuiInformation() : Gui() {
 
   for (auto image : configJson["images"]) {
     std::ifstream data("romfs:/guide/" + std::to_string(g_selectedPage) + "/" + image["path"].get<std::string>(), std::ios::binary | std::ios::ate);
-    guide_obj_t imageObj = { .x = image["x"], .y = image["y"], .w = image["w"], .h = image["h"], .type = guide_obj_t::TYPE_IMAGE };
+    GuiInformation::guide_obj_t imageObj = { 0 };
 
     imageObj.length = data.tellg();
     imageObj.data = new char[imageObj.length];
+    imageObj.x = image["x"];
+    imageObj.y = image["y"];
+    imageObj.w = image["w"];
+    imageObj.h = image["h"];
+    imageObj.title = image["title"];
+    imageObj.type = GuiInformation::guide_obj_t::TYPE_IMAGE;
+
     data.seekg(0, std::ios::beg);
     
     data.read(imageObj.data, imageObj.length);
     data.close();
 
-    imageObj.title = image["title"];
 
     m_objects.push_back(imageObj);
   }
 
   for (auto text : configJson["text"]) {
     std::ifstream data("romfs:/guide/" + std::to_string(g_selectedPage) + "/" + text["path"].get<std::string>(), std::ios::ate);
-    guide_obj_t textObj = { .x = text["x"], .y = text["y"], .type = guide_obj_t::TYPE_TEXT };
+    GuiInformation::guide_obj_t textObj = { 0 };
 
     textObj.length = data.tellg();
     textObj.data = new char[textObj.length + 1]();
+    textObj.x = text["x"];
+    textObj.y = text["y"];
+    textObj.type = GuiInformation::guide_obj_t::TYPE_TEXT;
+
     data.seekg(0, std::ios::beg);
     
     data.read(textObj.data, textObj.length);
@@ -44,7 +54,7 @@ GuiInformation::GuiInformation() : Gui() {
 }
 
 GuiInformation::~GuiInformation() {
-  for (guide_obj_t obj : m_objects) {
+  for (GuiInformation::guide_obj_t obj : m_objects) {
     delete[] obj.data;
   }
 }
@@ -73,8 +83,8 @@ void GuiInformation::draw() {
   if (GuiInformation::g_selectedPage == GUIDE_PAGE_CNT)
     Gui::drawRectangled(1000, Gui::g_framebuffer_height - 50, 110, 50, darkened);
 
-  for (guide_obj_t obj : m_objects) {
-    if (obj.type == guide_obj_t::TYPE_TEXT) {
+  for (GuiInformation::guide_obj_t obj : m_objects) {
+    if (obj.type == GuiInformation::guide_obj_t::TYPE_TEXT) {
       Gui::drawTextAligned(font24, obj.x, obj.y, currTheme.textColor, obj.title.c_str(), ALIGNED_LEFT);
       Gui::drawTextAligned(font24, obj.x + 1, obj.y, currTheme.textColor, obj.title.c_str(), ALIGNED_LEFT);
 

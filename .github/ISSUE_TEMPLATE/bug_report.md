@@ -1,20 +1,16 @@
----
-name: Bug report
-about: Create a report to help us improve
+## Bug report
 
----
+### What happened?
+  `Your text here`
 
-**Describe the bug**
-A clear and concise description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior:
-
-**Expected behavior**
-A clear and concise description of what you expected to happen.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Additional context**
-Add any other context about the problem here.
+### What should have happened?
+  `Your text here`
+  
+### What version of EdiZon were you using?
+  `EdiZon vX.X.X`
+  
+### Screenshot of fatal screen, if it occured
+  `Fatal screenshot here`
+  
+### Additional context
+  `Your text here`

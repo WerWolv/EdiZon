@@ -15,60 +15,18 @@ extern "C" {
 
 const char* SAVE_FILE_DIR = "/switch/EdiZon/";
 
-s32 deleteDirRecursively(const char *path, bool isSave) {
-  DIR *d = opendir(path);
-     size_t path_len = strlen(path);
-     s32 r = -1;
+Result deleteDirRecursively(const char *path, u64 titleID, u128 userID) {
+  Result rc;
 
-     if (d) {
-        struct dirent *p;
+  if (titleID != 0 && userID != 0) {
+    FsFileSystem saveFs;
+    mountSaveByTitleAccountIDs(titleID, userID, saveFs);
+    rc = fsFsDeleteDirectoryRecursively(&saveFs, path);
+    fsdevUnmountDevice(SAVE_DEV);
+  } else
+    rc = fsFsDeleteDirectoryRecursively(fsdevGetDefaultFileSystem(), path);
 
-        r = 0;
-
-        while (!r && (p=readdir(d))) {
-            s32 r2 = -1;
-            char *buf;
-            size_t len;
-
-            /* Skip the names "." and ".." as we don't want to recurse on them. */
-            if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, "..")) {
-               continue;
-            }
-
-            len = path_len + strlen(p->d_name) + 2;
-            buf = new char[len];
-
-            if (buf) {
-               struct stat statbuf;
-
-               snprintf(buf, len, "%s/%s", path, p->d_name);
-
-               if (!stat(buf, &statbuf)) {
-                  if (S_ISDIR(statbuf.st_mode))
-                     r2 = deleteDirRecursively(buf, isSave);
-                  else
-                     r2 = unlink(buf);
-               }
-
-               delete[] buf;
-            }
-
-            r = r2;
-        }
-
-        closedir(d);
-     }
-
-     if (!r)
-        r = rmdir(path);
-
-
-     if (isSave && R_FAILED(fsdevCommitDevice(SAVE_DEV))) {
-       printf("Committing failed.\n");
-       return -3;
-     }
-
-     return r;
+  return rc;
 }
 
 bool doesFolderExist(const char *path) {
@@ -354,7 +312,7 @@ s32 restoreSave(u64 titleID, u128 userID, const char* path) {
     return 2;
   }
 
-  res = deleteDirRecursively("save:/", true);
+  res = deleteDirRecursively("save:/", titleID, userID);
 
   if (!res) {
     printf("Deleting save:/ failed: %d.\n", res);

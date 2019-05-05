@@ -73,8 +73,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
     return;
   }
 
-  m_titleIcon.reserve(imagesize);
-  memcpy(&m_titleIcon[0], ptr, imagesize);
+  memcpy(m_titleIcon, ptr, imagesize);
   ptr = nullptr;
 
   njDone();
@@ -97,7 +96,7 @@ std::string Title::getTitleVersion() {
 }
 
 u8* Title::getTitleIcon() {
-  return &m_titleIcon[0];
+  return m_titleIcon;
 }
 
 u64 Title::getTitleID() {

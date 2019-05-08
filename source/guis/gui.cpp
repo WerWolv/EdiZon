@@ -423,6 +423,8 @@ void Gui::drawImage(s16 x, s16 y, s16 width, s16 height, const u8 *image, ImageM
   s32 pos;
   color_t current_color;
 
+  if (image == nullptr) return;
+
   for (tmpy = 0; tmpy < height; tmpy++) {
     for (tmpx = 0; tmpx < width; tmpx++) {
       switch (mode) {
@@ -453,6 +455,8 @@ void Gui::drawImage(s16 x, s16 y, s16 startx, s16 starty, s16 width, s16 height,
   s32 tmpx, tmpy;
   s32 pos;
   color_t current_color;
+
+  if (image == nullptr) return;
 
   for (tmpy = startx; tmpy < height; tmpy++) {
     for (tmpx = starty; tmpx < width; tmpx++) {

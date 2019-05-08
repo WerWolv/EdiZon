@@ -9,10 +9,6 @@
 
 using json = nlohmann::json;
 
-extern "C" {
-  #include "nanojpeg.h"
-}
-
 const char* SAVE_FILE_DIR = "/switch/EdiZon/";
 
 Result deleteDirRecursively(const char *path, u64 titleID, u128 userID) {

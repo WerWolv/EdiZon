@@ -7,9 +7,7 @@
 #include <bits/stdc++.h>
 #include <thread>
 
-extern "C" {
-  #include "helpers/util.h"
-}
+#include "helpers/util.h"
 
 #include "edizon_logo_bin.h"
 
@@ -29,13 +27,13 @@ std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searc
 
 GuiRAMEditor::GuiRAMEditor() : Gui() {
   
-  m_sysmodulePresent = isServiceRunning("dmnt:cht");
+  m_sysmodulePresent = true;
   m_debugger = new Debugger(m_sysmodulePresent);
   m_cheats = nullptr;
-  m_foundAddresses = nullptr;
+  m_memoryDump = nullptr;
 
-  m_searchValue1._u64 = 0;
-  m_searchValue2._u64 = 0;
+  m_searchValue[0]._u64 = 0;
+  m_searchValue[1]._u64 = 0;
   m_searchType = SEARCH_TYPE_NONE;
   m_searchMode = SEARCH_MODE_NONE;
   m_searchRegion = SEARCH_REGION_NONE;
@@ -51,7 +49,11 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
     m_addressSpaceBaseAddr = metadata.address_space_extents.base;
     m_heapBaseAddr = metadata.heap_extents.base;
-    m_codeBaseAddr = metadata.main_nso_extents.base;
+    m_mainBaseAddr = metadata.main_nso_extents.base;
+
+    m_heapSize = metadata.heap_extents.size;
+    m_mainSize = metadata.main_nso_extents.size;
+
     memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
 
     u64 cheatCnt = 0;
@@ -93,8 +95,8 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   m_debugger->continueProcess();
 
   for (MemoryInfo meminfo : m_memoryInfo) {
-    if (m_codeBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic))
-      m_codeBaseAddr = meminfo.addr;
+    if (m_mainBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic))
+      m_mainBaseAddr = meminfo.addr;
 
     for (u64 addrOffset = meminfo.addr; addrOffset < meminfo.addr + meminfo.size; addrOffset += 0x20000000) {
       switch(meminfo.type) {
@@ -110,27 +112,20 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
     }
   }
 
-  m_foundAddresses = new MemoryDump("/switch/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue1, m_searchValue2, m_searchType, m_searchRegion, false);
-  
-  if (m_debugger->getRunningApplicationPID() == 0 || m_heapBaseAddr != m_foundAddresses->getHeapBase()) {
-    if (m_foundAddresses->clear() == 0) {
-      Gui::g_nextGui = GUI_MAIN;
-    }
-    
-    return;
+  m_memoryDump = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::UNDEFINED, false);
+  m_memoryDump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
 
-    m_foundAddresses->initFile(true);
-  }
-
-  if (access("/switch/EdiZon/memdump.dat", F_OK) == 0) {
-    m_searchType = m_foundAddresses->getSearchType();
-    m_searchValue1 = m_foundAddresses->getSearchValue1();
-    m_searchValue2 = m_foundAddresses->getSearchValue2();
-    m_searchRegion = m_foundAddresses->getSearchRegion();
+  if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr) {
+    m_memoryDump->clear();
+  } else {
+    m_searchType = m_memoryDump->getDumpInfo().searchDataType;
+    m_searchRegion = m_memoryDump->getDumpInfo().searchRegion;
+    m_searchValue[0] = m_memoryDump->getDumpInfo().searchValue[0];
+    m_searchValue[1] = m_memoryDump->getDumpInfo().searchValue[1];
   }
   
   std::stringstream ss;
-  if (Title::g_titles[m_debugger->getRunningApplicationTID()] != nullptr) {
+  if (m_debugger->getRunningApplicationTID() != 0) {
     if (Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName().length() < 24)
       ss << Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName();
     else
@@ -159,7 +154,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
 
   if (m_cheatCnt == 0)
     m_menuLocation = CANDIDATES;
-  if (m_foundAddresses->size() == 0)
+  if (m_memoryDump->size() == 0)
     m_menuLocation = CHEATS;
 
   appletSetMediaPlaybackState(true);
@@ -172,17 +167,17 @@ GuiRAMEditor::~GuiRAMEditor() {
     delete m_debugger;
   }
 
-  if (m_foundAddresses != nullptr)
-    delete m_foundAddresses;
+  if (m_memoryDump != nullptr)
+    delete m_memoryDump;
 
   if (m_cheats != nullptr)
     delete[] m_cheats;
 
   if (m_sysmodulePresent) {
-    amspmdmntExit();
     dmntchtExit();
   }
 
+  setLedState(false);
   appletSetMediaPlaybackState(false);
 }
 
@@ -228,13 +223,13 @@ void GuiRAMEditor::draw() {
     return;
   }
 
-  if (m_foundAddresses->size() == 0) {
+  if (m_memoryDump->size() == 0) {
     if (m_frozenAddresses.size() != 0)
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Frozen es     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
     else
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
   } else {
-    if (m_foundAddresses->size() > 0) {
+    if (m_memoryDump->size() > 0) {
       if (m_sysmodulePresent)
         Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
       else 
@@ -246,7 +241,7 @@ void GuiRAMEditor::draw() {
 
   Gui::drawRectangle(256, 50, Gui::g_framebuffer_width - 256, 206, currTheme.separatorColor);
 
-  if (Title::g_titles[m_debugger->getRunningApplicationTID()] != nullptr)
+  if (m_debugger->getRunningApplicationTID() != 0)
     Gui::drawImage(0, 0, 256, 256, Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleIcon(), IMAGE_MODE_RGB24);
   else 
     Gui::drawRectangle(0, 0, 256, 256, Gui::makeColor(0x00, 0x00, 0xFF, 0xFF));
@@ -271,7 +266,7 @@ void GuiRAMEditor::draw() {
   ss << "HEAP  :  0x" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_heapBaseAddr;
   Gui::drawTextAligned(font14, 900, 105,  currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
-  ss << "MAIN  :  0x" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_codeBaseAddr;
+  ss << "MAIN  :  0x" << std::uppercase << std::setfill('0') << std::setw(16) << std::hex << m_mainBaseAddr;
   Gui::drawTextAligned(font14, 900, 135, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
 
 
@@ -312,42 +307,59 @@ void GuiRAMEditor::draw() {
   }
 
 
-  if (m_foundAddresses->size() != 0) {
-    Gui::drawRectangle(Gui::g_framebuffer_width - 552, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses->size()), 8U) * 40, currTheme.textColor);
-    Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 302, 262, currTheme.backgroundColor, "Found candidates", ALIGNED_CENTER);
-    Gui::drawShadow(Gui::g_framebuffer_width - 552, 256, 500, 46 + std::min(static_cast<u32>(m_foundAddresses->size()), 8U) * 40);
-  }
+  if (m_memoryDump->getDumpInfo().dumpType == DumpType::DATA) {
+    if (m_memoryDump->size() > 0) {
+      Gui::drawRectangle(Gui::g_framebuffer_width - 552, 256, 500, 366, currTheme.textColor);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 302, 262, currTheme.backgroundColor, "Found candidates", ALIGNED_CENTER);
+      Gui::drawShadow(Gui::g_framebuffer_width - 552, 256, 500, 366 * 40);
+      Gui::drawRectangle(Gui::g_framebuffer_width - 550, 300, 496, 320, currTheme.separatorColor);
 
-  for (u8 line = 0; line < 8; line++) {
-    if (line >= m_foundAddresses->size()) break;
-
-    ss.str("");
-
-    if (line < 7 && m_foundAddresses->size() != 8) {
-      if (m_foundAddresses->getAddress(line).type == MemType_Heap)
-        ss << "[ HEAP + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (m_foundAddresses->getAddress(line).addr - m_heapBaseAddr) << " ]";
-      else if (m_foundAddresses->getAddress(line).type == MemType_CodeStatic || m_foundAddresses->getAddress(line).type == MemType_CodeMutable)
-        ss << "[ MAIN + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (m_foundAddresses->getAddress(line).addr - m_codeBaseAddr) << " ]";
-      else
-        ss << "[ BASE + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (m_foundAddresses->getAddress(line).addr - m_addressSpaceBaseAddr) << " ]";
-
-      ss << "  ( " << _getAddressDisplayString(m_foundAddresses->getAddress(line).addr, m_debugger, (searchType_t)m_searchType) << " )";
-
-    if (m_frozenAddresses.find(m_foundAddresses->getAddress(line).addr) != m_frozenAddresses.end())
-      ss << "   \uE130";
+      
+      ss.str("");
+      ss << (static_cast<double>(m_memoryDump->size()) / (0x100000)) << "MB dumped";
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 302, 450, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
     }
-    else 
-      ss << "And " << std::dec << (m_foundAddresses->size() - 8) << " others...";
+  } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
+    if (m_memoryDump->size() > 0) {
+      Gui::drawRectangle(Gui::g_framebuffer_width - 552, 256, 500, 46 + std::min(static_cast<u32>(m_memoryDump->size() / sizeof(u64)), 8U) * 40, currTheme.textColor);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 302, 262, currTheme.backgroundColor, "Found candidates", ALIGNED_CENTER);
+      Gui::drawShadow(Gui::g_framebuffer_width - 552, 256, 500, 46 + std::min(static_cast<u32>(m_memoryDump->size() / sizeof(u64)), 8U) * 40);
+    }
 
-    Gui::drawRectangle(Gui::g_framebuffer_width - 550, 300 + line * 40, 496, 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
-    Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 530, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+    for (u8 line = 0; line < 8; line++) {
+      if (line >= (m_memoryDump->size() / sizeof(u64))) break;
+
+      ss.str("");
+
+      if (line < 7 && (m_memoryDump->size() / sizeof(u64)) != 8) {
+        u64 address = 0;
+        m_memoryDump->getData(line * sizeof(u64), &address, sizeof(u64));
+
+        if (address >= m_memoryDump->getDumpInfo().heapBaseAddress && address < (m_memoryDump->getDumpInfo().heapBaseAddress + m_memoryDump->getDumpInfo().heapSize))
+          ss << "[ HEAP + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_memoryDump->getDumpInfo().heapBaseAddress) << " ]";
+        else if (address >= m_memoryDump->getDumpInfo().mainBaseAddress && address < (m_memoryDump->getDumpInfo().mainBaseAddress + m_memoryDump->getDumpInfo().mainSize))
+          ss << "[ MAIN + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_memoryDump->getDumpInfo().mainBaseAddress) << " ]";
+        else
+          ss << "[ BASE + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_memoryDump->getDumpInfo().addrSpaceBaseAddress) << " ]";
+
+        ss << "  ( " << _getAddressDisplayString(address, m_debugger, (searchType_t)m_searchType) << " )";
+
+      if (m_frozenAddresses.find(address) != m_frozenAddresses.end())
+        ss << "   \uE130";
+      }
+      else 
+        ss << "And " << std::dec << ((m_memoryDump->size() / sizeof(u64)) - 8) << " others...";
+
+      Gui::drawRectangle(Gui::g_framebuffer_width - 550, 300 + line * 40, 496, 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 530, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+    }
   }
 
   Gui::drawShadow(0, 0, Gui::g_framebuffer_width, 256);
   Gui::drawShadow(256, 50, Gui::g_framebuffer_width, 136);
 
   for (u16 x = 0; x < 1024; x++)
-    Gui::drawRectangle(256 + x, 0, 1, 50, m_memory[x]);
+    Gui::drawRectangle(256 + x, 0, 2, 50, m_memory[x]);
 
   drawSearchRAMMenu();
 
@@ -440,9 +452,9 @@ void GuiRAMEditor::drawSearchRAMMenu() {
       //Gui::drawRectangle(300, 250, Gui::g_framebuffer_width - 600, 80, currTheme.separatorColor);
       Gui::drawRectangle(300, 327, Gui::g_framebuffer_width - 600, 3, currTheme.textColor);
       if (m_searchValueFormat == FORMAT_DEC)
-        ss << _getValueDisplayString(m_searchValue1, m_searchType);
+        ss << _getValueDisplayString(m_searchValue[0], m_searchType);
       else if (m_searchValueFormat == FORMAT_HEX)
-        ss << "0x" << std::uppercase << std::hex << m_searchValue1._u64;
+        ss << "0x" << std::uppercase << std::hex << m_searchValue[0]._u64;
 
       Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
       Gui::drawTextAligned(font20, 310, 285, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -481,7 +493,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       return;
     }
     else if (m_searchMenuLocation == SEARCH_TYPE) {
-      if (m_searchType != SEARCH_TYPE_NONE && m_foundAddresses->size() == 0)
+      if (m_searchType != SEARCH_TYPE_NONE && m_memoryDump->size() == 0)
         m_searchType = SEARCH_TYPE_NONE;
       else 
         m_searchMenuLocation = SEARCH_NONE;
@@ -493,7 +505,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
         m_searchMenuLocation = SEARCH_NONE;
     }
     else if (m_searchMenuLocation == SEARCH_REGION) {
-      if (m_searchRegion != SEARCH_REGION_NONE && m_foundAddresses->size() == 0)
+      if (m_searchRegion != SEARCH_REGION_NONE && m_memoryDump->size() == 0)
         m_searchRegion = SEARCH_REGION_NONE;
       else 
         m_searchMenuLocation = SEARCH_NONE;
@@ -517,7 +529,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
       
       if (kdown & KEY_DOWN) {
         if (m_menuLocation == CANDIDATES) {
-          if (m_selectedEntry < 7 && m_selectedEntry < (m_foundAddresses->size() - 1))
+          if (m_selectedEntry < 7 && m_selectedEntry < ((m_memoryDump->size() / sizeof(u64)) - 1))
             m_selectedEntry++;
         } else {
           if (m_selectedEntry < (m_cheatCnt - 1))
@@ -528,7 +540,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
         }
       }
 
-      if (m_foundAddresses->size() > 0) {
+      if (m_memoryDump->size() > 0) {
         if (kdown & KEY_LEFT)
           if (m_cheatCnt > 0) {
             m_menuLocation = CHEATS;
@@ -544,49 +556,55 @@ void GuiRAMEditor::onInput(u32 kdown) {
       }
 
       if (m_menuLocation == CANDIDATES) { /* Candidates menu */
-        if (m_foundAddresses->size() != 0) { 
-          if (kdown & KEY_X && m_sysmodulePresent) {
-            if (!_isAddressFrozen(m_foundAddresses->getAddress(m_selectedEntry).addr)) {
+        if (m_memoryDump->size() > 0) { 
+          if (kdown & KEY_X && m_sysmodulePresent && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
+            u64 address = 0;
+            m_memoryDump->getData(m_selectedEntry * sizeof(u64), &address, sizeof(u64));
+            if (!_isAddressFrozen(address)) {
               u64 outValue;
 
-              if (R_SUCCEEDED(dmntchtEnableFrozenAddress(m_foundAddresses->getAddress(m_selectedEntry).addr, dataTypeSizes[m_searchType], &outValue))) {
+              if (R_SUCCEEDED(dmntchtEnableFrozenAddress(address, dataTypeSizes[m_searchType], &outValue))) {
                 (new Snackbar("Froze variable!"))->show();
-                m_frozenAddresses.insert({ m_foundAddresses->getAddress(m_selectedEntry).addr, outValue });
+                m_frozenAddresses.insert({ address, outValue });
               }
               else
                 (new Snackbar("Failed to freeze variable!"))->show();
             }
             else {
-              if (R_SUCCEEDED(dmntchtDisableFrozenAddress(m_foundAddresses->getAddress(m_selectedEntry).addr))) {
+              if (R_SUCCEEDED(dmntchtDisableFrozenAddress(address))) {
                 (new Snackbar("Unfroze variable!"))->show();
-                m_frozenAddresses.erase(m_foundAddresses->getAddress(m_selectedEntry).addr);
+                m_frozenAddresses.erase(address);
               }
               else
                 (new Snackbar("Failed to unfreeze variable!"))->show();
             }
           }
 
-          if (kdown & KEY_A) {
+          if (kdown & KEY_A && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
+            u64 address = 0;
+            m_memoryDump->getData(m_selectedEntry * sizeof(u64), &address, sizeof(u64));
+
             if (m_selectedEntry < 7) {
               char input[16];
               char initialString[21];
 
-              strcpy(initialString, _getAddressDisplayString(m_foundAddresses->getAddress(m_selectedEntry).addr, m_debugger, m_searchType).c_str());
+              strcpy(initialString, _getAddressDisplayString(address, m_debugger, m_searchType).c_str());
 
               if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this .", initialString, SwkbdType::SwkbdType_NumPad, input, 15)) {
-                m_debugger->pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses->getAddress(m_selectedEntry).addr, atol(input));
+                m_debugger->pokeMemory(dataTypeSizes[m_searchType], address, atol(input));
               }
             }
-            else if (m_foundAddresses->size() < 25) {
+            else if ((m_memoryDump->size() / sizeof(u64)) < 25) {
               std::vector<std::string> options;
               options.clear();
 
               std::stringstream ss;
-              for (u32 i = 7; i < m_foundAddresses->size(); i++) {
+              for (u32 i = 7; i < (m_memoryDump->size() / sizeof(u64)); i++) { //TODO: i?
+                m_memoryDump->getData(m_selectedEntry * sizeof(u64), &address, sizeof(u64));
                 ss.str("");
-                ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << m_foundAddresses->getAddress(i).addr;
+                ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
 
-                ss << " (" << _getAddressDisplayString(m_foundAddresses->getAddress(i).addr, m_debugger, m_searchType);
+                ss << " (" << _getAddressDisplayString(address, m_debugger, m_searchType);
 
                 options.push_back(ss.str());
                 printf("%s\n", ss.str().c_str());
@@ -596,8 +614,11 @@ void GuiRAMEditor::onInput(u32 kdown) {
                 if (k & KEY_A) {
                   char input[16];
                   char initialString[21];
+                  u64 selectedAddress;
 
-                  strcpy(initialString, _getAddressDisplayString(m_foundAddresses->getAddress(selectedItem + 7).addr, m_debugger, m_searchType).c_str());
+                  m_memoryDump->getData((selectedItem + 7) * sizeof(u64), &selectedAddress, sizeof(u64));
+
+                  strcpy(initialString, _getAddressDisplayString(selectedAddress, m_debugger, m_searchType).c_str());
 
                   if (Gui::requestKeyboardInput("Enter value", "Enter a value for which the game's memory should be searched.", initialString, SwkbdType::SwkbdType_NumPad, input, 15)) {
                     u64 value = atol(input);
@@ -606,11 +627,12 @@ void GuiRAMEditor::onInput(u32 kdown) {
                       return;
                     }
 
-                    m_debugger->pokeMemory(dataTypeSizes[m_searchType], m_foundAddresses->getAddress(m_selectedEntry).addr, value);
+                    m_memoryDump->getData((m_selectedEntry) * sizeof(u64), &selectedAddress, sizeof(u64));
+                    m_debugger->pokeMemory(dataTypeSizes[m_searchType], selectedAddress, value);
                   }
                 }
               })->show();
-            } else (new Snackbar("Too many es! Try narrowing down the selection a bit before editing."))->show();
+            } else (new Snackbar("Too many addresses! Narrow down the selection before editing."))->show();
           }
         }
     } else { /* Cheats menu */
@@ -630,7 +652,7 @@ void GuiRAMEditor::onInput(u32 kdown) {
     }
 
     if (kdown & KEY_MINUS) {
-      if (m_foundAddresses->size() == 0) {
+      if (m_memoryDump->size() == 0) {
         std::vector<std::string> options;
         
         if (m_frozenAddresses.size() == 0)
@@ -654,13 +676,13 @@ void GuiRAMEditor::onInput(u32 kdown) {
           }
         })->show();
       } else {
-        m_foundAddresses->clear();
+        m_memoryDump->clear();
 
         m_searchType = SEARCH_TYPE_NONE;
         m_searchMode = SEARCH_MODE_NONE;
         m_searchRegion = SEARCH_REGION_NONE;
-        m_searchValue1._u64 = 0;
-        m_searchValue2._u64 = 0;
+        m_searchValue[0]._u64 = 0;
+        m_searchValue[1]._u64 = 0;
 
         m_menuLocation = CHEATS;
       }
@@ -761,41 +783,41 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if (std::string(str) == "") return;
 
             if (m_searchValueFormat == FORMAT_HEX) {
-              m_searchValue1._u64 = static_cast<u64>(std::stoul(str, nullptr, 16));
+              m_searchValue[0]._u64 = static_cast<u64>(std::stoul(str, nullptr, 16));
             } else {
               switch(m_searchType) {
                 case SEARCH_TYPE_UNSIGNED_8BIT:
-                  m_searchValue1._u8 = static_cast<u8>(std::stoul(str, nullptr, 0));
+                  m_searchValue[0]._u8 = static_cast<u8>(std::stoul(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_UNSIGNED_16BIT:
-                  m_searchValue1._u16 = static_cast<u16>(std::stoul(str, nullptr, 0));
+                  m_searchValue[0]._u16 = static_cast<u16>(std::stoul(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_UNSIGNED_32BIT:
-                  m_searchValue1._u32 = static_cast<u32>(std::stoul(str, nullptr, 0));
+                  m_searchValue[0]._u32 = static_cast<u32>(std::stoul(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_UNSIGNED_64BIT:
-                  m_searchValue1._u64 = static_cast<u64>(std::stoul(str, nullptr, 0));
+                  m_searchValue[0]._u64 = static_cast<u64>(std::stoul(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_SIGNED_8BIT:
-                  m_searchValue1._s8 = static_cast<s8>(std::stol(str, nullptr, 0));
+                  m_searchValue[0]._s8 = static_cast<s8>(std::stol(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_SIGNED_16BIT:
-                  m_searchValue1._s16 = static_cast<s16>(std::stol(str, nullptr, 0));
+                  m_searchValue[0]._s16 = static_cast<s16>(std::stol(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_SIGNED_32BIT:
-                  m_searchValue1._s32 = static_cast<s32>(std::stol(str, nullptr, 0));
+                  m_searchValue[0]._s32 = static_cast<s32>(std::stol(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_SIGNED_64BIT:
-                  m_searchValue1._s64 = static_cast<s64>(std::stol(str, nullptr, 0));
+                  m_searchValue[0]._s64 = static_cast<s64>(std::stol(str, nullptr, 0));
                   break;
                 case SEARCH_TYPE_FLOAT_32BIT:
-                  m_searchValue1._f32 = static_cast<float>(std::stof(str));
+                  m_searchValue[0]._f32 = static_cast<float>(std::stof(str));
                   break;
                 case SEARCH_TYPE_FLOAT_64BIT:
-                  m_searchValue1._f64 = static_cast<double>(std::stod(str));
+                  m_searchValue[0]._f64 = static_cast<double>(std::stod(str));
                   break;
                 case SEARCH_TYPE_POINTER:
-                  m_searchValue1._u64 = static_cast<u64>(std::stol(str));
+                  m_searchValue[0]._u64 = static_cast<u64>(std::stol(str));
                   break;
                 case SEARCH_TYPE_NONE: break;
               }
@@ -803,18 +825,25 @@ void GuiRAMEditor::onInput(u32 kdown) {
           } else if (m_selectedEntry == 1) {
             (new MessageBox("Traversing title memory. \n This may take a while...", MessageBox::NONE))->show();
             requestDraw();
-
-            delete m_foundAddresses;
-            m_foundAddresses = new MemoryDump("/switch/EdiZon/memdump.dat", m_heapBaseAddr, m_searchValue1, m_searchValue2, m_searchType, m_searchRegion, m_foundAddresses->size() == 0);
-
-            
+           
             overclockSystem(true);
 
-            if (m_foundAddresses->size() == 0) {
-              GuiRAMEditor::searchMemoryBegin(m_debugger, m_searchValue1, m_searchValue2, m_searchType, m_searchMode, m_searchRegion, m_foundAddresses, m_memoryInfo);
-            }
-            else {
-              GuiRAMEditor::searchMemoryContinue(m_debugger, m_searchValue1, m_searchValue2, m_searchType, m_searchMode, m_foundAddresses);
+            if (m_searchMode & (SEARCH_MODE_SAME | SEARCH_MODE_DIFF | SEARCH_MODE_INC | SEARCH_MODE_DEC)) {
+              if (m_memoryDump->size() == 0) {
+                delete m_memoryDump;
+                GuiRAMEditor::searchMemoryValuesBegin(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+              }
+              else {
+                GuiRAMEditor::searchMemoryValuesContinue(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+              }
+            } else {
+              if (m_memoryDump->size() == 0) {
+                delete m_memoryDump;
+                GuiRAMEditor::searchMemoryAddressesBegin(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+              }
+              else {
+                GuiRAMEditor::searchMemoryAddressesContinue(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, &m_memoryDump);
+              }
             }
 
             overclockSystem(false);
@@ -991,7 +1020,11 @@ std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searc
   return ss.str();
 }
 
-void GuiRAMEditor::searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump *foundAddrs, std::vector<MemoryInfo> memInfos) {
+void GuiRAMEditor::searchMemoryAddressesBegin(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **memoryDump, std::vector<MemoryInfo> memInfos) {
+  (*memoryDump) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::ADDR, true);
+  (*memoryDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+  (*memoryDump)->setSearchParams(searchType, searchMode, searchRegion, searchValue1, searchValue2);
+
   bool ledOn = false;
 
   for (MemoryInfo meminfo : memInfos) {
@@ -1021,59 +1054,59 @@ void GuiRAMEditor::searchMemoryBegin(Debugger *debugger, searchValue_t searchVal
 
       searchValue_t realValue = { 0 };
       for (u32 i = 0; i < bufferSize; i += dataTypeSizes[searchType]) {
+        u64 address = meminfo.addr + offset + i;
         memset(&realValue, 0, 8);
         memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
 
         switch(searchMode) {
           case SEARCH_MODE_EQ:
-            if (realValue._s64 == searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+            if (realValue._s64 == searchValue1._s64) {
+              (*memoryDump)->addData((u8*)&address, sizeof(u64));
+            }
             break;
           case SEARCH_MODE_NEQ:
             if (realValue._s64 != searchValue1._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+              (*memoryDump)->addData((u8*)&address, sizeof(u64));
             break;
           case SEARCH_MODE_GT:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
-              if (realValue._s64 > searchValue1._s64) {
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
-              }
+              if (realValue._s64 > searchValue1._s64)
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             } else {
-              if (realValue._u64 > searchValue1._u64) {
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
-              }
+              if (realValue._u64 > searchValue1._u64)
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_GTE:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
               if (realValue._s64 >= searchValue1._s64)
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             } else {
               if (realValue._u64 >= searchValue1._u64)
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_LT:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
               if (realValue._s64 < searchValue1._s64)
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             } else {
               if (realValue._u64 < searchValue1._u64)
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_LTE:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
               if (realValue._s64 <= searchValue1._s64)
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             } else {
               if (realValue._u64 <= searchValue1._u64)
-                foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+                (*memoryDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_RANGE:
             if (realValue._s64 >= searchValue1._s64 && realValue._s64 <= searchValue2._s64)
-              foundAddrs->pushAddress({ .addr = meminfo.addr + offset + i, .type = (u8) meminfo.type });
+              (*memoryDump)->addData((u8*)&address, sizeof(u64));
             break;
         }
       }
@@ -1086,17 +1119,19 @@ void GuiRAMEditor::searchMemoryBegin(Debugger *debugger, searchValue_t searchVal
 
   setLedState(false);
 
-  foundAddrs->flush();
+  (*memoryDump)->flushBuffer();
 }
 
-void GuiRAMEditor::searchMemoryContinue(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump *foundAddrs) {
-  MemoryDump *newAddresses = new MemoryDump("/switch/EdiZon/memdump2.dat", m_heapBaseAddr, searchValue1, searchValue2, searchType, m_searchRegion, true);
+void GuiRAMEditor::searchMemoryAddressesContinue(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump **memoryDump) {
+  MemoryDump *newDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::ADDR, true);
   bool ledOn = false;
 
-  for (size_t i = 0; i < foundAddrs->size(); i++) {
+  for (size_t i = 0; i < ((*memoryDump)->size() / sizeof(u64)); i++) {
     searchValue_t value = { 0 };
-
-    debugger->readMemory(&value, dataTypeSizes[searchType], foundAddrs->getAddress(i).addr);
+    u64 address = 0;
+    (*memoryDump)->getData(i * sizeof(u64), &address, sizeof(u64));
+    
+    debugger->readMemory(&value, dataTypeSizes[searchType], address);
 
     if (i % 50 == 0) {
       setLedState(ledOn);
@@ -1106,60 +1141,124 @@ void GuiRAMEditor::searchMemoryContinue(Debugger *debugger, searchValue_t search
     switch(searchMode) {
       case SEARCH_MODE_EQ:
         if (value._s64 == searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_NEQ:
         if (value._s64 != searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_GT:
         if (value._s64 > searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_GTE:
         if (value._s64 >= searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_LT:
         if (value._s64 < searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_LTE:
         if (value._s64 <= searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_RANGE:
         if (value._s64 >= searchValue1._s64 && value._s64 <= searchValue2._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_SAME:
         if (value._s64 == searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_DIFF:
         if (value._s64 != searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_INC:
         if (value._s64 > searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_DEC:
         if (value._s64 < searchValue1._s64)
-          newAddresses->pushAddress(foundAddrs->getAddress(i));
+          newDump->addData((u8*)&address, sizeof(u64));
         break;
       case SEARCH_MODE_NONE: break;
     }
   }
 
-  if (newAddresses->size() > 0) {
-    foundAddrs->setSearchValue(searchValue1);
-    foundAddrs->clearAddresses();
-    for (size_t i = 0; i < newAddresses->size(); i++) {
-      foundAddrs->pushAddress(newAddresses->getAddress(i));
-    }    
+  if (newDump->size() > 0) {
+    printf("Size: %ld\n", newDump->size());
+    (*memoryDump)->clear();
+    (*memoryDump)->setSearchParams(searchType, searchMode, (*memoryDump)->getDumpInfo().searchRegion, searchValue1, searchValue2);
+    (*memoryDump)->setDumpType(DumpType::ADDR);
+
+    for (size_t i = 0; i < (newDump->size() / sizeof(u64)); i++) {
+      u64 address = 0;
+      newDump->getData(i * sizeof(u64), &address, sizeof(u64));
+
+      printf("Addr: %lx\n", address);
+
+      (*memoryDump)->addData((u8*)&address, sizeof(u64));
+    } 
+
+    (*memoryDump)->flushBuffer();   
+  } else {
+    (new Snackbar("None of values changed to the entered one!"))->show();
   }
 
   setLedState(false);
-  foundAddrs->flush();
+
+  delete newDump;
+
+  //remove("/switch/EdiZon/memdump2.dat");
+}
+
+void GuiRAMEditor::searchMemoryValuesBegin(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **dumpFile, std::vector<MemoryInfo> memInfos) {
+  bool ledOn = false;
+
+  searchValue_t zeroValue;
+  zeroValue._u64 = 0;
+
+  (*dumpFile) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::DATA, true);
+  (*dumpFile)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+  (*dumpFile)->setSearchParams(searchType, searchMode, searchRegion, { 0 }, { 0 });
+
+  for (MemoryInfo meminfo : memInfos) {
+    if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
+     continue;
+    else if (searchRegion == SEARCH_REGION_MAIN &&
+     (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+      continue;
+    else if (searchRegion == SEARCH_REGION_HEAP_AND_MAIN &&
+     (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+      continue;
+    else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
+      continue;
+
+    setLedState(ledOn);
+    ledOn = !ledOn;
+
+    u64 offset = 0;
+    u64 bufferSize = 0x40000;
+    u8 *buffer = new u8[bufferSize];
+    while (offset < meminfo.size) {
+      
+      if (meminfo.size - offset < bufferSize)
+        bufferSize = meminfo.size - offset;
+
+      debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+      (*dumpFile)->addData(buffer, bufferSize);
+
+      offset += bufferSize;
+    }
+
+    delete[] buffer;
+  }
+
+  setLedState(false);
+}
+
+void GuiRAMEditor::searchMemoryValuesContinue(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **dumpFile, std::vector<MemoryInfo> memInfos) {
+
 }

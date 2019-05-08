@@ -16,10 +16,7 @@
 
 #include "update_manager.hpp"
 
-
-extern "C" {
-  #include "helpers/util.h"
-}
+#include "helpers/util.h"
 
 static s64 xOffset, xOffsetNext;
 static bool finishedDrawing = true;

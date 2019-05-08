@@ -1,7 +1,7 @@
 #include "helpers/title.hpp"
 
 extern "C" {
-#include "nanojpeg.h"
+  #include "nanojpeg.h"
 }
 
 Title::Title(FsSaveDataInfo& saveInfo) {

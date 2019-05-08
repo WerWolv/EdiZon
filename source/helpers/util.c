@@ -10,7 +10,7 @@ static Service g_pmdmntService;
 static u64 g_refCnt;
 
 static u64 g_uniquePadIds[2];
-static u32 g_uniquePadCnt;
+static size_t g_uniquePadCnt;
 static HidsysNotificationLedPattern g_patternOn, g_patternOff;
 
 Result amspmdmntInitialize(void) {

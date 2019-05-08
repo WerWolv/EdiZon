@@ -10,10 +10,8 @@
 #include "ui_elements/list_selector.hpp"
 #include "ui_elements/message_box.hpp"
 
-extern "C" {
-  #include "theme.h"
-  #include "types.h"
-}
+#include "theme.h"
+#include "types.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

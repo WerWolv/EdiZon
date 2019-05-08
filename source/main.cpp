@@ -18,10 +18,8 @@
 
 #include "helpers/title.hpp"
 
-extern "C" {
-  #include "theme.h"
-  #include "helpers/util.h"
-}
+#include "theme.h"
+#include "helpers/util.h"
 
 #define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   300
@@ -127,9 +125,11 @@ void serviceInitialize() {
   u64 pid = 0;
   u128 activeUser;
   bool accountSelected;
+  Title::g_activeTitle = 0;
 
   pmdmntGetApplicationPid(&pid);
   pminfoGetTitleId(&Title::g_activeTitle, pid);
+
   accountGetActiveUser(&activeUser, &accountSelected);
 
   if (accountSelected)
@@ -169,7 +169,7 @@ void redirectStdio() {
 int main(int argc, char** argv) {
   void *haddr;
   extern char *fake_heap_end;
-
+  
   // Setup Heap for swkbd on applets
   Result rc = svcSetHeapSize(&haddr, 0x10000000);
   if (R_FAILED(rc))
@@ -206,6 +206,7 @@ int main(int argc, char** argv) {
 
   updateThreadRunning = true;
   std::thread updateThread(update);
+
 
   while (appletMainLoop()) {
     hidScanInput();

@@ -1,12 +1,13 @@
 #include "helpers/debugger.hpp"
 
-extern "C" {
-  #include "helpers/dmntcht.h"
-}
+#include "helpers/dmntcht.h"
 
 Debugger::Debugger(bool dmntPresent) : m_dmntPresent(dmntPresent) {
   pmdmntInitialize();
   pminfoInitialize();
+
+  m_pid = 0;
+  m_tid = 0;
 
   pmdmntGetApplicationPid(&m_pid);
   pminfoGetTitleId(&m_tid, m_pid);

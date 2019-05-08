@@ -11,9 +11,7 @@
 #include "helpers/debugger.hpp"
 #include "helpers/memory_dump.hpp"
 
-extern "C" {
-  #include "helpers/dmntcht.h"
-}
+#include "helpers/dmntcht.h"
 
 class GuiRAMEditor : public Gui {
 
@@ -34,7 +32,7 @@ private:
 
   u8 m_selectedEntry = 0;
   
-  searchValue_t m_searchValue1, m_searchValue2;
+  searchValue_t m_searchValue[2];
   enum { FORMAT_DEC, FORMAT_HEX } m_searchValueFormat = FORMAT_DEC;
 
   enum { CHEATS, CANDIDATES } m_menuLocation = CHEATS;
@@ -44,7 +42,7 @@ private:
   searchRegion_t m_searchRegion = SEARCH_REGION_NONE;
 
   std::vector<MemoryInfo> m_memoryInfo;
-  MemoryDump *m_foundAddresses;
+  MemoryDump *m_memoryDump;
   std::map<u64, u64> m_frozenAddresses;
 
   bool m_attached = false;
@@ -52,7 +50,11 @@ private:
 
   u64 m_addressSpaceBaseAddr = 0x00;
   u64 m_heapBaseAddr = 0x00;
-  u64 m_codeBaseAddr = 0x00;
+  u64 m_mainBaseAddr = 0x00;
+
+  u64 m_heapSize = 0;
+  u64 m_mainSize = 0;
+
   u8 m_buildID[0x20];
 
   DmntCheatEntry *m_cheats;
@@ -60,12 +62,20 @@ private:
 
   void drawSearchRAMMenu();
 
-  void searchMemoryBegin(Debugger *debugger, searchValue_t searchValue1,
+  void searchMemoryAddressesBegin(Debugger *debugger, searchValue_t searchValue1,
     searchValue_t searchValue2, searchType_t searchType,
     searchMode_t searchMode, searchRegion_t searchRegion,
-    MemoryDump *foundAddrs, std::vector<MemoryInfo> memInfos);
+    MemoryDump **foundAddrs, std::vector<MemoryInfo> memInfos);
 
-  void searchMemoryContinue(Debugger *debugger, searchValue_t searchValue1,
+  void searchMemoryAddressesContinue(Debugger *debugger, searchValue_t searchValue1,
     searchValue_t searchValue2, searchType_t searchType,
-    searchMode_t searchMode, MemoryDump *foundAddrs);
+    searchMode_t searchMode, MemoryDump **foundAddrs);
+
+  void searchMemoryValuesBegin(Debugger *debugger, searchType_t searchType, searchMode_t searchMode,
+    searchRegion_t searchRegion, MemoryDump **foundAddrs, std::vector<MemoryInfo> memInfos);
+
+
+  void searchMemoryValuesContinue(Debugger *debugger, searchType_t searchType,
+    searchMode_t searchMode, searchRegion_t searchRegion,
+    MemoryDump **dumpFile, std::vector<MemoryInfo> memInfos);
 };

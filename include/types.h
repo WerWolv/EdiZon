@@ -111,3 +111,21 @@ typedef enum {
   SEARCH_REGION_HEAP_AND_MAIN,
   SEARCH_REGION_RAM
 } searchRegion_t;
+
+typedef enum DumpType { UNDEFINED = '-', ADDR = 'A', DATA = 'D' } DumpType;
+
+typedef struct DataHeader {
+  u32 magic;                      // EDZN 0x4E5A4445 (Reversed for LE)
+  char dumpType;					      // '-' (0x2D) for not set yet, 'A' (0x41) for addresses, 'D' (0x44) for data
+  u32 dataSize;					        // Size of data
+  searchType_t searchDataType;  
+  searchMode_t searchMode;      
+  searchRegion_t searchRegion;  
+  searchValue_t searchValue[2]; 
+  u64 heapBaseAddress;          
+  u64 heapSize;
+  u64 mainBaseAddress;
+  u64 mainSize;
+  u64 addrSpaceBaseAddress;
+  u8 endOfHeader;               // '@' - Signals the end of the header
+}  __attribute__((packed)) data_header_t;

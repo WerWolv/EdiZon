@@ -3,6 +3,9 @@
 #include <switch.h>
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 typedef struct {
   color_t textColor;
   color_t backgroundColor;
@@ -17,3 +20,7 @@ typedef struct {
 extern theme_t currTheme;
 
 void setTheme(ColorSetId colorSetId);
+
+#ifdef __cplusplus
+}
+#endif

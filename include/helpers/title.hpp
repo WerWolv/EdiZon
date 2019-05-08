@@ -28,7 +28,7 @@ public:
   u64 getTitleID();
 
 private:
-  std::vector<u8> m_titleIcon;
+  u8 m_titleIcon[256*256*3];
   u64 m_titleID;
   std::string m_titleName;
   std::string m_titleAuthor;

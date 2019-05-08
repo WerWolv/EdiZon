@@ -1,135 +1,177 @@
 #include "helpers/memory_dump.hpp"
+#include <stdio.h>
 
-#include <iterator>
-#include <cstring>
+#define BUFFER_SIZE 0x10000
 
-MemoryDump::MemoryDump(std::string fileLocation, u64& heapBase, searchValue_t& searchValue1, searchValue_t& searchValue2, searchType_t& searchType, searchRegion_t& searchRegion, bool discard) 
- : m_fileLocation(fileLocation), m_heapBase(heapBase), m_searchValue1(searchValue1), m_searchValue2(searchValue2), m_searchType(searchType), m_searchRegion(searchRegion)
-{ 
-  m_addressCnt = 0;
+MemoryDump::MemoryDump(std::string filePath, DumpType dumpType, bool discardFile) : m_filePath(filePath) {
+  m_dataHeader = { 0 };
 
-  MemoryDump::initFile(discard);  
+  m_dataHeader.magic = 0x4E5A4445;
+  m_dataHeader.endOfHeader = '@';
+  m_dataHeader.dumpType = (char)dumpType;
 
-  m_addresses.reserve(0x100000);
+  m_dataHeader.searchDataType = SEARCH_TYPE_NONE;
+  m_dataHeader.searchMode = SEARCH_MODE_NONE;
+  m_dataHeader.searchRegion = SEARCH_REGION_NONE;
+
+  m_dumpFile = fopen(filePath.c_str(), "r");
+
+  if (m_dumpFile == nullptr) {
+    m_dumpFile = fopen(filePath.c_str(), "w+b");
+
+    MemoryDump::writeHeader();
+  } else {
+    fclose(m_dumpFile);
+
+    if (discardFile) {
+      m_dumpFile = fopen(filePath.c_str(), "w+b");
+      MemoryDump::writeHeader();
+    } else {
+      m_dumpFile = fopen(filePath.c_str(), "r+b");
+      fseek(m_dumpFile, 0, SEEK_END);
+
+      size_t fileSize = ftell(m_dumpFile);
+
+      if (fileSize >= sizeof(DataHeader)) {
+        fseek(m_dumpFile, 0, SEEK_SET);
+        fread(&m_dataHeader, sizeof(m_dataHeader), 1, m_dumpFile);
+      }
+    }
+
+  }
+
+  m_data.reserve(BUFFER_SIZE);
 }
 
 MemoryDump::~MemoryDump() {
-  MemoryDump::flush();
-  m_dumpFile.close();
-}
-
-
-void MemoryDump::pushAddress(ramAddr_t addr) {
-  m_addresses.push_back(addr);
-  m_addressCnt++;
-
-  if (m_addresses.size() >= 0x100000)
-    MemoryDump::flush();
-}
-
-void MemoryDump::flush() {
-  m_dumpFile.seekg(0, m_dumpFile.beg);
-
-  if (m_addressCnt == 0) {
-    m_dumpFile.write((char*)&m_addressCnt, sizeof(size_t));
-    m_dumpFile.write((char*)&m_searchType, sizeof(m_searchType));
-    m_dumpFile.write((char*)&m_searchRegion, sizeof(m_searchRegion));
-    m_dumpFile.write((char*)&m_searchValue1, sizeof(m_searchValue1));
-    m_dumpFile.write((char*)&m_searchValue2, sizeof(m_searchValue2));
-    m_dumpFile.write((char*)&m_heapBase, sizeof(m_heapBase));
-    m_dumpFile.flush();
-  } else {
-    m_dumpFile.write((char*)&m_addressCnt, sizeof(size_t));
-    m_dumpFile.seekg(0, m_dumpFile.end);
-    for (ramAddr_t &addr : m_addresses)
-      m_dumpFile.write((char*)&addr, sizeof(ramAddr_t));
-
-    m_dumpFile.flush();
-    m_addresses.clear();
+  if (isFileOpen()) {
+    MemoryDump::flushBuffer();
+    fclose(m_dumpFile);
   }
 }
 
-ramAddr_t MemoryDump::getAddress(u32 index) {
-  if (MemoryDump::size() == 0) return { 0 };
+void MemoryDump::setBaseAddresses(u64 addrSpaceBase, u64 heapBase, u64 mainBase, u64 heapSize, u64 mainSize) {
+  m_dataHeader.addrSpaceBaseAddress = addrSpaceBase;
+  m_dataHeader.heapBaseAddress = heapBase;
+  m_dataHeader.mainBaseAddress = mainBase;
 
-  if (m_addresses.size() > 0)
-    MemoryDump::flush();
+  m_dataHeader.heapSize = heapSize;
+  m_dataHeader.mainSize = mainSize;
 
-  ramAddr_t addr = { 0 };
-  m_dumpFile.seekg(0x28 + sizeof(ramAddr_t) * index);
-  m_dumpFile.read((char*)&addr, sizeof(ramAddr_t));
-  return addr;
+  MemoryDump::writeHeader();
 }
 
-ramAddr_t MemoryDump::operator[](u32 index) {
-  return MemoryDump::getAddress(index);
+void MemoryDump::setSearchParams(searchType_t searchDataType, searchMode_t searchMode, searchRegion_t searchRegion, searchValue_t searchValue1, searchValue_t searchValue2) {
+  m_dataHeader.searchDataType = searchDataType;
+  m_dataHeader.searchMode = searchMode;
+  m_dataHeader.searchRegion = searchRegion;
+  m_dataHeader.searchValue[0] = searchValue1;
+  m_dataHeader.searchValue[1] = searchValue2;
+
+  MemoryDump::writeHeader();
 }
 
-std::vector<ramAddr_t>::iterator MemoryDump::getAddressIterator() {
-  return m_addresses.begin();
+void MemoryDump::addData(u8 *buffer, size_t dataSize) {
+  if ((m_data.size() + dataSize) < BUFFER_SIZE) {
+    std::copy(buffer, buffer + dataSize, std::back_inserter(m_data));
+  } else if (dataSize <= BUFFER_SIZE) {
+    if (isFileOpen()) {
+      MemoryDump::flushBuffer();
+      std::copy(buffer, buffer + dataSize, std::back_inserter(m_data));
+    }
+  } else {
+    if (isFileOpen()) {
+      fseek(m_dumpFile, 0, SEEK_END);
+
+      MemoryDump::flushBuffer();
+
+      fwrite(buffer, sizeof(u8), dataSize, m_dumpFile);
+      m_dataHeader.dataSize += dataSize;
+      MemoryDump::writeHeader();
+    }
+  }
 }
-
-void MemoryDump::clearAddresses() {
-  char buffer[0x28];
-
-  m_dumpFile.seekg(0, m_dumpFile.beg);
-  m_dumpFile.read(buffer, 0x28);
-  std::memset(buffer, 0x00, 8);
-
-  m_dumpFile.close();
-  remove(m_fileLocation.c_str());
-  m_dumpFile.open(m_fileLocation, std::ofstream::out);
-  m_dumpFile.close();
-  m_dumpFile.open(m_fileLocation, std::ios::in | std::ios::out | std::ios::ate);
-
-  m_dumpFile.seekg(0, m_dumpFile.beg);
-  m_dumpFile.write(buffer, 0x28);
-
-  m_addresses.clear();
-  m_addressCnt = 0;
-}
-
-void MemoryDump::setSearchValue(searchValue_t searchValue) {
-  m_dumpFile.seekg(0x10, m_dumpFile.beg);
-  m_dumpFile.write((char*)&searchValue, sizeof(searchValue_t));
-  m_dumpFile.flush();
-}
-
 
 size_t MemoryDump::size() {
-  return m_addressCnt;
+  MemoryDump::flushBuffer();
+
+  return m_dataHeader.dataSize;
 }
 
-void MemoryDump::initFile(bool discard) {
-  size_t dumpFileSize = 0;
+void MemoryDump::clear() {
+  m_data.clear();
+  m_dataHeader.dataSize = 0;
+  m_dataHeader.dumpType = DumpType::UNDEFINED;
 
-  if (discard) {
-    m_dumpFile.open(m_fileLocation, std::ios::out);
-    m_dumpFile.close();
+  if (isFileOpen()) {
+    fclose(m_dumpFile);
+    m_dumpFile = nullptr;
   }
 
-  m_dumpFile.open(m_fileLocation, std::ios::in | std::ios::out | std::ios::ate);
-  dumpFileSize = m_dumpFile.tellg();
+  m_dumpFile = fopen(m_filePath.c_str(), "w+b");
+  printf("m_dumpFile %p\n", m_dumpFile);
+  MemoryDump::writeHeader();
+}
 
-  if (dumpFileSize == 0)
-    MemoryDump::flush();
-  else {
-    m_dumpFile.seekg(0, m_dumpFile.beg);
+int MemoryDump::getData(u64 addr, void *buffer, size_t bufferSize) {
+  if (!isFileOpen()) return 1;
 
-    m_dumpFile.read((char*)&m_addressCnt, sizeof(size_t));
-    m_dumpFile.read((char*)&m_searchType, sizeof(m_searchType));
-    m_dumpFile.read((char*)&m_searchRegion, sizeof(m_searchRegion));
-    m_dumpFile.read((char*)&m_searchValue1, sizeof(m_searchValue1));
-    m_dumpFile.read((char*)&m_searchValue2, sizeof(m_searchValue2));
-    m_dumpFile.read((char*)&m_heapBase, sizeof(m_heapBase));
+  MemoryDump::flushBuffer();
+
+  fseek(m_dumpFile, sizeof(struct DataHeader) + addr, SEEK_SET);
+  fread(buffer, sizeof(u8), bufferSize, m_dumpFile);
+
+  return 0;
+}
+
+u8 MemoryDump::operator[](u64 index) {
+  u8 data = 0;
+
+  if (!isFileOpen()) return 0;
+
+  MemoryDump::flushBuffer();
+
+  fseek(m_dumpFile, sizeof(struct DataHeader) + index, SEEK_SET);
+  fread(&data, sizeof(u8), 1, m_dumpFile);
+
+  return data;
+}
+
+bool MemoryDump::isFileOpen() {
+  return m_dumpFile != nullptr;
+}
+
+void MemoryDump::flushBuffer() {
+  if (m_data.size() > 0 && isFileOpen()) {
+    fseek(m_dumpFile, 0, SEEK_END);
+    fwrite(&m_data[0], sizeof(u8), m_data.size(), m_dumpFile);
+
+    m_dataHeader.dataSize += m_data.size();
+
+    m_data.clear();
+
+    MemoryDump::writeHeader();
   }
 }
 
-int MemoryDump::clear() {
-  m_addresses.clear();
-  m_addressCnt = 0;
-  
-  m_dumpFile.close();
+void MemoryDump::writeHeader() {
+  if (isFileOpen()) {
+    fseek(m_dumpFile, 0, SEEK_SET);
+    fwrite(&m_dataHeader, sizeof(m_dataHeader), 1, m_dumpFile);
+    fflush(m_dumpFile);
+  }
+}
 
-  return remove(m_fileLocation.c_str());
+data_header_t MemoryDump::getDumpInfo() {
+  return m_dataHeader;
+}
+
+void MemoryDump::setDumpType(DumpType dumpType) {
+  if (m_dataHeader.dumpType != UNDEFINED) {
+    m_dataHeader.dumpType = dumpType;
+    MemoryDump::clear();
+  } else {
+    m_dataHeader.dumpType = dumpType;
+    MemoryDump::writeHeader();
+  }
 }

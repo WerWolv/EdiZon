@@ -167,7 +167,7 @@ $(BUILD):
 #--------------------------------------------------------------------------------
 run: $(BUILD)
 	@echo Starting nxlink
-	@nxlink $(OUTPUT).nro -s -a 192.168.1.120 -p "EdiZon/EdiZon.nro"
+	@nxlink $(OUTPUT).nro -s -p "EdiZon/EdiZon.nro"
 	
 #---------------------------------------------------------------------------------
 clean:

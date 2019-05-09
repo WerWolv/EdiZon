@@ -18,26 +18,20 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   }
   memset(buf.get(), 0, sizeof(NsApplicationControlData));
 
-  rc = nsInitialize();
+  rc = nsGetApplicationControlData(1, saveInfo.titleID, buf.get(), sizeof(NsApplicationControlData), &outsize);
   if (R_FAILED(rc)) {
     m_errorCode = 2;
     return;
   }
 
-  rc = nsGetApplicationControlData(1, saveInfo.titleID, buf.get(), sizeof(NsApplicationControlData), &outsize);
-  if (R_FAILED(rc)) {
-    m_errorCode = 3;
-    return;
-  }
-
   if (outsize < sizeof(buf->nacp)) {
-    m_errorCode = 4;
+    m_errorCode = 3;
     return;
   }
 
   rc = nacpGetLanguageEntry(&buf->nacp, &langentry);
   if (R_FAILED(rc) || langentry==nullptr) {
-    m_errorCode = 5;
+    m_errorCode = 4;
     return;
   }
 
@@ -53,13 +47,13 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   size_t imagesize = 256 * 256 * 3;
 
   if (njDecode(buf->icon, iconbytesize) != NJ_OK) {
-    m_errorCode = 6;
+    m_errorCode = 5;
     njDone();
     return;
   }
 
   if (njGetWidth() != 256 || njGetHeight() != 256 || (size_t)njGetImageSize() != imagesize || njIsColor() != 1) {
-    m_errorCode = 7;
+    m_errorCode = 6;
     njDone();
     return;
   }
@@ -68,7 +62,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
 
   ptr = njGetImage();
   if (ptr == nullptr) {
-    m_errorCode = 8;
+    m_errorCode = 7;
     njDone();
     return;
   }
@@ -77,7 +71,6 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   ptr = nullptr;
 
   njDone();
-  nsExit();
 }
 
 Title::~Title() {

@@ -834,18 +834,18 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if (m_searchMode & (SEARCH_MODE_SAME | SEARCH_MODE_DIFF | SEARCH_MODE_INC | SEARCH_MODE_DEC)) {
               if (m_memoryDump->size() == 0) {
                 delete m_memoryDump;
-                GuiRAMEditor::searchMemoryValuesBegin(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
-              }
-              else {
-                GuiRAMEditor::searchMemoryValuesContinue(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+                GuiRAMEditor::searchMemoryValuesPrimary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+              } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::DATA) {
+                GuiRAMEditor::searchMemoryValuesSecondary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+              } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
+                GuiRAMEditor::searchMemoryValuesTertiary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               }
             } else {
               if (m_memoryDump->size() == 0) {
                 delete m_memoryDump;
-                GuiRAMEditor::searchMemoryAddressesBegin(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
-              }
-              else {
-                GuiRAMEditor::searchMemoryAddressesContinue(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, &m_memoryDump);
+                GuiRAMEditor::searchMemoryAddressesPrimary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+              } else {
+                GuiRAMEditor::searchMemoryAddressesSecondary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, &m_memoryDump);
               }
             }
 
@@ -1023,10 +1023,10 @@ std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searc
   return ss.str();
 }
 
-void GuiRAMEditor::searchMemoryAddressesBegin(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **memoryDump, std::vector<MemoryInfo> memInfos) {
-  (*memoryDump) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::ADDR, true);
-  (*memoryDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
-  (*memoryDump)->setSearchParams(searchType, searchMode, searchRegion, searchValue1, searchValue2);
+void GuiRAMEditor::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+  (*displayDump) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::ADDR, true);
+  (*displayDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+  (*displayDump)->setSearchParams(searchType, searchMode, searchRegion, searchValue1, searchValue2);
 
   bool ledOn = false;
 
@@ -1064,52 +1064,52 @@ void GuiRAMEditor::searchMemoryAddressesBegin(Debugger *debugger, searchValue_t 
         switch(searchMode) {
           case SEARCH_MODE_EQ:
             if (realValue._s64 == searchValue1._s64) {
-              (*memoryDump)->addData((u8*)&address, sizeof(u64));
+              (*displayDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_NEQ:
             if (realValue._s64 != searchValue1._s64)
-              (*memoryDump)->addData((u8*)&address, sizeof(u64));
+              (*displayDump)->addData((u8*)&address, sizeof(u64));
             break;
           case SEARCH_MODE_GT:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
               if (realValue._s64 > searchValue1._s64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             } else {
               if (realValue._u64 > searchValue1._u64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_GTE:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
               if (realValue._s64 >= searchValue1._s64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             } else {
               if (realValue._u64 >= searchValue1._u64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_LT:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
               if (realValue._s64 < searchValue1._s64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             } else {
               if (realValue._u64 < searchValue1._u64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_LTE:
             if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
               if (realValue._s64 <= searchValue1._s64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             } else {
               if (realValue._u64 <= searchValue1._u64)
-                (*memoryDump)->addData((u8*)&address, sizeof(u64));
+                (*displayDump)->addData((u8*)&address, sizeof(u64));
             }
             break;
           case SEARCH_MODE_RANGE:
             if (realValue._s64 >= searchValue1._s64 && realValue._s64 <= searchValue2._s64)
-              (*memoryDump)->addData((u8*)&address, sizeof(u64));
+              (*displayDump)->addData((u8*)&address, sizeof(u64));
             break;
         }
       }
@@ -1122,17 +1122,17 @@ void GuiRAMEditor::searchMemoryAddressesBegin(Debugger *debugger, searchValue_t 
 
   setLedState(false);
 
-  (*memoryDump)->flushBuffer();
+  (*displayDump)->flushBuffer();
 }
 
-void GuiRAMEditor::searchMemoryAddressesContinue(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump **memoryDump) {
+void GuiRAMEditor::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump **displayDump) {
   MemoryDump *newDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::ADDR, true);
   bool ledOn = false;
 
-  for (size_t i = 0; i < ((*memoryDump)->size() / sizeof(u64)); i++) {
+  for (size_t i = 0; i < ((*displayDump)->size() / sizeof(u64)); i++) {
     searchValue_t value = { 0 };
     u64 address = 0;
-    (*memoryDump)->getData(i * sizeof(u64), &address, sizeof(u64));
+    (*displayDump)->getData(i * sizeof(u64), &address, sizeof(u64));
     
     debugger->readMemory(&value, dataTypeSizes[searchType], address);
 
@@ -1191,18 +1191,18 @@ void GuiRAMEditor::searchMemoryAddressesContinue(Debugger *debugger, searchValue
   }
 
   if (newDump->size() > 0) {
-    (*memoryDump)->clear();
-    (*memoryDump)->setSearchParams(searchType, searchMode, (*memoryDump)->getDumpInfo().searchRegion, searchValue1, searchValue2);
-    (*memoryDump)->setDumpType(DumpType::ADDR);
+    (*displayDump)->clear();
+    (*displayDump)->setSearchParams(searchType, searchMode, (*displayDump)->getDumpInfo().searchRegion, searchValue1, searchValue2);
+    (*displayDump)->setDumpType(DumpType::ADDR);
 
     for (size_t i = 0; i < (newDump->size() / sizeof(u64)); i++) {
       u64 address = 0;
 
       newDump->getData(i * sizeof(u64), &address, sizeof(u64));
-      (*memoryDump)->addData((u8*)&address, sizeof(u64));
+      (*displayDump)->addData((u8*)&address, sizeof(u64));
     } 
 
-    (*memoryDump)->flushBuffer();   
+    (*displayDump)->flushBuffer();   
   } else {
     (new Snackbar("None of values changed to the entered one!"))->show();
   }
@@ -1214,15 +1214,15 @@ void GuiRAMEditor::searchMemoryAddressesContinue(Debugger *debugger, searchValue
   remove("/switch/EdiZon/memdump2.dat");
 }
 
-void GuiRAMEditor::searchMemoryValuesBegin(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **dumpFile, std::vector<MemoryInfo> memInfos) {
+void GuiRAMEditor::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
   bool ledOn = false;
 
   searchValue_t zeroValue;
   zeroValue._u64 = 0;
 
-  (*dumpFile) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::DATA, true);
-  (*dumpFile)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
-  (*dumpFile)->setSearchParams(searchType, searchMode, searchRegion, { 0 }, { 0 });
+  (*displayDump) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::DATA, true);
+  (*displayDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+  (*displayDump)->setSearchParams(searchType, searchMode, searchRegion, { 0 }, { 0 });
 
   for (MemoryInfo meminfo : memInfos) {
     if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
@@ -1248,7 +1248,7 @@ void GuiRAMEditor::searchMemoryValuesBegin(Debugger *debugger, searchType_t sear
         bufferSize = meminfo.size - offset;
 
       debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
-      (*dumpFile)->addData(buffer, bufferSize);
+      (*displayDump)->addData(buffer, bufferSize);
 
       offset += bufferSize;
     }
@@ -1259,8 +1259,9 @@ void GuiRAMEditor::searchMemoryValuesBegin(Debugger *debugger, searchType_t sear
   setLedState(false);
 }
 
-void GuiRAMEditor::searchMemoryValuesContinue(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **dumpFile, std::vector<MemoryInfo> memInfos) {
-  MemoryDump *newDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
+void GuiRAMEditor::searchMemoryValuesSecondary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+  MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
+  MemoryDump *addrDump = new MemoryDump("/switch/EdiZon/memdump3.dat", DumpType::ADDR, true);
   u64 dumpOffset = 0;
 
   for (MemoryInfo meminfo : memInfos) {
@@ -1277,40 +1278,74 @@ void GuiRAMEditor::searchMemoryValuesContinue(Debugger *debugger, searchType_t s
 
     u64 offset = 0;
     u64 bufferSize = 0x40000;
-    u8 *memoryBuffer = new u8[bufferSize];
-    u8 *dumpBuffer = new u8[bufferSize];
-
-    searchValue_t oldValue = { 0 }, currValue = { 0 };
-
+    u8 *buffer = new u8[bufferSize];
     while (offset < meminfo.size) {
       
       if (meminfo.size - offset < bufferSize)
         bufferSize = meminfo.size - offset;
 
-      debugger->readMemory(memoryBuffer, bufferSize, meminfo.addr + offset);
-      (*dumpFile)->getData(dumpOffset, dumpBuffer, bufferSize);
-      
-      for (u64 i = dumpOffset; i < dumpOffset + bufferSize; i += dataTypeSizes[searchType]) {
-        memcpy(&oldValue, dumpBuffer + i, dataTypeSizes[searchType]);
-        memcpy(&currValue, memoryBuffer + i, dataTypeSizes[searchType]);
+      debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+      newMemDump->addData(buffer, bufferSize);
 
-        switch (searchMode) {
-          case SEARCH_MODE_SAME:
-            break;
-          case SEARCH_MODE_DIFF:
-            break;
-          case SEARCH_MODE_INC:
-            break;
-          case SEARCH_MODE_DEC:
-            break;
-        }
-      }
-
-      dumpOffset += bufferSize;
       offset += bufferSize;
     }
 
-    delete[] memoryBuffer;
-    delete[] dumpBuffer;
+    delete[] buffer;
   }
 }
+
+void GuiRAMEditor::searchMemoryValuesTertiary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+  MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
+  MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memaddrdump.dat", DumpType::ADDR, true);
+  u64 dumpOffset = 0;
+
+  for (MemoryInfo meminfo : memInfos) {
+    if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
+    continue;
+    else if (searchRegion == SEARCH_REGION_MAIN &&
+    (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+      continue;
+    else if (searchRegion == SEARCH_REGION_HEAP_AND_MAIN &&
+    (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+      continue;
+    else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
+      continue;
+
+    u64 offset = 0;
+    u64 bufferSize = 0x40000;
+    u8 *buffer = new u8[bufferSize];
+    while (offset < meminfo.size) {
+      
+      if (meminfo.size - offset < bufferSize)
+        bufferSize = meminfo.size - offset;
+
+      debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+      (*displayDump)->addData(buffer, bufferSize);
+
+      offset += bufferSize;
+    }
+
+    delete[] buffer;
+  }
+}
+
+/**
+ * Primary:
+ *  Initial full memory dump regardless of type
+ *  Differentiate between different regions and types
+ * 
+ * Secondary:
+ *  Second full memory dump regardless of type
+ *  Differentiate between regions and types. (both fix now)
+ * 
+ *  Compare both memory dumps based on type and mode
+ *   Store match addresses into additional file
+ *   Matches should be stored as [MEMADDR][DUMPADDR] for fast comparing later on
+ * 
+ * Tertiary (Loop infinitely):
+ *  Iterate over match addrs file 
+ *   Compare value in memory at [MEMADDR] with value in second memory dump at [DUMPADDR]
+ *   Store match addresses into file (displayDump)
+ *   Dump all values from changed addresses into a file
+ *   Matches should be stored as [MEMADDR][DUMPADDR] for fast comparing later on
+ */

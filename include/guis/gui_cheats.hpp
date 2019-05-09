@@ -62,20 +62,24 @@ private:
 
   void drawSearchRAMMenu();
 
-  void searchMemoryAddressesBegin(Debugger *debugger, searchValue_t searchValue1,
+  void searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1,
     searchValue_t searchValue2, searchType_t searchType,
     searchMode_t searchMode, searchRegion_t searchRegion,
-    MemoryDump **foundAddrs, std::vector<MemoryInfo> memInfos);
+    MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
 
-  void searchMemoryAddressesContinue(Debugger *debugger, searchValue_t searchValue1,
+  void searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t searchValue1,
     searchValue_t searchValue2, searchType_t searchType,
-    searchMode_t searchMode, MemoryDump **foundAddrs);
+    searchMode_t searchMode, MemoryDump **displayDump);
 
-  void searchMemoryValuesBegin(Debugger *debugger, searchType_t searchType, searchMode_t searchMode,
-    searchRegion_t searchRegion, MemoryDump **foundAddrs, std::vector<MemoryInfo> memInfos);
+  void searchMemoryValuesPrimary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode,
+    searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
 
 
-  void searchMemoryValuesContinue(Debugger *debugger, searchType_t searchType,
+  void searchMemoryValuesSecondary(Debugger *debugger, searchType_t searchType,
     searchMode_t searchMode, searchRegion_t searchRegion,
-    MemoryDump **dumpFile, std::vector<MemoryInfo> memInfos);
+    MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
+
+  void searchMemoryValuesTertiary(Debugger *debugger, searchType_t searchType,
+    searchMode_t searchMode, searchRegion_t searchRegion,
+    MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
 };

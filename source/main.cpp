@@ -112,6 +112,7 @@ void serviceInitialize() {
   setsysInitialize();
   socketInitializeDefault();
   accountInitialize();
+  nsInitialize();
   plInitialize();
   psmInitialize();
   pmdmntInitialize();
@@ -139,6 +140,7 @@ void serviceInitialize() {
 void serviceExit() {
   socketExit();
   accountExit();
+  nsExit();
   plExit();
   psmExit();
   pminfoExit();

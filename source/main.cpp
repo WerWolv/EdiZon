@@ -235,7 +235,7 @@ int main(int argc, char** argv) {
             currGui = new GuiTXWarning();
             break;
           case GUI_CHEATS:
-            currGui = new GuiRAMEditor();
+            currGui = new GuiCheats();
             break;
           case GUI_INFORMATION:
             currGui = new GuiInformation();

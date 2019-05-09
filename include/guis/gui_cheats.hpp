@@ -13,11 +13,11 @@
 
 #include "helpers/dmntcht.h"
 
-class GuiRAMEditor : public Gui {
+class GuiCheats : public Gui {
 
 public:
-  GuiRAMEditor();
-  ~GuiRAMEditor();
+  GuiCheats();
+  ~GuiCheats();
 
   void update();
   void draw();

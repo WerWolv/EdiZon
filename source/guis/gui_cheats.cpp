@@ -25,7 +25,7 @@ bool _isAddressFrozen(uintptr_t );
 std::string _getAddressDisplayString(u64 , Debugger *debugger, searchType_t searchType);
 std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searchType);
 
-GuiRAMEditor::GuiRAMEditor() : Gui() {
+GuiCheats::GuiCheats() : Gui() {
   
   m_sysmodulePresent = true;
   m_debugger = new Debugger(m_sysmodulePresent);
@@ -160,7 +160,7 @@ GuiRAMEditor::GuiRAMEditor() : Gui() {
   appletSetMediaPlaybackState(true);
 }
 
-GuiRAMEditor::~GuiRAMEditor() {
+GuiCheats::~GuiCheats() {
 
   if (m_debugger != nullptr) {
     m_debugger->detachFromProcess();
@@ -183,11 +183,11 @@ GuiRAMEditor::~GuiRAMEditor() {
 
 
 
-void GuiRAMEditor::update() {
+void GuiCheats::update() {
   Gui::update();
 }
 
-void GuiRAMEditor::draw() {
+void GuiCheats::draw() {
   static u32 splashCnt = 0;
   std::stringstream ss;
 
@@ -366,7 +366,7 @@ void GuiRAMEditor::draw() {
   Gui::endDraw();
 }
 
-void GuiRAMEditor::drawSearchRAMMenu() {
+void GuiCheats::drawSearchRAMMenu() {
   static u32 cursorBlinkCnt = 0;
   u32 strWidth = 0;
   std::stringstream ss;
@@ -485,7 +485,7 @@ void GuiRAMEditor::drawSearchRAMMenu() {
   }
 }
 
-void GuiRAMEditor::onInput(u32 kdown) {
+void GuiCheats::onInput(u32 kdown) {
   if (kdown & KEY_B) {
 
     if (m_searchMenuLocation == SEARCH_NONE) {
@@ -834,18 +834,18 @@ void GuiRAMEditor::onInput(u32 kdown) {
             if (m_searchMode & (SEARCH_MODE_SAME | SEARCH_MODE_DIFF | SEARCH_MODE_INC | SEARCH_MODE_DEC)) {
               if (m_memoryDump->size() == 0) {
                 delete m_memoryDump;
-                GuiRAMEditor::searchMemoryValuesPrimary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+                GuiCheats::searchMemoryValuesPrimary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::DATA) {
-                GuiRAMEditor::searchMemoryValuesSecondary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+                GuiCheats::searchMemoryValuesSecondary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
-                GuiRAMEditor::searchMemoryValuesTertiary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+                GuiCheats::searchMemoryValuesTertiary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               }
             } else {
               if (m_memoryDump->size() == 0) {
                 delete m_memoryDump;
-                GuiRAMEditor::searchMemoryAddressesPrimary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+                GuiCheats::searchMemoryAddressesPrimary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               } else {
-                GuiRAMEditor::searchMemoryAddressesSecondary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, &m_memoryDump);
+                GuiCheats::searchMemoryAddressesSecondary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, &m_memoryDump);
               }
             }
 
@@ -902,11 +902,11 @@ void GuiRAMEditor::onInput(u32 kdown) {
   }
 }
 
-void GuiRAMEditor::onTouch(touchPosition &touch) {
+void GuiCheats::onTouch(touchPosition &touch) {
 
 }
 
-void GuiRAMEditor::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
+void GuiCheats::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
 
 }
 
@@ -1023,7 +1023,7 @@ std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searc
   return ss.str();
 }
 
-void GuiRAMEditor::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
   (*displayDump) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::ADDR, true);
   (*displayDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
   (*displayDump)->setSearchParams(searchType, searchMode, searchRegion, searchValue1, searchValue2);
@@ -1125,7 +1125,7 @@ void GuiRAMEditor::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_
   (*displayDump)->flushBuffer();
 }
 
-void GuiRAMEditor::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump **displayDump) {
+void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump **displayDump) {
   MemoryDump *newDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::ADDR, true);
   bool ledOn = false;
 
@@ -1214,7 +1214,7 @@ void GuiRAMEditor::searchMemoryAddressesSecondary(Debugger *debugger, searchValu
   remove("/switch/EdiZon/memdump2.dat");
 }
 
-void GuiRAMEditor::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+void GuiCheats::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
   bool ledOn = false;
 
   searchValue_t zeroValue;
@@ -1259,7 +1259,7 @@ void GuiRAMEditor::searchMemoryValuesPrimary(Debugger *debugger, searchType_t se
   setLedState(false);
 }
 
-void GuiRAMEditor::searchMemoryValuesSecondary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
   MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
   MemoryDump *addrDump = new MemoryDump("/switch/EdiZon/memdump3.dat", DumpType::ADDR, true);
   u64 dumpOffset = 0;
@@ -1294,9 +1294,9 @@ void GuiRAMEditor::searchMemoryValuesSecondary(Debugger *debugger, searchType_t 
   }
 }
 
-void GuiRAMEditor::searchMemoryValuesTertiary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
   MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
-  MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memaddrdump.dat", DumpType::ADDR, true);
+  MemoryDump *addrDump = new MemoryDump("/switch/EdiZon/memdump3.dat", DumpType::ADDR, true);
   u64 dumpOffset = 0;
 
   for (MemoryInfo meminfo : memInfos) {

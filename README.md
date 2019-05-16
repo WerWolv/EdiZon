@@ -73,7 +73,7 @@ A Homebrew save file dumper, injector and on-console editor for Horizon, the OS 
   - [Ac_K](https://github.com/AcK77) for help with the server side update scripts and the EdiZon save website.
   - [jakibaki](https://github.com/jakibaki) for his massive help with the implementation of RAM editing and sys-netcheat which was used as inspiration.
   - [SciresM](https://github.com/SciresM) for the aarch64 hardware accelerated SHA256 code, his implementation of the Atmosphère cheat engine and his support during development.
-  - **kardch** fpr the beatiful icon
+  - **kardch** for the beatiful icon
   - **bernv3** for the beautiful old icon.
   - **All config creators** for bringing this project to life!
 

@@ -45,7 +45,7 @@ SOURCES		:=	source source/widgets source/guis source/scripting source/ui_element
 DATA		:=	data
 INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include
 EXEFS_SRC	:=	exefs_src
-#ROMFS		:=	romfs
+ROMFS		:=	romfs
 
 #---------------------------------------------------------------------------------
 # options for code generation

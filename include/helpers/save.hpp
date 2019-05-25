@@ -17,7 +17,7 @@
 
 Result _getSaveList(std::vector<FsSaveDataInfo> &saveInfoList);
 
-Result deleteDirRecursively(const char *path, u64 titleID, u128 userID);
+s32 deleteDirRecursively(const char *path, bool isSave);
 void makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject);
 Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs);
 s32 isDirectory(const char *path);

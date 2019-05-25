@@ -537,7 +537,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
 
         if (k & KEY_X) {
           std::stringstream path;
-          deleteDirRecursively(m_backupPaths[Gui::g_currListSelector->selectedItem].c_str(), 0, 0);
+          deleteDirRecursively(m_backupPaths[Gui::g_currListSelector->selectedItem].c_str(), false);
           updateBackupList();
 
           if (Gui::g_currListSelector->selectedItem == m_backupTitles.size() && Gui::g_currListSelector->selectedItem > 0)

@@ -14,13 +14,9 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <filesystem>
+#include "helpers/util.h"
 
 #include "json.hpp"
-
-
-#define API_VERSION "v2"
-
-#define EDIZON_URL "https://vps.werwolv.net/api/edizon/" API_VERSION 
 
 using json = nlohmann::json;
 
@@ -29,7 +25,6 @@ extern char* g_edizonPath;
 static CURL *curl;
 
 UpdateManager::UpdateManager() {
-  curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
 
   if (!curl)
@@ -38,15 +33,14 @@ UpdateManager::UpdateManager() {
 
 UpdateManager::~UpdateManager() {
   curl_easy_cleanup(curl);
-  curl_global_cleanup();
 }
 
-size_t writeToString(void *contents, size_t size, size_t nmemb, void *userp){
+static size_t writeToString(void *contents, size_t size, size_t nmemb, void *userp){
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
 }
 
-size_t writeToFile(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+static size_t writeToFile(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     size_t written = fwrite(ptr, size, nmemb, stream);
     return written;
 }

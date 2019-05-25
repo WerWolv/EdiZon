@@ -343,10 +343,13 @@ void GuiMain::onInput(u32 kdown) {
         case 1:
           Gui::g_nextGui = GUI_INFORMATION;
           break;
+        case 2:
+          Gui::g_nextGui = GUI_CREDITS;
+          break;
         default: break;
       }
     }
-  }
+  }    
 
   if (kdown & KEY_ZL) {
     m_editableOnly = !m_editableOnly;

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <curl/curl.h>
 
 #include "guis/gui.hpp"
 #include "guis/gui_main.hpp"
@@ -15,6 +16,7 @@
 #include "guis/gui_tx_warning.hpp"
 #include "guis/gui_cheats.hpp"
 #include "guis/gui_information.hpp"
+#include "guis/gui_credits.hpp"
 
 #include "helpers/title.hpp"
 
@@ -111,17 +113,19 @@ void requestDraw() {
 void serviceInitialize() {
   setsysInitialize();
   socketInitializeDefault();
-  accountInitialize();
   nsInitialize();
+  accountInitialize();
   plInitialize();
   psmInitialize();
-  pmdmntInitialize();
   pminfoInitialize();
+  pmdmntInitialize();
   romfsInit();
   hidsysInitialize();
   pcvInitialize();
   clkrstInitialize();
   ledInit();
+
+  curl_global_init(CURL_GLOBAL_ALL);
 
   u64 pid = 0;
   u128 activeUser;
@@ -138,18 +142,20 @@ void serviceInitialize() {
 }
 
 void serviceExit() {
+  setsysExit();
   socketExit();
-  accountExit();
   nsExit();
+  accountExit();
   plExit();
   psmExit();
   pminfoExit();
   pmdmntExit();
   romfsExit();
-  setsysExit();
   hidsysExit();
   pcvExit();
   clkrstExit();
+
+  curl_global_cleanup();
 
   close(debugOutputFile);
 
@@ -239,6 +245,9 @@ int main(int argc, char** argv) {
             break;
           case GUI_INFORMATION:
             currGui = new GuiInformation();
+            break;
+          case GUI_CREDITS:
+            currGui = new GuiCredits();
             break;
 
           case GUI_INVALID: [[fallthrough]]

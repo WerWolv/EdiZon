@@ -22,7 +22,6 @@
 using json = nlohmann::json;
 
 UploadManager::UploadManager() {
-  curl_global_init(CURL_GLOBAL_ALL);
   m_curl = curl_easy_init();
 
   if (!m_curl)
@@ -31,7 +30,6 @@ UploadManager::UploadManager() {
 
 UploadManager::~UploadManager() {
   curl_easy_cleanup(m_curl);
-  curl_global_cleanup();
 }
 
 size_t writefunc(void *ptr, size_t size, size_t nmemb, std::string* s) {

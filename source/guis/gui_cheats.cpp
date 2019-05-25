@@ -837,6 +837,12 @@ void GuiCheats::onInput(u32 kdown) {
                 GuiCheats::searchMemoryValuesPrimary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::DATA) {
                 GuiCheats::searchMemoryValuesSecondary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+                delete m_memoryDump;
+
+                remove("/switch/EdiZon/memdump1.dat");
+                rename("/switch/EdiZon/memdump3.dat", "/switch/EdiZon/memdump1.dat");
+
+                m_memoryDump = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::ADDR, false);
               } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
                 GuiCheats::searchMemoryValuesTertiary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               }
@@ -1291,6 +1297,44 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
     }
 
     delete[] buffer;
+  }
+
+  for (u64 addr = 0; addr < std::min((*displayDump)->size(), newMemDump->size()); addr += dataTypeSizes[searchType]) {
+    searchValue_t oldValue = { 0 };
+    searchValue_t newValue = { 0 };
+
+    (*displayDump)->getData(addr, &oldValue, dataTypeSizes[searchType]);
+    newMemDump->getData(addr, &newValue, dataTypeSizes[searchType]);
+
+    switch(searchMode) {
+      case SEARCH_MODE_SAME:
+        if (newValue._u64 == oldValue._u64)
+          addrDump->addData((u8*)&addr, sizeof(u64));
+        break;
+      case SEARCH_MODE_DIFF:
+        if (newValue._u64 != oldValue._u64)
+          addrDump->addData((u8*)&addr, sizeof(u64));
+        break;
+      case SEARCH_MODE_INC:
+        if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
+          if (newValue._s64 > oldValue._s64)
+            (*displayDump)->addData((u8*)&addr, sizeof(u64));
+        } else {
+          if (newValue._u64 > oldValue._u64)
+            (*displayDump)->addData((u8*)&addr, sizeof(u64));
+        }
+        break;
+      case SEARCH_MODE_DEC:
+        if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT)) {
+          if (newValue._s64 < oldValue._s64)
+            (*displayDump)->addData((u8*)&addr, sizeof(u64));
+        } else {
+          if (newValue._u64 < oldValue._u64)
+            (*displayDump)->addData((u8*)&addr, sizeof(u64));
+        }
+        break;
+    }
+
   }
 }
 

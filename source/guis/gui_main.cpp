@@ -218,7 +218,16 @@ void GuiMain::onInput(u32 kdown) {
       if ((m_selected.titleIndex % 2) == 0) {
         if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
-      } else m_selectedExtraOption = 0;
+      } else {
+        if (m_selected.titleIndex < (std::ceil(xOffset / 256.0F) * 2 + 4))
+          m_selectedExtraOption = 0;
+        else if (m_selected.titleIndex < (std::ceil(xOffset / 256.0F) * 2 + 6))
+          m_selectedExtraOption = 1;
+        else 
+          m_selectedExtraOption = 2;
+          
+        m_selected.titleIndex = -1;
+      } 
     }
 
     if (kdown & KEY_A) {
@@ -240,11 +249,13 @@ void GuiMain::onInput(u32 kdown) {
     }
 
     if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
-      if (m_selected.titleIndex / 2 - (xOffset / 256) > 3)
-        xOffsetNext = std::min(static_cast<u32>((m_selected.titleIndex / 2 - 3) * 256), static_cast<u32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5) * 256));
+      if (m_selected.titleIndex != -1) {
+        if (m_selected.titleIndex / 2 - (xOffset / 256) > 3)
+          xOffsetNext = std::min(static_cast<u32>((m_selected.titleIndex / 2 - 3) * 256), static_cast<u32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5) * 256));
 
-      if (m_selected.titleIndex / 2 - (xOffset / 256) < 1)
-        xOffsetNext = std::max((m_selected.titleIndex / 2 - 1) * 256, 0);
+        if (m_selected.titleIndex / 2 - (xOffset / 256) < 1)
+          xOffsetNext = std::max((m_selected.titleIndex / 2 - 1) * 256, 0);
+      }
     }
 
     if (kdown & KEY_X) {
@@ -325,8 +336,10 @@ void GuiMain::onInput(u32 kdown) {
       }
     }
   } else { /* One of the extra options (Cheats, Tutorial or Credits) is selected */
-    if (kdown & KEY_UP)
+    if (kdown & KEY_UP) {
+      m_selected.titleIndex = std::ceil(xOffset / 256.0F) * 2 + 2 * m_selectedExtraOption + 3;
       m_selectedExtraOption = -1;
+    }
     else if (kdown & KEY_LEFT) {
       if (m_selectedExtraOption > 0)
         m_selectedExtraOption--;

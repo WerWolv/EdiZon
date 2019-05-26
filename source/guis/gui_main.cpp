@@ -168,6 +168,13 @@ void GuiMain::draw() {
 
     Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
 
+    if (m_selected.extraOption == 0)
+      Gui::drawTextAligned(font14, 490, 623, currTheme.tooltipTextColor, "Cheats", ALIGNED_CENTER);
+    else if (m_selected.extraOption == 1)
+      Gui::drawTextAligned(font14, 640, 623, currTheme.tooltipTextColor, "Guide", ALIGNED_CENTER);
+    else if (m_selected.extraOption == 2)
+      Gui::drawTextAligned(font14, 790, 623, currTheme.tooltipTextColor, "Information", ALIGNED_CENTER);
+
     std::string buttonHintStr = "";
 
     buttonHintStr  = !tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";

@@ -85,7 +85,14 @@ void GuiMain::draw() {
     return;
   }
 
-  m_editableCount = 0;
+  if ((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) > 10) {
+    Gui::drawRectangle(0, 544, Gui::g_framebuffer_width, 5, currTheme.tooltipColor);
+
+    u32 scrollbarPos = (static_cast<double>(xOffset) / (std::ceil((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 2.0F) * 256)) * Gui::g_framebuffer_width;
+    u32 scrollbarWidth = static_cast<double>(Gui::g_framebuffer_width) / ((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 10.0F);
+
+    Gui::drawRectangle(scrollbarPos, 544, scrollbarWidth, 5, currTheme.tooltipTextColor);
+  }
 
   for (auto title : Title::g_titles) {
     if (currItem == m_selected.titleIndex) {
@@ -112,8 +119,6 @@ void GuiMain::draw() {
 
       y = y == 32 ? 288 : 32;
       x = floor(++currItem / 2.0F) * 256;
-
-      m_editableCount++;
     }
   }
 
@@ -132,7 +137,7 @@ void GuiMain::draw() {
   Gui::drawRectangled(Gui::g_framebuffer_width - 72, 5, 7, 18, currTheme.separatorColor);
   Gui::drawRectangled(Gui::g_framebuffer_width - 75, 8, 13, 18, currTheme.separatorColor);
 
-  if (tmpEditableOnly && m_editableCount == 0) {
+  if (tmpEditableOnly && ConfigParser::g_editableTitles.size() == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
     Gui::endDraw();
     return;
@@ -186,10 +191,6 @@ void GuiMain::draw() {
     if (m_selected.titleIndex != -1)
       Gui::drawTooltip(selectedX + 128, 288, Title::g_titles[m_selected.titleId]->getTitleName().c_str(), currTheme.tooltipColor, currTheme.tooltipTextColor, 0xFF, m_selected.titleIndex % 2);
   }
-
-  static float arrowCnt = 0.0;
-  Gui::drawTextAligned(fontHuge, Gui::g_framebuffer_width - 60 + std::sin(arrowCnt) * 20, Gui::g_framebuffer_height / 2 - 50, arrowColor, "\uE090", ALIGNED_RIGHT);
-  arrowCnt += 0.1;
 
   finishedDrawing = true;
 
@@ -405,7 +406,7 @@ void GuiMain::onTouch(touchPosition &touch) {
   if (touch.py < 32) return;
 
   if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
-    if (m_editableOnly && title > (m_editableCount - 1)) return;
+    if (m_editableOnly && title > (ConfigParser::g_editableTitles.size() - 1)) return;
     
     if (m_selected.titleIndex == title) {
       if (m_selected.titleId == Title::g_activeTitle) {

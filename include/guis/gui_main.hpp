@@ -31,7 +31,6 @@ private:
 
   static inline bool m_editableOnly = false;
   bool m_backupAll = false;
-  u16 m_editableCount = 0;
 
   void updateEditableTitlesList();
 };

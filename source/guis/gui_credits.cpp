@@ -8,7 +8,6 @@
 
 static std::string m_remoteVersion, m_remoteCommitSha, m_remoteCommitMessage, m_localCommitSha;
 static Thread networkThread;
-static Mutex networkMutex;
 static bool threadRunning;
 
 
@@ -19,8 +18,6 @@ GuiCredits::GuiCredits() : Gui() {
     threadRunning = true;
     threadCreate(&networkThread, getVersionInfoAsync, nullptr, 0x2000, 0x2C, -2);
     threadStart(&networkThread);
-
-    mutexInit(&networkMutex);
   }
 }
 
@@ -49,8 +46,8 @@ void GuiCredits::draw() {
   Gui::drawTextAligned(font14, 120, 250, currTheme.textColor, "Special thank to anybody who got involved into this project.", ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 120, 270, currTheme.textColor, "Especially to all the config/cheat developers that brought this project to life!", ALIGNED_LEFT);
 
-  Gui::drawTextAligned(font14, 900, 150, Gui::makeColor(0x51, 0x97, 0xF0, 0xFF), "Twitter: https://twitter.com/WerWolv", ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 900, 175, Gui::makeColor(0x1A, 0x5E, 0xA7, 0xFF), "PayPal:  https://werwolv.net/donate", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 250, Gui::makeColor(0x51, 0x97, 0xF0, 0xFF), "Twitter: https://twitter.com/WerWolv", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 275, Gui::makeColor(0x1A, 0x5E, 0xA7, 0xFF), "PayPal:  https://werwolv.net/donate", ALIGNED_LEFT);
 
 
   Gui::drawRectangled(50, 350, Gui::g_framebuffer_width - 100, 250, currTheme.textColor);
@@ -59,11 +56,9 @@ void GuiCredits::draw() {
 
   Gui::drawTextAligned(font20, 60, 360, currTheme.selectedColor, "EdiZon Update", ALIGNED_LEFT);
 
-  mutexLock(&networkMutex);
   Gui::drawTextAligned(font14, 80, 400, currTheme.textColor, std::string("Latest EdiZon version: " + (m_remoteVersion == "" ? "..." : m_remoteVersion)).c_str(), ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 80, 425, currTheme.textColor, std::string("Latest database commit: [" + (m_remoteCommitSha == "" ? "..." : m_remoteCommitSha) + "] ").c_str(), ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 90, 450, currTheme.separatorColor, (m_remoteCommitMessage == "" ? "..." : m_remoteCommitMessage.c_str()), ALIGNED_LEFT);
-  mutexUnlock(&networkMutex);
 
   Gui::endDraw();
 }
@@ -75,7 +70,7 @@ void GuiCredits::onInput(u32 kdown) {
       threadClose(&networkThread);
       threadRunning = false;
     }
-    
+
     Gui::g_nextGui = GUI_MAIN;
   }
 }
@@ -91,9 +86,7 @@ void GuiCredits::onGesture(touchPosition startPosition, touchPosition endPositio
 static size_t writeToStr(const char * contents, size_t size, size_t nmemb, std::string * userp){
     auto totalBytes = (size * nmemb);
 
-    mutexLock(&networkMutex);
     userp->append(contents, totalBytes);
-    mutexUnlock(&networkMutex);
 
     return totalBytes;
 }
@@ -105,48 +98,35 @@ static void getVersionInfoAsync(void* args) {
   headers = curl_slist_append(headers, "Cache-Control: no-cache");
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_URL, "http://vps.werwolv.net/api/edizon/v2/info/latest_edizon.php");
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_edizon.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteVersion);
 
-  mutexLock(&networkMutex);
   m_remoteVersion = "";
-  mutexUnlock(&networkMutex);
-
   if (curl_easy_perform(curl) != CURLE_OK) {
-    mutexLock(&networkMutex);
     m_remoteVersion = "???";
-    mutexUnlock(&networkMutex);
   }
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_URL, "http://vps.werwolv.net/api/edizon/v2/info/latest_db_sha.php");
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_db_sha.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteCommitSha);
 
-  mutexLock(&networkMutex);
   m_remoteCommitSha = "";
-  mutexUnlock(&networkMutex);
 
   if (curl_easy_perform(curl) != CURLE_OK) {
-    mutexLock(&networkMutex);
     m_remoteCommitSha = "???";
-    mutexUnlock(&networkMutex);
   }
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_URL, "http://vps.werwolv.net/api/edizon/v2/info/latest_db_message.php");
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_db_message.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteCommitMessage);
 
-  mutexLock(&networkMutex);
   m_remoteCommitMessage = "";
-  mutexUnlock(&networkMutex);
 
   if (curl_easy_perform(curl) != CURLE_OK) {
-    mutexLock(&networkMutex);
     m_remoteCommitMessage = "???";
-    mutexUnlock(&networkMutex);
   }
 
   curl_easy_cleanup(curl);

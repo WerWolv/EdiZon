@@ -28,7 +28,6 @@ GuiMain::GuiMain() : Gui() {
   updateEditableTitlesList();
 
   arrowColor = COLOR_WHITE;
-  m_selectedExtraOption = -1;
 }
 
 GuiMain::~GuiMain() {
@@ -139,7 +138,7 @@ void GuiMain::draw() {
     return;
   }
   else {
-    if (m_selected.titleIndex != -1 && m_selectedExtraOption == -1) {
+    if (m_selected.titleIndex != -1 && m_selected.extraOption == -1) {
       Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.highlightColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
 
@@ -154,8 +153,8 @@ void GuiMain::draw() {
       Gui::drawShadow(selectedX - 5, selectedY - 5, 266, 266);
     }
 
-    if (m_selectedExtraOption != -1) {
-      Gui::drawRectangled(455 + 150 * m_selectedExtraOption, 557, 70, 70, currTheme.highlightColor);
+    if (m_selected.extraOption != -1) {
+      Gui::drawRectangled(455 + 150 * m_selected.extraOption, 557, 70, 70, currTheme.highlightColor);
     }
 
     Gui::drawRectangled(458, 560, 64, 64, currTheme.selectedButtonColor);
@@ -196,7 +195,7 @@ void GuiMain::onInput(u32 kdown) {
 
   if (Title::g_titles.size() == 0) return;
 
-  if (m_selectedExtraOption == -1) { /* one of the titles is selected */
+  if (m_selected.extraOption == -1) { /* one of the titles is selected */
     if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_A | KEY_X)) {
       if (m_selected.titleIndex == -1 || (m_selected.titleIndex / 2 + 1) * 256 < xOffset || (m_selected.titleIndex / 2) * 256 > xOffset + 6 * 256) {
         m_selected.titleIndex = std::ceil(xOffset / 256.0F) * 2;
@@ -220,12 +219,12 @@ void GuiMain::onInput(u32 kdown) {
           m_selected.titleIndex++;
       } else {
         if (m_selected.titleIndex < (std::ceil(xOffset / 256.0F) * 2 + 4))
-          m_selectedExtraOption = 0;
+          m_selected.extraOption = 0;
         else if (m_selected.titleIndex < (std::ceil(xOffset / 256.0F) * 2 + 6))
-          m_selectedExtraOption = 1;
+          m_selected.extraOption = 1;
         else 
-          m_selectedExtraOption = 2;
-          
+          m_selected.extraOption = 2;
+
         m_selected.titleIndex = -1;
       } 
     }
@@ -337,19 +336,19 @@ void GuiMain::onInput(u32 kdown) {
     }
   } else { /* One of the extra options (Cheats, Tutorial or Credits) is selected */
     if (kdown & KEY_UP) {
-      m_selected.titleIndex = std::ceil(xOffset / 256.0F) * 2 + 2 * m_selectedExtraOption + 3;
-      m_selectedExtraOption = -1;
+      m_selected.titleIndex = std::ceil(xOffset / 256.0F) * 2 + 2 * m_selected.extraOption + 3;
+      m_selected.extraOption = -1;
     }
     else if (kdown & KEY_LEFT) {
-      if (m_selectedExtraOption > 0)
-        m_selectedExtraOption--;
+      if (m_selected.extraOption > 0)
+        m_selected.extraOption--;
     } else if (kdown & KEY_RIGHT) {
-      if (m_selectedExtraOption < 2)
-        m_selectedExtraOption++;
+      if (m_selected.extraOption < 2)
+        m_selected.extraOption++;
     }
 
     if (kdown & KEY_A) {
-      switch(m_selectedExtraOption) {
+      switch(m_selected.extraOption) {
         case 0:
           Gui::g_nextGui = GUI_CHEATS;
           break;
@@ -435,7 +434,7 @@ void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition,
   static touchPosition oldPosition;
 
   m_selected.titleIndex = -1;
-  m_selectedExtraOption = -1;
+  m_selected.extraOption = -1;
 
   if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
 

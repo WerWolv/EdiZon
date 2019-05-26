@@ -23,12 +23,11 @@ public:
 private:
   static inline struct {
     s16 titleIndex;
+    s8 extraOption;
 
     u64 titleId;
     u128 userId;
-  } m_selected;
-
-  s8 m_selectedExtraOption;
+  } m_selected = { 0, -1, 0, 0 };
 
   static inline bool m_editableOnly = false;
   bool m_backupAll = false;

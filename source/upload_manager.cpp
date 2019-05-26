@@ -120,7 +120,7 @@ std::string UploadManager::upload(std::string path, std::string fileName, Title 
 
   if (anonFileAddress.find("https://anonfile.com/") != std::string::npos) {
     std::stringstream ss;
-    ss << "http://vps.werwolv.net/edizon_upload/sharedlink.php";
+    ss << "http://werwolv.net/edizon_upload/sharedlink.php";
     ss << "?link=" << curl_easy_escape(m_curl, anonFileAddress.c_str(), anonFileAddress.length());
     ss << "&hash=" << hash;
     ss << "&backupname=" << curl_easy_escape(m_curl, fileName.c_str(), fileName.length());

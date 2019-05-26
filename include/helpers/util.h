@@ -3,8 +3,8 @@
 
 #define DEBUG_LOG(statement, formatStr) (printf("%s : %d %s -> " formatStr "\n", __FUNCTION__, __LINE__, #statement, statement))
 
-#define API_VERSION "v2"
-#define EDIZON_URL "https://vps.werwolv.net/api/edizon/" API_VERSION 
+#define API_VERSION "v3"
+#define EDIZON_URL "http://api.edizon.werwolv.net/" API_VERSION 
 
 #ifdef __cplusplus
 extern "C" {

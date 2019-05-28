@@ -45,7 +45,7 @@ private:
   MemoryDump *m_memoryDump;
   std::map<u64, u64> m_frozenAddresses;
 
-  bool m_attached = false;
+  bool m_cheatsPresent = false;
   bool m_sysmodulePresent = false;
 
   u64 m_addressSpaceBaseAddr = 0x00;

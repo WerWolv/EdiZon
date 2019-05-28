@@ -25,6 +25,7 @@ static bool _isAddressFrozen(uintptr_t );
 static std::string _getAddressDisplayString(u64 , Debugger *debugger, searchType_t searchType);
 static std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searchType);
 static void _moveLonelyCheats(u8 *buildID, u64 titleID);
+static bool _wrongCheatsPresent(u8 *buildID, u64 titleID);
 
 GuiCheats::GuiCheats() : Gui() {
 
@@ -60,30 +61,29 @@ GuiCheats::GuiCheats() : Gui() {
 
   memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
 
-  u64 cheatCnt = 0;
+  _moveLonelyCheats(m_buildID, m_debugger->getRunningApplicationTID());
 
-  dmntchtGetCheatCount(&cheatCnt);
+  dmntchtGetCheatCount(&m_cheatCnt);
 
-  if (cheatCnt > 0) {
-    m_cheats = new DmntCheatEntry[cheatCnt];
-    dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
-  }
+  if (m_cheatCnt > 0) {
+    m_cheats = new DmntCheatEntry[m_cheatCnt];
+    dmntchtGetCheats(m_cheats, m_cheatCnt, 0, &m_cheatCnt);
+  } else if (_wrongCheatsPresent(m_buildID, m_debugger->getRunningApplicationTID())) 
+    m_cheatsPresent = true;
 
-  u64 Cnt = 0;
-  dmntchtGetFrozenAddressCount(&Cnt);
+  u64 frozenAddressCnt = 0;
+  dmntchtGetFrozenAddressCount(&frozenAddressCnt);
 
-  if (Cnt != 0) {
-    DmntFrozenAddressEntry frozenAddresses[Cnt];
-    dmntchtGetFrozenAddresses(frozenAddresses, Cnt, 0, nullptr);
+  if (frozenAddressCnt != 0) {
+    DmntFrozenAddressEntry frozenAddresses[frozenAddressCnt];
+    dmntchtGetFrozenAddresses(frozenAddresses, frozenAddressCnt, 0, nullptr);
 
-    for (u16 i = 0; i < Cnt; i++)
+    for (u16 i = 0; i < frozenAddressCnt; i++)
       m_frozenAddresses.insert({ frozenAddresses[i].address, frozenAddresses[i].value.value });
 
   }
   
-  _moveLonelyCheats(m_buildID, m_debugger->getRunningApplicationTID());
-
-
+  
   MemoryInfo meminfo = { 0 };
   u64 lastAddr = 0;
 
@@ -294,7 +294,8 @@ void GuiCheats::draw() {
         Gui::drawRectangled(74, 313 + (line - cheatListOffset) * 40, 10, 10, (m_selectedEntry == line && m_menuLocation == CHEATS) ? highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
       }
     }
-  }
+  } else if (m_cheatsPresent && m_memoryDump->size() == 0)
+    Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2,  Gui::g_framebuffer_height / 2 + 50, currTheme.textColor, "Cheats for this game present but title version or region doesn't match!", ALIGNED_CENTER);
 
 
   if (m_memoryDump->getDumpInfo().dumpType == DumpType::DATA) {
@@ -1427,4 +1428,28 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
 
     (new MessageBox("A new cheat has been added for this title. \n Please restart the game to start using it.", MessageBox::OKAY))->show();
   }
+}
+
+static bool _wrongCheatsPresent(u8 *buildID, u64 titleID) {
+  std::stringstream ss;
+
+  if (isServiceRunning("rnx"))
+    ss << "/ReiNX";
+  else
+    ss << "/atmosphere";
+
+  ss << "/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID << "/cheats/";
+
+  if (!std::filesystem::exists(ss.str()))
+    return false;
+
+  bool cheatsFolderEmpty = std::filesystem::is_empty(ss.str());
+  
+  for (u8 i = 0; i < 8; i++) 
+    ss << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)buildID[i];
+  ss << ".txt";
+
+  bool realCheatDoesExist = std::filesystem::exists(ss.str());
+
+  return !(cheatsFolderEmpty || realCheatDoesExist);
 }

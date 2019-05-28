@@ -109,7 +109,6 @@ void MemoryDump::clear() {
   }
 
   m_dumpFile = fopen(m_filePath.c_str(), "w+b");
-  printf("m_dumpFile %p\n", m_dumpFile);
   MemoryDump::writeHeader();
 }
 

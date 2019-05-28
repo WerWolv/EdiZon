@@ -21,14 +21,17 @@ static std::string titleNameStr, tidStr, pidStr, buildIDStr;
 
 static u32 cheatListOffset = 0;
 
-bool _isAddressFrozen(uintptr_t );
-std::string _getAddressDisplayString(u64 , Debugger *debugger, searchType_t searchType);
-std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searchType);
+static bool _isAddressFrozen(uintptr_t );
+static std::string _getAddressDisplayString(u64 , Debugger *debugger, searchType_t searchType);
+static std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searchType);
+static void _moveLonelyCheats(u8 *buildID, u64 titleID);
 
 GuiCheats::GuiCheats() : Gui() {
-  
-  m_sysmodulePresent = true;
-  m_debugger = new Debugger(m_sysmodulePresent);
+
+  // Check if dmnt:cht is running and we're not on sxos
+  m_sysmodulePresent = isServiceRunning("dmnt:cht") && !(isServiceRunning("tx") && !isServiceRunning("rnx"));
+
+  m_debugger = new Debugger();
   m_cheats = nullptr;
   m_memoryDump = nullptr;
 
@@ -40,46 +43,45 @@ GuiCheats::GuiCheats() : Gui() {
 
   m_cheatCnt = 0;
 
-  if (m_sysmodulePresent) {
-    dmntchtInitialize();
-    dmntchtForceOpenCheatProcess();
+  if (!m_sysmodulePresent) return;
 
-    DmntCheatProcessMetadata metadata;
-    dmntchtGetCheatProcessMetadata(&metadata);
+  dmntchtInitialize();
+  dmntchtForceOpenCheatProcess();
 
-    m_addressSpaceBaseAddr = metadata.address_space_extents.base;
-    m_heapBaseAddr = metadata.heap_extents.base;
-    m_mainBaseAddr = metadata.main_nso_extents.base;
+  DmntCheatProcessMetadata metadata;
+  dmntchtGetCheatProcessMetadata(&metadata);
 
-    m_heapSize = metadata.heap_extents.size;
-    m_mainSize = metadata.main_nso_extents.size;
+  m_addressSpaceBaseAddr = metadata.address_space_extents.base;
+  m_heapBaseAddr = metadata.heap_extents.base;
+  m_mainBaseAddr = metadata.main_nso_extents.base;
 
-    memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
+  m_heapSize = metadata.heap_extents.size;
+  m_mainSize = metadata.main_nso_extents.size;
 
-    u64 cheatCnt = 0;
+  memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
 
-    dmntchtGetCheatCount(&cheatCnt);
+  u64 cheatCnt = 0;
 
-    if (cheatCnt > 0) {
-      m_cheats = new DmntCheatEntry[cheatCnt];
-      dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
-    }
+  dmntchtGetCheatCount(&cheatCnt);
 
-    u64 Cnt = 0;
-    dmntchtGetFrozenAddressCount(&Cnt);
+  if (cheatCnt > 0) {
+    m_cheats = new DmntCheatEntry[cheatCnt];
+    dmntchtGetCheats(m_cheats, cheatCnt, 0, &m_cheatCnt);
+  }
 
-    if (Cnt != 0) {
-      DmntFrozenAddressEntry frozenAddresses[Cnt];
-      dmntchtGetFrozenAddresses(frozenAddresses, Cnt, 0, nullptr);
+  u64 Cnt = 0;
+  dmntchtGetFrozenAddressCount(&Cnt);
 
-      for (u16 i = 0; i < Cnt; i++)
-        m_frozenAddresses.insert({ frozenAddresses[i].address, frozenAddresses[i].value.value });
+  if (Cnt != 0) {
+    DmntFrozenAddressEntry frozenAddresses[Cnt];
+    dmntchtGetFrozenAddresses(frozenAddresses, Cnt, 0, nullptr);
 
-    }
-  } else
-    return;
+    for (u16 i = 0; i < Cnt; i++)
+      m_frozenAddresses.insert({ frozenAddresses[i].address, frozenAddresses[i].value.value });
 
-  m_attached = true;
+  }
+  
+  _moveLonelyCheats(m_buildID, m_debugger->getRunningApplicationTID());
 
 
   MemoryInfo meminfo = { 0 };
@@ -91,8 +93,6 @@ GuiCheats::GuiCheats() : Gui() {
 
     m_memoryInfo.push_back(meminfo);
   } while (lastAddr < meminfo.addr + meminfo.size);
-
-  m_debugger->continueProcess();
 
   for (MemoryInfo meminfo : m_memoryInfo) {
     if (m_mainBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic))
@@ -148,10 +148,6 @@ GuiCheats::GuiCheats() : Gui() {
   
   buildIDStr = ss.str();
 
-  if (!m_sysmodulePresent) {
-    (new MessageBox("Atmosphère's cheat module is not running on this System. \n Cheat management and variable freezing is disabled.", MessageBox::OKAY))->show();
-  }
-
   if (m_cheatCnt == 0)
     m_menuLocation = CANDIDATES;
   if (m_memoryDump->size() == 0)
@@ -163,7 +159,6 @@ GuiCheats::GuiCheats() : Gui() {
 GuiCheats::~GuiCheats() {
 
   if (m_debugger != nullptr) {
-    m_debugger->detachFromProcess();
     delete m_debugger;
   }
 
@@ -180,8 +175,6 @@ GuiCheats::~GuiCheats() {
   setLedState(false);
   appletSetMediaPlaybackState(false);
 }
-
-
 
 void GuiCheats::update() {
   Gui::update();
@@ -215,9 +208,9 @@ void GuiCheats::draw() {
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E1 Back", ALIGNED_RIGHT);
     Gui::endDraw();
     return;
-  } else if (!m_attached) {
+  } else if (!m_sysmodulePresent) {
     Gui::drawTextAligned(fontHuge, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, currTheme.textColor, "\uE142", ALIGNED_CENTER);
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2, currTheme.textColor, "EdiZon couldn't attach to the running Application. Please restart \n EdiZon and try again.", ALIGNED_CENTER);
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2, currTheme.textColor, "EdiZon depends on Atmosphere's dmnt:cht service which doesn't seem to be \n running on this device. Please install a supported CFW to \n use the cheat engine.", ALIGNED_CENTER);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E1 Back", ALIGNED_RIGHT);
     Gui::endDraw();
     return;
@@ -230,10 +223,7 @@ void GuiCheats::draw() {
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
   } else {
     if (m_memoryDump->size() > 0) {
-      if (m_sysmodulePresent)
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
-      else 
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E3 Search again     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E3 Search again     \uE0E2 Freeze value     \uE0E0 Edit value     \uE0E1 Back", ALIGNED_RIGHT);
     }
     else 
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E1 Back", ALIGNED_RIGHT);
@@ -283,7 +273,7 @@ void GuiCheats::draw() {
     Gui::drawTextAligned(font20, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
   }
 
-  if (m_cheatCnt > 0 && m_sysmodulePresent) {
+  if (m_cheatCnt > 0) {
     Gui::drawRectangle(50, 256, 650, 46 + std::min(static_cast<u32>(m_cheatCnt), 8U) * 40, currTheme.textColor);
     Gui::drawTextAligned(font14, 375, 262, currTheme.backgroundColor, "Cheats", ALIGNED_CENTER);
     Gui::drawShadow(50, 256, 650, 46 + std::min(static_cast<u32>(m_cheatCnt), 8U) * 40);
@@ -557,7 +547,7 @@ void GuiCheats::onInput(u32 kdown) {
 
       if (m_menuLocation == CANDIDATES) { /* Candidates menu */
         if (m_memoryDump->size() > 0) { 
-          if (kdown & KEY_X && m_sysmodulePresent && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
+          if (kdown & KEY_X && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
             u64 address = 0;
             m_memoryDump->getData(m_selectedEntry * sizeof(u64), &address, sizeof(u64));
             if (!_isAddressFrozen(address)) {
@@ -916,7 +906,7 @@ void GuiCheats::onGesture(touchPosition startPosition, touchPosition endPosition
 
 }
 
-bool _isAddressFrozen(uintptr_t address) {
+static bool _isAddressFrozen(uintptr_t address) {
   DmntFrozenAddressEntry *es;
   u64 Cnt = 0;
   bool frozen = false;
@@ -938,7 +928,7 @@ bool _isAddressFrozen(uintptr_t address) {
   return frozen;
 }
 
-std::string _getAddressDisplayString(u64 address, Debugger *debugger, searchType_t searchType) {
+static std::string _getAddressDisplayString(u64 address, Debugger *debugger, searchType_t searchType) {
   std::stringstream ss;
 
   searchValue_t searchValue;
@@ -984,7 +974,7 @@ std::string _getAddressDisplayString(u64 address, Debugger *debugger, searchType
   return ss.str();
 }
 
-std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searchType) {
+static std::string _getValueDisplayString(searchValue_t searchValue, searchType_t searchType) {
   std::stringstream ss;
 
   switch(searchType) {
@@ -1266,6 +1256,8 @@ void GuiCheats::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searc
 }
 
 void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
+  bool ledOn = false;
+
   MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
   MemoryDump *addrDump = new MemoryDump("/switch/EdiZon/memdump3.dat", DumpType::ADDR, true);
   u64 dumpOffset = 0;
@@ -1281,6 +1273,9 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
       continue;
     else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
       continue;
+
+    setLedState(ledOn);
+    ledOn = !ledOn;
 
     u64 offset = 0;
     u64 bufferSize = 0x40000;
@@ -1299,12 +1294,17 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
     delete[] buffer;
   }
 
+  // Bigger buffers
   for (u64 addr = 0; addr < std::min((*displayDump)->size(), newMemDump->size()); addr += dataTypeSizes[searchType]) {
     searchValue_t oldValue = { 0 };
     searchValue_t newValue = { 0 };
-
     (*displayDump)->getData(addr, &oldValue, dataTypeSizes[searchType]);
     newMemDump->getData(addr, &newValue, dataTypeSizes[searchType]);
+
+    if (addr % 500 == 0) {
+      setLedState(ledOn);
+      ledOn = !ledOn;
+    }
 
     switch(searchMode) {
       case SEARCH_MODE_SAME:
@@ -1336,6 +1336,8 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
     }
 
   }
+
+  setLedState(false);
 }
 
 void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
@@ -1393,3 +1395,36 @@ void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchType_t sear
  *   Dump all values from changed addresses into a file
  *   Matches should be stored as [MEMADDR][DUMPADDR] for fast comparing later on
  */
+
+static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
+  std::stringstream lonelyCheatPath;
+  std::stringstream realCheatPath;
+  
+  std::stringstream buildIDStr;
+
+  for (u8 i = 0; i < 8; i++) 
+    buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)buildID[i];
+
+  lonelyCheatPath << "/switch/EdiZon/cheats/" << buildIDStr.str() << ".txt";
+
+  if (access(lonelyCheatPath.str().c_str(), F_OK) == 0) {
+    if (isServiceRunning("rnx")) {
+      realCheatPath << "/ReiNX/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
+      mkdir(realCheatPath.str().c_str(), 0777);
+      realCheatPath << "/cheats/";
+      mkdir(realCheatPath.str().c_str(), 0777);
+    }
+    else {
+      realCheatPath << "/atmosphere/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
+      mkdir(realCheatPath.str().c_str(), 0777);
+      realCheatPath << "/cheats/";
+      mkdir(realCheatPath.str().c_str(), 0777);
+    }
+
+    realCheatPath << buildIDStr.str() << ".txt";
+
+    rename(lonelyCheatPath.str().c_str(), realCheatPath.str().c_str());
+
+    (new MessageBox("A new cheat has been added for this title. \n Please restart the game to start using it.", MessageBox::OKAY))->show();
+  }
+}

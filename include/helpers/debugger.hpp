@@ -5,13 +5,10 @@
 class Debugger {
   
 public:
-  Debugger(bool dmntPresent);
+  Debugger();
   ~Debugger();
 
   Result attachToProcess();
-  Result detachFromProcess();
-  Result continueProcess();
-  Result breakProcess();
 
   u64 getRunningApplicationTID();
   u64 getRunningApplicationPID();
@@ -25,5 +22,4 @@ public:
 private:
   Handle m_debugHandle;
   u64 m_tid = 0, m_pid = 0;
-  bool m_dmntPresent;
 };

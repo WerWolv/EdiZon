@@ -1,66 +1,28 @@
 #include "guis/gui_information.hpp"
-#include "json.hpp"
 
-using json = nlohmann::json;
+#include <thread>
+#include <curl/curl.h>
+
+
+#include "helpers/util.h"
+
+static std::string m_remoteVersion, m_remoteCommitSha, m_remoteCommitMessage, m_localCommitSha;
+static Thread networkThread;
+static bool threadRunning;
+
+
+static void getVersionInfoAsync(void* args);
 
 GuiInformation::GuiInformation() : Gui() {
-  std::ifstream configFile("romfs:/guide/" + std::to_string((g_selectedPage / 6) + 1) + "/" + std::to_string(g_selectedPage) + "/config.json");
-  json configJson;
-  configFile >> configJson;
-
-  configFile.close();
-
-  try {
-    for (auto image : configJson["images"]) {
-      std::ifstream data("romfs:/guide/" + std::to_string((g_selectedPage / 6) + 1) + "/" + std::to_string(g_selectedPage) + "/" + image["path"].get<std::string>(), std::ios::binary | std::ios::ate);
-      GuiInformation::guide_obj_t imageObj = { 0 };
-
-      imageObj.length = data.tellg();
-      imageObj.data = new char[imageObj.length];
-      imageObj.x = image["x"];
-      imageObj.y = image["y"];
-      imageObj.w = image["w"];
-      imageObj.h = image["h"];
-      imageObj.title = image["title"];
-      imageObj.type = GuiInformation::guide_obj_t::TYPE_IMAGE;
-
-      data.seekg(0, std::ios::beg);
-      
-      data.read(imageObj.data, imageObj.length);
-      data.close();
-
-
-      m_objects.push_back(imageObj);
-    }
-  } catch(json::parse_error& e) { }
-
-  try {
-    for (auto text : configJson["text"]) {
-      std::ifstream data("romfs:/guide/" + std::to_string((g_selectedPage / 6) + 1) + "/" + std::to_string(g_selectedPage) + "/" + text["path"].get<std::string>(), std::ios::ate);
-      GuiInformation::guide_obj_t textObj = { 0 };
-
-      textObj.length = data.tellg();
-      textObj.data = new char[textObj.length + 1]();
-      textObj.x = text["x"];
-      textObj.y = text["y"];
-      textObj.type = GuiInformation::guide_obj_t::TYPE_TEXT;
-
-      data.seekg(0, std::ios::beg);
-      
-      data.read(textObj.data, textObj.length);
-      data.close();
-
-      textObj.title = text["title"];
-
-      m_objects.push_back(textObj);
-    }
-  } catch(json::parse_error& e) { }
+  if (!threadRunning) {
+    threadRunning = true;
+    threadCreate(&networkThread, getVersionInfoAsync, nullptr, 0x2000, 0x2C, -2);
+    threadStart(&networkThread);
+  }
 }
 
 GuiInformation::~GuiInformation() {
-  for (GuiInformation::guide_obj_t obj : m_objects) {
-    delete[] obj.data;
-  }
+
 }
 
 void GuiInformation::update() {
@@ -73,55 +35,43 @@ void GuiInformation::draw() {
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 87, 1220, 1, currTheme.textColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
-  Gui::drawTextAligned(fontTitle, 70, 60, currTheme.textColor, "\uE142", ALIGNED_LEFT);
-  Gui::drawTextAligned(font24, 70, 23, currTheme.textColor, "        Quick start guide", ALIGNED_LEFT);
+  Gui::drawTextAligned(fontTitle, 70, 60, currTheme.textColor, "\uE017", ALIGNED_LEFT);
+  Gui::drawTextAligned(font24, 70, 23, currTheme.textColor, "        Credits", ALIGNED_LEFT);
 
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 51, currTheme.textColor, "\uE0E4 Previous     \uE0E5 Next     \uE0E1 Back", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 51, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
   
-  color_t darkened = currTheme.backgroundColor;
-  darkened.a = 0x9F;
-  
-  if (GuiInformation::g_selectedPage == 1)
-    Gui::drawRectangled(800, Gui::g_framebuffer_height - 50, 200, 50, darkened);
+  Gui::drawTextAligned(fontHuge, 100, 180, Gui::makeColor(0xFB, 0xA6, 0x15, 0xFF), "EdiZon v" VERSION_STRING, ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 130, 190, currTheme.separatorColor, "by WerWolv", ALIGNED_LEFT);
 
-  if (GuiInformation::g_selectedPage == GUIDE_PAGE_CNT)
-    Gui::drawRectangled(1000, Gui::g_framebuffer_height - 50, 110, 50, darkened);
+  Gui::drawTextAligned(font14, 120, 250, currTheme.textColor, "Special thank to anybody who got involved into this project.", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 120, 270, currTheme.textColor, "Especially to all the config/cheat developers that brought this project to life!", ALIGNED_LEFT);
 
-  for (GuiInformation::guide_obj_t obj : m_objects) {
-    if (obj.type == GuiInformation::guide_obj_t::TYPE_TEXT) {
-      Gui::drawTextAligned(font24, obj.x, obj.y, currTheme.textColor, obj.title.c_str(), ALIGNED_LEFT);
-      Gui::drawTextAligned(font24, obj.x + 1, obj.y, currTheme.textColor, obj.title.c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 250, Gui::makeColor(0x51, 0x97, 0xF0, 0xFF), "Twitter: https://twitter.com/WerWolv", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 275, Gui::makeColor(0x1A, 0x5E, 0xA7, 0xFF), "PayPal:  https://werwolv.net/donate", ALIGNED_LEFT);
 
-      Gui::drawTextAligned(font14, obj.x + 20, obj.y + 45, currTheme.textColor, obj.data, ALIGNED_LEFT);
-    }
-    else {
-      Gui::drawImage(obj.x, obj.y, obj.w, obj.h, (u8*)obj.data, IMAGE_MODE_RGBA32);
-      Gui::drawTextAligned(font14, obj.x + obj.w - 20, obj.y + obj.h + 5, currTheme.textColor, obj.title.c_str(), ALIGNED_RIGHT);
-    }
-  }
+
+  Gui::drawRectangled(50, 350, Gui::g_framebuffer_width - 100, 250, currTheme.textColor);
+  Gui::drawRectangled(51, 351, Gui::g_framebuffer_width - 102, 248, currTheme.backgroundColor);
+  Gui::drawShadow(52, 352, Gui::g_framebuffer_width - 104, 248);
+
+  Gui::drawTextAligned(font20, 60, 360, currTheme.selectedColor, "EdiZon Update", ALIGNED_LEFT);
+
+  Gui::drawTextAligned(font14, 80, 400, currTheme.textColor, std::string("Latest EdiZon version: " + (m_remoteVersion == "" ? "..." : m_remoteVersion)).c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 80, 425, currTheme.textColor, std::string("Latest database commit: [" + (m_remoteCommitSha == "" ? "..." : m_remoteCommitSha) + "] ").c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 90, 450, currTheme.separatorColor, (m_remoteCommitMessage == "" ? "..." : m_remoteCommitMessage.c_str()), ALIGNED_LEFT);
 
   Gui::endDraw();
 }
 
 void GuiInformation::onInput(u32 kdown) {
   if (kdown & KEY_B) {
-    GuiInformation::g_selectedPage = 1;
+    if (threadRunning) {
+      threadWaitForExit(&networkThread);
+      threadClose(&networkThread);
+      threadRunning = false;
+    }
+
     Gui::g_nextGui = GUI_MAIN;
-    return;
-  }
-  if (kdown & KEY_R) {
-
-    if (GuiInformation::g_selectedPage < GUIDE_PAGE_CNT)
-    GuiInformation::g_selectedPage++;
-    Gui::g_nextGui = GUI_INFORMATION;
-    return;
-  }
-
-  if (kdown & KEY_L) {
-    if (GuiInformation::g_selectedPage > 1)
-      GuiInformation::g_selectedPage--;
-    Gui::g_nextGui = GUI_INFORMATION;
-    return;
   }
 }
 
@@ -131,4 +81,53 @@ void GuiInformation::onTouch(touchPosition &touch) {
 
 void GuiInformation::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
 
+}
+
+static size_t writeToStr(const char * contents, size_t size, size_t nmemb, std::string * userp){
+    auto totalBytes = (size * nmemb);
+
+    userp->append(contents, totalBytes);
+
+    return totalBytes;
+}
+
+static void getVersionInfoAsync(void* args) {
+  CURL *curl = curl_easy_init();
+
+  struct curl_slist * headers = NULL;
+  headers = curl_slist_append(headers, "Cache-Control: no-cache");
+
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_edizon.php");
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteVersion);
+
+  m_remoteVersion = "";
+  if (curl_easy_perform(curl) != CURLE_OK) {
+    m_remoteVersion = "???";
+  }
+
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_db_sha.php");
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteCommitSha);
+
+  m_remoteCommitSha = "";
+
+  if (curl_easy_perform(curl) != CURLE_OK) {
+    m_remoteCommitSha = "???";
+  }
+
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_db_message.php");
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteCommitMessage);
+
+  m_remoteCommitMessage = "";
+
+  if (curl_easy_perform(curl) != CURLE_OK) {
+    m_remoteCommitMessage = "???";
+  }
+
+  curl_easy_cleanup(curl);
 }

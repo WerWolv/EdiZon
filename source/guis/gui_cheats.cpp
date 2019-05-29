@@ -822,7 +822,7 @@ void GuiCheats::onInput(u32 kdown) {
            
             overclockSystem(true);
 
-            if (m_searchMode & (SEARCH_MODE_SAME | SEARCH_MODE_DIFF | SEARCH_MODE_INC | SEARCH_MODE_DEC)) {
+            if (m_searchMode == SEARCH_MODE_SAME || m_searchMode == SEARCH_MODE_DIFF || m_searchMode == SEARCH_MODE_INC || m_searchMode == SEARCH_MODE_DEC) {
               if (m_memoryDump->size() == 0) {
                 delete m_memoryDump;
                 GuiCheats::searchMemoryValuesPrimary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);

@@ -88,8 +88,8 @@ void GuiMain::draw() {
   if ((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) > 10) {
     Gui::drawRectangle(0, 544, Gui::g_framebuffer_width, 5, currTheme.tooltipColor);
 
-    u32 scrollbarPos = (static_cast<double>(xOffset) / (std::ceil((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 2.0F) * 256)) * Gui::g_framebuffer_width;
-    u32 scrollbarWidth = static_cast<double>(Gui::g_framebuffer_width) / ((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 10.0F);
+    u32 scrollbarPos = (static_cast<double>(xOffset) / (std::ceil(std::round(m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 4.0F) * 2 * 256)) * Gui::g_framebuffer_width;
+    u32 scrollbarWidth = static_cast<double>(Gui::g_framebuffer_width) / ((std::round((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 2.0F) * 2) / 10.0F);
 
     Gui::drawRectangle(scrollbarPos, 544, scrollbarWidth, 5, currTheme.tooltipTextColor);
   }

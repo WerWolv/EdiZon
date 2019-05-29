@@ -4,10 +4,10 @@
 
 #include <string>
 
-class GuiInformation : public Gui {
+class GuiAbout : public Gui {
 public:
-  GuiInformation();
-  ~GuiInformation();
+  GuiAbout();
+  ~GuiAbout();
 
   void update();
   void draw();

@@ -30,8 +30,8 @@ enum gui_t {
   GUI_EDITOR,
   GUI_TX_WARNING,
   GUI_CHEATS,
-  GUI_INFORMATION,
-  GUI_CREDITS
+  GUI_GUIDE,
+  GUI_ABOUT
 };
 
 class Gui {

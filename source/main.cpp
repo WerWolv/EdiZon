@@ -15,7 +15,7 @@
 #include "guis/gui_editor.hpp"
 #include "guis/gui_tx_warning.hpp"
 #include "guis/gui_cheats.hpp"
-#include "guis/gui_information.hpp"
+#include "guis/gui_about.hpp"
 #include "guis/gui_guide.hpp"
 
 #include "helpers/title.hpp"
@@ -243,11 +243,11 @@ int main(int argc, char** argv) {
           case GUI_CHEATS:
             currGui = new GuiCheats();
             break;
-          case GUI_INFORMATION:
+          case GUI_GUIDE:
             currGui = new GuiGuide();
             break;
-          case GUI_CREDITS:
-            currGui = new GuiInformation();
+          case GUI_ABOUT:
+            currGui = new GuiAbout();
             break;
 
           case GUI_INVALID: [[fallthrough]]

@@ -178,7 +178,7 @@ void GuiMain::draw() {
     else if (m_selected.extraOption == 1)
       Gui::drawTextAligned(font14, 640, 623, currTheme.tooltipTextColor, "Guide", ALIGNED_CENTER);
     else if (m_selected.extraOption == 2)
-      Gui::drawTextAligned(font14, 790, 623, currTheme.tooltipTextColor, "Information", ALIGNED_CENTER);
+      Gui::drawTextAligned(font14, 790, 623, currTheme.tooltipTextColor, "About", ALIGNED_CENTER);
 
     std::string buttonHintStr = "";
 
@@ -361,10 +361,10 @@ void GuiMain::onInput(u32 kdown) {
           Gui::g_nextGui = GUI_CHEATS;
           break;
         case 1:
-          Gui::g_nextGui = GUI_INFORMATION;
+          Gui::g_nextGui = GUI_GUIDE;
           break;
         case 2:
-          Gui::g_nextGui = GUI_CREDITS;
+          Gui::g_nextGui = GUI_ABOUT;
           break;
         default: break;
       }
@@ -405,31 +405,59 @@ void GuiMain::onTouch(touchPosition &touch) {
 
   if (touch.py < 32) return;
 
-  if (y <= 1 && title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
-    if (m_editableOnly && title > (ConfigParser::g_editableTitles.size() - 1)) return;
-    
-    if (m_selected.titleIndex == title) {
-      if (m_selected.titleId == Title::g_activeTitle) {
-        (new Snackbar("The save files of a running game cannot be accessed."))->show();
-        return;
+  if (y < 2) {
+    if (title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
+      if (m_editableOnly && title > (ConfigParser::g_editableTitles.size() - 1)) return;
+      
+      if (m_selected.titleIndex == title) {
+        if (m_selected.titleId == Title::g_activeTitle) {
+          (new Snackbar("The save files of a running game cannot be accessed."))->show();
+          return;
+        }
+
+        u128 userID = Gui::requestPlayerSelection();
+
+        Title::g_currTitle = Title::g_titles[m_selected.titleId];
+        std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
+
+        if(userID == 0x00)
+          return;
+
+        if (std::find(users.begin(), users.end(), userID) != users.end()) {
+          Title::g_currTitle = Title::g_titles[m_selected.titleId];
+          Account::g_currAccount = Account::g_accounts[userID];
+          Gui::g_nextGui = GUI_EDITOR;
+        } else (new Snackbar("No save file available for this user!"))->show();      
       }
 
-      u128 userID = Gui::requestPlayerSelection();
-
-      Title::g_currTitle = Title::g_titles[m_selected.titleId];
-      std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
-
-      if(userID == 0x00)
-        return;
-
-      if (std::find(users.begin(), users.end(), userID) != users.end()) {
-        Title::g_currTitle = Title::g_titles[m_selected.titleId];
-        Account::g_currAccount = Account::g_accounts[userID];
-        Gui::g_nextGui = GUI_EDITOR;
-      } else (new Snackbar("No save file available for this user!"))->show();      
+      m_selected.titleIndex = title;
+      m_selected.extraOption = -1;
     }
-
-    m_selected.titleIndex = title;
+  } else {
+    if (touch.py > 560 && touch.py < 624) {
+      if (touch.px > 458 && touch.px < 522) { // Touched cheats button
+        if (m_selected.extraOption == 0)
+          Gui::g_nextGui = GUI_CHEATS;
+        else {
+          m_selected.extraOption = 0;
+          m_selected.titleIndex = -1;
+        }
+      } else if (touch.px > 608 && touch.px < 672) { // Touched guide button
+        if (m_selected.extraOption == 1)
+          Gui::g_nextGui = GUI_GUIDE;
+        else {
+          m_selected.extraOption = 1;
+          m_selected.titleIndex = -1;
+        }
+      } else if (touch.px > 758 && touch.px < 822) { // Touched information button
+        if (m_selected.extraOption == 2)
+          Gui::g_nextGui = GUI_ABOUT;
+        else {
+          m_selected.extraOption = 2;
+          m_selected.titleIndex = -1;
+        }
+      }
+    }
   }
 }
 

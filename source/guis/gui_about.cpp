@@ -1,4 +1,4 @@
-#include "guis/gui_information.hpp"
+#include "guis/gui_about.hpp"
 
 #include <thread>
 #include <curl/curl.h>
@@ -13,7 +13,7 @@ static bool threadRunning;
 
 static void getVersionInfoAsync(void* args);
 
-GuiInformation::GuiInformation() : Gui() {
+GuiAbout::GuiAbout() : Gui() {
   if (!threadRunning) {
     threadRunning = true;
     threadCreate(&networkThread, getVersionInfoAsync, nullptr, 0x2000, 0x2C, -2);
@@ -21,22 +21,22 @@ GuiInformation::GuiInformation() : Gui() {
   }
 }
 
-GuiInformation::~GuiInformation() {
+GuiAbout::~GuiAbout() {
 
 }
 
-void GuiInformation::update() {
+void GuiAbout::update() {
   Gui::update();
 }
 
-void GuiInformation::draw() {
+void GuiAbout::draw() {
   Gui::beginDraw();
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), 87, 1220, 1, currTheme.textColor);
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
   Gui::drawTextAligned(fontTitle, 70, 60, currTheme.textColor, "\uE017", ALIGNED_LEFT);
-  Gui::drawTextAligned(font24, 70, 23, currTheme.textColor, "        Credits", ALIGNED_LEFT);
+  Gui::drawTextAligned(font24, 70, 23, currTheme.textColor, "        About", ALIGNED_LEFT);
 
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 51, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
   
@@ -57,13 +57,13 @@ void GuiInformation::draw() {
   Gui::drawTextAligned(font20, 60, 360, currTheme.selectedColor, "EdiZon Update", ALIGNED_LEFT);
 
   Gui::drawTextAligned(font14, 80, 400, currTheme.textColor, std::string("Latest EdiZon version: " + (m_remoteVersion == "" ? "..." : m_remoteVersion)).c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 80, 425, currTheme.textColor, std::string("Latest database commit: [" + (m_remoteCommitSha == "" ? "..." : m_remoteCommitSha) + "] ").c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 80, 425, currTheme.textColor, std::string("Latest database commit: [ " + (m_remoteCommitSha == "" ? "..." : m_remoteCommitSha) + " ] ").c_str(), ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 90, 450, currTheme.separatorColor, (m_remoteCommitMessage == "" ? "..." : m_remoteCommitMessage.c_str()), ALIGNED_LEFT);
 
   Gui::endDraw();
 }
 
-void GuiInformation::onInput(u32 kdown) {
+void GuiAbout::onInput(u32 kdown) {
   if (kdown & KEY_B) {
     if (threadRunning) {
       threadWaitForExit(&networkThread);
@@ -75,11 +75,11 @@ void GuiInformation::onInput(u32 kdown) {
   }
 }
 
-void GuiInformation::onTouch(touchPosition &touch) {
+void GuiAbout::onTouch(touchPosition &touch) {
 
 }
 
-void GuiInformation::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
+void GuiAbout::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {
 
 }
 

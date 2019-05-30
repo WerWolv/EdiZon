@@ -489,6 +489,9 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
       initialText << std::put_time(std::gmtime(&t), "%Y%m%d_%H%M%S");
       if(!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
         return;
+      
+      (new MessageBox("Extracting save file.\n \nThis may take a while...", MessageBox::NONE))->show();
+      requestDraw();
 
       if(!(res = backupSave(Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), false, backupName))) {
         (new MessageBox("Successfully created backup!\n \n Would you like to upload it to anonfile.com?", MessageBox::YES_NO))->setSelectionAction([&](u8 selection) {
@@ -505,12 +508,12 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
         
       }
       else {
+        Gui::g_currMessageBox->hide();
         switch(res) {
           case 1: (new Snackbar("Failed to mount save file!"))->show(); break;
           case 2: (new Snackbar("A backup with this name already exists!"))->show(); break;
           case 3: (new Snackbar("Failed to create backup!"))->show(); break;
         }
-        
       }
     }
 

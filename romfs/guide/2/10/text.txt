@@ -1,4 +1,4 @@
-The different kinds of editable values are Number, On-Off-Switch, Text, List, Button and Comment.
+The different kinds of widgets are Numbers, On-Off-Switches, Text, Lists, Buttons and Comments.
  
 Number values can be changed using the left and right dpad buttons. To enter a value using the
 keyboard, use the (A) button. To increase the step size multiplier, press the right stick button. 

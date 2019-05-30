@@ -1,4 +1,4 @@
-#include "helpers/config_parser.hpp"
+#include "helpers/editor_config_parser.hpp"
 #include "helpers/title.hpp"
 
 #include "widgets/widget_switch.hpp"
@@ -20,20 +20,20 @@
 #include "scripting/lua_interpreter.hpp"
 #include "scripting/python_interpreter.hpp"
 
-s8 ConfigParser::hasConfig(u64 titleId) {
+s8 EditorConfigParser::hasConfig(u64 titleId) {
     std::stringstream path;
     path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << titleId << ".json";
 
-    return ConfigParser::loadConfigFile(titleId, path.str(), nullptr);
+    return EditorConfigParser::loadConfigFile(titleId, path.str(), nullptr);
 }
 
-s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter **interpreter) {
+s8 EditorConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter **interpreter) {
   std::ifstream file(filepath.c_str());
   if (file.fail())
     return 1;
 
   try {
-    file >> ConfigParser::m_configFile;
+    file >> EditorConfigParser::m_configFile;
   } catch (json::parse_error& e) {
 		printf("Failed to parse JSON file.\n");
 		return 2;
@@ -44,23 +44,23 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter *
     return 4;
   }
 
-  if (ConfigParser::m_configFile.find("useInstead") != ConfigParser::m_configFile.end()) {
+  if (EditorConfigParser::m_configFile.find("useInstead") != EditorConfigParser::m_configFile.end()) {
     std::stringstream path;
-    path << CONFIG_ROOT << ConfigParser::m_configFile["useInstead"].get<std::string>();
-    return ConfigParser::loadConfigFile(titleId, path.str(), interpreter);
+    path << CONFIG_ROOT << EditorConfigParser::m_configFile["useInstead"].get<std::string>();
+    return EditorConfigParser::loadConfigFile(titleId, path.str(), interpreter);
   }
 
   m_useInsteadTries = 0;
 
-  if (ConfigParser::m_configFile.find("author") != ConfigParser::m_configFile.end())
-    ConfigParser::g_currConfigAuthor = ConfigParser::m_configFile["author"];
+  if (EditorConfigParser::m_configFile.find("author") != EditorConfigParser::m_configFile.end())
+    EditorConfigParser::g_currConfigAuthor = EditorConfigParser::m_configFile["author"];
 
-  if (ConfigParser::m_configFile.find("beta") != ConfigParser::m_configFile.end())
-    ConfigParser::g_betaTitles.insert({titleId, ConfigParser::m_configFile["beta"]});
+  if (EditorConfigParser::m_configFile.find("beta") != EditorConfigParser::m_configFile.end())
+    EditorConfigParser::g_betaTitles.insert({titleId, EditorConfigParser::m_configFile["beta"]});
 
   if (interpreter != nullptr) {
-    if (ConfigParser::m_configFile.find("scriptLanguage") != ConfigParser::m_configFile.end()) {
-      std::string language = ConfigParser::m_configFile["scriptLanguage"];
+    if (EditorConfigParser::m_configFile.find("scriptLanguage") != EditorConfigParser::m_configFile.end()) {
+      std::string language = EditorConfigParser::m_configFile["scriptLanguage"];
 
       std::transform(language.begin(), language.end(), language.begin(), ::tolower);
 
@@ -70,13 +70,13 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter *
     } else return 2;
   }
 
-  if (ConfigParser::m_configFile.find("all") == ConfigParser::m_configFile.end()) {
-    for (auto it : ConfigParser::m_configFile.items()) {
+  if (EditorConfigParser::m_configFile.find("all") == EditorConfigParser::m_configFile.end()) {
+    for (auto it : EditorConfigParser::m_configFile.items()) {
       if (it.key().find(Title::g_titles[titleId]->getTitleVersion()) != std::string::npos) {
-        ConfigParser::m_configFile = ConfigParser::m_configFile[it.key()];
+        EditorConfigParser::m_configFile = EditorConfigParser::m_configFile[it.key()];
 
-        if (ConfigParser::m_configFile == nullptr || !ConfigParser::m_configFile.is_array()) {
-          ConfigParser::g_betaTitles.erase(titleId);
+        if (EditorConfigParser::m_configFile == nullptr || !EditorConfigParser::m_configFile.is_array()) {
+          EditorConfigParser::g_betaTitles.erase(titleId);
           return 2;
         }
 
@@ -84,13 +84,13 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter *
       }
     }
 
-    ConfigParser::g_betaTitles.erase(titleId);
+    EditorConfigParser::g_betaTitles.erase(titleId);
     return 3;
   } else {
-    ConfigParser::m_configFile = ConfigParser::m_configFile["all"];
+    EditorConfigParser::m_configFile = EditorConfigParser::m_configFile["all"];
 
-    if (!ConfigParser::m_configFile.is_array()) {
-      ConfigParser::g_betaTitles.erase(titleId);
+    if (!EditorConfigParser::m_configFile.is_array()) {
+      EditorConfigParser::g_betaTitles.erase(titleId);
       return 2;
     }
 
@@ -98,14 +98,14 @@ s8 ConfigParser::loadConfigFile(u64 titleId, std::string filepath, Interpreter *
   }
 }
 
-void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter, u8 configIndex) {
+void EditorConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter, u8 configIndex) {
   std::set<std::string> tempCategories;
 
-  if (ConfigParser::m_configFile == nullptr) return;
+  if (EditorConfigParser::m_configFile == nullptr) return;
 
-  if (!ConfigParser::m_configFile.is_array()) return;
+  if (!EditorConfigParser::m_configFile.is_array()) return;
 
-  for (auto item : ConfigParser::m_configFile[configIndex]["items"]) {
+  for (auto item : EditorConfigParser::m_configFile[configIndex]["items"]) {
     bool isDummy = false;
     std::string tooltip = "";
 
@@ -126,10 +126,10 @@ void ConfigParser::createWidgets(WidgetItems &widgets, Interpreter &interpreter,
       if (itemWidget["minValue"] >= itemWidget["maxValue"]) continue;
       widgets[item["category"]].push_back({ item["name"],
         new WidgetValue(&interpreter, isDummy, tooltip,
-          ConfigParser::getOptionalValue<std::string>(itemWidget, "readEquation", "value"),
-          ConfigParser::getOptionalValue<std::string>(itemWidget, "writeEquation", "value"),
+          EditorConfigParser::getOptionalValue<std::string>(itemWidget, "readEquation", "value"),
+          EditorConfigParser::getOptionalValue<std::string>(itemWidget, "writeEquation", "value"),
           itemWidget["minValue"], itemWidget["maxValue"],
-          ConfigParser::getOptionalValue<u32>(itemWidget, "stepSize", 1)) });
+          EditorConfigParser::getOptionalValue<u32>(itemWidget, "stepSize", 1)) });
     }
     else if (itemWidget["type"] == "bool") {
       if (itemWidget["onValue"] == nullptr || itemWidget["offValue"] == nullptr) continue;

@@ -3,17 +3,24 @@
 #include <thread>
 #include <curl/curl.h>
 
-
+#include "update_manager.hpp"
 #include "helpers/util.h"
+#include "helpers/config.hpp"
 
-static std::string m_remoteVersion, m_remoteCommitSha, m_remoteCommitMessage, m_localCommitSha;
+static std::string remoteVersion, remoteCommitSha, remoteCommitMessage;
 static Thread networkThread;
 static bool threadRunning;
-
+static bool updateAvailable;
 
 static void getVersionInfoAsync(void* args);
 
 GuiAbout::GuiAbout() : Gui() {
+  updateAvailable = false;
+  
+  remoteVersion = "";
+  remoteCommitSha = "";
+  remoteCommitMessage = "";
+
   if (!threadRunning) {
     threadRunning = true;
     threadCreate(&networkThread, getVersionInfoAsync, nullptr, 0x2000, 0x2C, -2);
@@ -38,8 +45,11 @@ void GuiAbout::draw() {
   Gui::drawTextAligned(fontTitle, 70, 60, currTheme.textColor, "\uE017", ALIGNED_LEFT);
   Gui::drawTextAligned(font24, 70, 23, currTheme.textColor, "        About", ALIGNED_LEFT);
 
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 51, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
-  
+  if (updateAvailable)
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 51, currTheme.textColor, "\uE0F0 Install update     \uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+  else
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 51, currTheme.textColor, "\uE0E1 Back     \uE0E0 OK", ALIGNED_RIGHT);
+
   Gui::drawTextAligned(fontHuge, 100, 180, Gui::makeColor(0xFB, 0xA6, 0x15, 0xFF), "EdiZon v" VERSION_STRING, ALIGNED_LEFT);
   Gui::drawTextAligned(font20, 130, 190, currTheme.separatorColor, "by WerWolv", ALIGNED_LEFT);
 
@@ -51,14 +61,17 @@ void GuiAbout::draw() {
 
 
   Gui::drawRectangled(50, 350, Gui::g_framebuffer_width - 100, 250, currTheme.textColor);
-  Gui::drawRectangled(51, 351, Gui::g_framebuffer_width - 102, 248, currTheme.backgroundColor);
+  Gui::drawRectangled(51, 351, Gui::g_framebuffer_width - 102, updateAvailable ? 190 : 248, currTheme.backgroundColor);
   Gui::drawShadow(52, 352, Gui::g_framebuffer_width - 104, 248);
+
+  if (updateAvailable)
+    Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 555, currTheme.backgroundColor, "A update for EdiZon, save editor or cheat is available!", ALIGNED_CENTER);
 
   Gui::drawTextAligned(font20, 60, 360, currTheme.selectedColor, "EdiZon Update", ALIGNED_LEFT);
 
-  Gui::drawTextAligned(font14, 80, 400, currTheme.textColor, std::string("Latest EdiZon version: " + (m_remoteVersion == "" ? "..." : m_remoteVersion)).c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 80, 425, currTheme.textColor, std::string("Latest database commit: [ " + (m_remoteCommitSha == "" ? "..." : m_remoteCommitSha) + " ] ").c_str(), ALIGNED_LEFT);
-  Gui::drawTextAligned(font14, 90, 450, currTheme.separatorColor, (m_remoteCommitMessage == "" ? "..." : m_remoteCommitMessage.c_str()), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 80, 400, currTheme.textColor, std::string("Latest EdiZon version: " + (remoteVersion == "" ? "..." : remoteVersion)).c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 80, 425, currTheme.textColor, std::string("Latest database commit: [ " + (remoteCommitSha == "" ? "..." : remoteCommitSha) + " ] ").c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 90, 450, currTheme.separatorColor, (remoteCommitMessage == "" ? "..." : remoteCommitMessage.c_str()), ALIGNED_LEFT);
 
   Gui::endDraw();
 }
@@ -72,6 +85,29 @@ void GuiAbout::onInput(u32 kdown) {
     }
 
     Gui::g_nextGui = GUI_MAIN;
+  }
+
+  if (kdown & KEY_MINUS && updateAvailable) {
+    UpdateManager updateManager;
+
+    (new MessageBox("Updating cheats, configs and EdiZon.\n \nThis may take a while...", MessageBox::NONE))->show();
+    requestDraw();
+
+    Updates updates = updateManager.checkUpdate();
+
+    switch (updates) {
+      case NONE: (new MessageBox("Latest cheats and save editors are already installed!", MessageBox::OKAY))->show(); break;
+      case ERROR: (new MessageBox("An error while downloading the updates has occured!", MessageBox::OKAY))->show(); break;
+      case EDITOR: (new MessageBox("Updated save editors and cheats to the latest version!", MessageBox::OKAY))->show(); break;
+      case EDIZON: (new MessageBox("Updated EdiZon, save editors and cheats and \n scripts tothe latest version! \n Please restart EdiZon!", MessageBox::OKAY))->show(); break;
+    }
+
+    if (updates == EDITOR || updates == EDIZON) {
+      memcpy(Config::getConfig()->latestCommit, remoteCommitSha.c_str(), remoteCommitSha.size());
+      Config::writeConfig();
+    }
+    
+    updateAvailable = (strcmp(remoteCommitSha.c_str(), Config::getConfig()->latestCommit) != 0 && strcmp(remoteCommitSha.c_str(), "???") != 0);
   }
 }
 
@@ -100,34 +136,33 @@ static void getVersionInfoAsync(void* args) {
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_edizon.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteVersion);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &remoteVersion);
 
-  m_remoteVersion = "";
-  if (curl_easy_perform(curl) != CURLE_OK) {
-    m_remoteVersion = "???";
-  }
+  remoteVersion = "";
+  if (curl_easy_perform(curl) != CURLE_OK)
+    remoteVersion = "???";
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_db_sha.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteCommitSha);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &remoteCommitSha);
 
-  m_remoteCommitSha = "";
+  remoteCommitSha = "";
 
-  if (curl_easy_perform(curl) != CURLE_OK) {
-    m_remoteCommitSha = "???";
-  }
+  if (curl_easy_perform(curl) != CURLE_OK)
+    remoteCommitSha = "???";
 
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_URL, EDIZON_URL "/info/latest_db_message.php");
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToStr);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &m_remoteCommitMessage);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &remoteCommitMessage);
 
-  m_remoteCommitMessage = "";
+  remoteCommitMessage = "";
 
-  if (curl_easy_perform(curl) != CURLE_OK) {
-    m_remoteCommitMessage = "???";
-  }
+  if (curl_easy_perform(curl) != CURLE_OK)
+    remoteCommitMessage = "???";
 
   curl_easy_cleanup(curl);
+
+  updateAvailable = (strcmp(remoteCommitSha.c_str(), Config::getConfig()->latestCommit) != 0 && strcmp(remoteCommitSha.c_str(), "???") != 0);
 }

@@ -1409,18 +1409,10 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
   lonelyCheatPath << "/switch/EdiZon/cheats/" << buildIDStr.str() << ".txt";
 
   if (access(lonelyCheatPath.str().c_str(), F_OK) == 0) {
-    if (isServiceRunning("rnx")) {
-      realCheatPath << "/ReiNX/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
-      mkdir(realCheatPath.str().c_str(), 0777);
-      realCheatPath << "/cheats/";
-      mkdir(realCheatPath.str().c_str(), 0777);
-    }
-    else {
-      realCheatPath << "/atmosphere/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
-      mkdir(realCheatPath.str().c_str(), 0777);
-      realCheatPath << "/cheats/";
-      mkdir(realCheatPath.str().c_str(), 0777);
-    }
+    realCheatPath << "/atmosphere/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << "/cheats/";
+    mkdir(realCheatPath.str().c_str(), 0777);
 
     realCheatPath << buildIDStr.str() << ".txt";
 
@@ -1433,12 +1425,7 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
 static bool _wrongCheatsPresent(u8 *buildID, u64 titleID) {
   std::stringstream ss;
 
-  if (isServiceRunning("rnx"))
-    ss << "/ReiNX";
-  else
-    ss << "/atmosphere";
-
-  ss << "/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID << "/cheats/";
+  ss << "/atmosphere/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID << "/cheats/";
 
   if (!std::filesystem::exists(ss.str()))
     return false;

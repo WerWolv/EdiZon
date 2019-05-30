@@ -22,6 +22,7 @@
 
 #include "theme.h"
 #include "helpers/util.h"
+#include "helpers/config.hpp"
 
 #define LONG_PRESS_DELAY              2
 #define LONG_PRESS_ACTIVATION_DELAY   300
@@ -199,9 +200,11 @@ int main(int argc, char** argv) {
 
   createFolders();
 
+  Config::readConfig();
+
   Gui::g_nextGui = GUI_MAIN;
 
-  if (isServiceRunning("tx") && !isServiceRunning("rnx") && access("/switch/EdiZon/.hide_sxos", F_OK) == -1)
+  if (isServiceRunning("tx") && !isServiceRunning("rnx") && !Config::getConfig()->hideSX)
     Gui::g_nextGui = GUI_TX_WARNING;
 
   if (access("/switch/EdiZon/memdump.dat", F_OK) == 0)

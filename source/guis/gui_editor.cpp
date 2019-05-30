@@ -3,7 +3,7 @@
 #include "helpers/title.hpp"
 #include "helpers/save.hpp"
 
-#include "helpers/config_parser.hpp"
+#include "helpers/editor_config_parser.hpp"
 #include "scripting/interpreter.hpp"
 #include "scripting/lua_interpreter.hpp"
 #include "scripting/python_interpreter.hpp"
@@ -81,7 +81,7 @@ GuiEditor::GuiEditor() : Gui() {
 
   std::stringstream path;
   path << CONFIG_ROOT << std::setfill('0') << std::setw(sizeof(u64) * 2) << std::uppercase << std::hex << Title::g_currTitle->getTitleID() << ".json";
-  m_configFileResult = ConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str(), &m_interpreter);
+  m_configFileResult = EditorConfigParser::loadConfigFile(Title::g_currTitle->getTitleID(), path.str(), &m_interpreter);
 }
 
 GuiEditor::~GuiEditor() {
@@ -95,7 +95,7 @@ GuiEditor::~GuiEditor() {
 
   GuiEditor::g_currSaveFile.clear();
   GuiEditor::g_currSaveFileName = "";
-  ConfigParser::g_currConfigAuthor = "";
+  EditorConfigParser::g_currConfigAuthor = "";
   Widget::g_selectedCategory = "";
 
   m_backupTitles.clear();
@@ -157,8 +157,8 @@ void GuiEditor::draw() {
     ssMultiplier << "\uE074 : x";
     ssMultiplier << Widget::g_stepSizeMultiplier;
 
-    if (ConfigParser::g_currConfigAuthor != "")
-      Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, std::string("Config created by " + ConfigParser::g_currConfigAuthor).c_str(), ALIGNED_CENTER);
+    if (EditorConfigParser::g_currConfigAuthor != "")
+      Gui::drawTextAligned(font20, (Gui::g_framebuffer_width / 2), 80, m_textColor, std::string("Config created by " + EditorConfigParser::g_currConfigAuthor).c_str(), ALIGNED_CENTER);
     
     Gui::drawTextAligned(font20, 50, Gui::g_framebuffer_height - 50, currTheme.textColor, ssMultiplier.str().c_str(), ALIGNED_LEFT);
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE105 Increase multiplier     \uE0E2 Apply changes     \uE0E1 Cancel     \uE0E0 OK", ALIGNED_RIGHT);
@@ -408,8 +408,8 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     if (m_configFileResult != 0) return;
     m_saveFiles.clear();
 
-    for (u8 configIndex = 0; configIndex < ConfigParser::getConfigFile().size(); configIndex++)
-      updateSaveFileList(ConfigParser::getConfigFile()[configIndex]["saveFilePaths"], ConfigParser::getConfigFile()[configIndex]["files"], configIndex);
+    for (u8 configIndex = 0; configIndex < EditorConfigParser::getConfigFile().size(); configIndex++)
+      updateSaveFileList(EditorConfigParser::getConfigFile()[configIndex]["saveFilePaths"], EditorConfigParser::getConfigFile()[configIndex]["files"], configIndex);
 
     static std::vector<std::string> saveFileNames;
 
@@ -434,13 +434,13 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
           GuiEditor::g_currSaveFileName = m_saveFiles[Gui::g_currListSelector->selectedItem].fileName.c_str();
 
           if (loadSaveFile(&GuiEditor::g_currSaveFile, &length, Title::g_currTitle->getTitleID(), Account::g_currAccount->getUserID(), GuiEditor::g_currSaveFileName.c_str()) == 0) {
-              m_interpreter->setSaveFileBuffer(&g_currSaveFile[0], length, ConfigParser::getOptionalValue<std::string>(ConfigParser::getConfigFile(), "encoding", "ascii"));
-              ConfigParser::createWidgets(m_widgets, *m_interpreter, this->m_saveFiles[selectedItem].configIndex);
+              m_interpreter->setSaveFileBuffer(&g_currSaveFile[0], length, EditorConfigParser::getOptionalValue<std::string>(EditorConfigParser::getConfigFile(), "encoding", "ascii"));
+              EditorConfigParser::createWidgets(m_widgets, *m_interpreter, this->m_saveFiles[selectedItem].configIndex);
 
-              if (ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["startupMessage"] != nullptr)
-                (new MessageBox(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["startupMessage"], MessageBox::OKAY))->show();
+              if (EditorConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["startupMessage"] != nullptr)
+                (new MessageBox(EditorConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["startupMessage"], MessageBox::OKAY))->show();
 
-              if(!m_interpreter->initialize(ConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["filetype"])) {
+              if(!m_interpreter->initialize(EditorConfigParser::getConfigFile()[this->m_saveFiles[selectedItem].configIndex]["filetype"])) {
                 m_interpreter->deinitialize();
                 Gui::g_currMessageBox->hide();
 
@@ -672,7 +672,7 @@ if (GuiEditor::g_currSaveFileName == "") { /* No savefile loaded */
     }
     /* Categories and widgets row */
     if (kdown & KEY_X) {
-      (new MessageBox(ConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()] ? "Do you want to apply these changes? \n Make sure you have a working backup of your \n save data as this config is still in beta!" :"Do you want to apply these changes?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
+      (new MessageBox(EditorConfigParser::g_betaTitles[Title::g_currTitle->getTitleID()] ? "Do you want to apply these changes? \n Make sure you have a working backup of your \n save data as this config is still in beta!" :"Do you want to apply these changes?", MessageBox::YES_NO))->setSelectionAction([&](s8 selection) {
         if (selection) {
           std::vector<u8> buffer;
 

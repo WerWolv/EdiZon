@@ -16,9 +16,9 @@ using json = nlohmann::json;
 
 class Interpreter;
 
-class ConfigParser {
+class EditorConfigParser {
 public:
-    ConfigParser() = delete;
+    EditorConfigParser() = delete;
 
     static s8 hasConfig(u64 titleId);
     static s8 loadConfigFile(u64 titleId, std::string filepath, Interpreter **interpreter);

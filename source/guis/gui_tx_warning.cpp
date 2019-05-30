@@ -1,7 +1,9 @@
 #include "guis/gui_tx_warning.hpp"
 
+#include "helpers/config.hpp"
+
 GuiTXWarning::GuiTXWarning() : Gui() {
-  hideWarning = false;
+  Config::getConfig()->hideSX = false;
 }
 
 GuiTXWarning::~GuiTXWarning() {
@@ -22,7 +24,7 @@ void GuiTXWarning::draw() {
 
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 250, COLOR_WHITE, "\uE070  Don't show this warning anymore", ALIGNED_CENTER);
 
-  if (!hideWarning)
+  if (!Config::getConfig()->hideSX)
     Gui::drawRectangle(Gui::g_framebuffer_width / 2 - 228, Gui::g_framebuffer_height / 2 + 258, 14, 16, Gui::makeColor(0xC5, 0x39, 0x29, 0xFF));
 
   Gui::endDraw();
@@ -32,18 +34,15 @@ void GuiTXWarning::onInput(u32 kdown) {
   if (kdown & KEY_B)
     Gui::g_requestExit = true;
 
-  if (kdown & KEY_A) {
+  if (kdown & KEY_A)
     Gui::g_nextGui = GUI_MAIN;
-    if (hideWarning) {
-      FILE *fp = fopen("/switch/EdiZon/.hide_sxos", "ab+");
-      fclose(fp);
-    }
-  }
 }
 
 void GuiTXWarning::onTouch(touchPosition &touch) {
-  if (touch.px > 400 && touch.px < 900 && touch.py > 600 && touch.py < 660)
-    hideWarning = !hideWarning;
+  if (touch.px > 400 && touch.px < 900 && touch.py > 600 && touch.py < 660) {
+    Config::getConfig()->hideSX = !Config::getConfig()->hideSX;
+    Config::writeConfig();
+  }
 }
 
 void GuiTXWarning::onGesture(touchPosition startPosition, touchPosition endPosition, bool finish) {

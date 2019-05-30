@@ -2,7 +2,7 @@
 
 #include "helpers/save.hpp"
 #include "helpers/title.hpp"
-#include "helpers/config_parser.hpp"
+#include "helpers/editor_config_parser.hpp"
 #include "helpers/account.hpp"
 
 #include "beta_bin.h"
@@ -13,8 +13,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <numeric>
-
-#include "update_manager.hpp"
 
 #include "helpers/util.h"
 
@@ -85,11 +83,11 @@ void GuiMain::draw() {
     return;
   }
 
-  if ((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) > 10) {
+  if ((m_editableOnly ? EditorConfigParser::g_editableTitles.size() : Title::g_titles.size()) > 10) {
     Gui::drawRectangle(0, 544, Gui::g_framebuffer_width, 5, currTheme.tooltipColor);
 
-    u32 scrollbarPos = (static_cast<double>(xOffset) / (std::ceil(std::round(m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 4.0F) * 2 * 256)) * Gui::g_framebuffer_width;
-    u32 scrollbarWidth = static_cast<double>(Gui::g_framebuffer_width) / ((std::round((m_editableOnly ? ConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 2.0F) * 2) / 10.0F);
+    u32 scrollbarPos = (static_cast<double>(xOffset) / (std::ceil(std::round(m_editableOnly ? EditorConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 4.0F) * 2 * 256)) * Gui::g_framebuffer_width;
+    u32 scrollbarWidth = static_cast<double>(Gui::g_framebuffer_width) / ((std::round((m_editableOnly ? EditorConfigParser::g_editableTitles.size() : Title::g_titles.size()) / 2.0F) * 2) / 10.0F);
 
     Gui::drawRectangle(scrollbarPos, 544, scrollbarWidth, 5, currTheme.tooltipTextColor);
   }
@@ -101,11 +99,11 @@ void GuiMain::draw() {
       m_selected.titleId = title.first;
     }
 
-    if (!tmpEditableOnly || ConfigParser::g_editableTitles.count(title.first)) {
+    if (!tmpEditableOnly || EditorConfigParser::g_editableTitles.count(title.first)) {
       if (x - xOffset >= -256 && x - xOffset < Gui::g_framebuffer_width) {
         Gui::drawImage(x - xOffset, y, 256, 256, title.second->getTitleIcon(), IMAGE_MODE_RGB24);
 
-        if (ConfigParser::g_betaTitles[title.first])
+        if (EditorConfigParser::g_betaTitles[title.first])
           Gui::drawImage(x - xOffset, y, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
         if (y == 320 || title.first == (--Title::g_titles.end())->first)
@@ -137,7 +135,7 @@ void GuiMain::draw() {
   Gui::drawRectangled(Gui::g_framebuffer_width - 72, 5, 7, 18, currTheme.separatorColor);
   Gui::drawRectangled(Gui::g_framebuffer_width - 75, 8, 13, 18, currTheme.separatorColor);
 
-  if (tmpEditableOnly && ConfigParser::g_editableTitles.size() == 0) {
+  if (tmpEditableOnly && EditorConfigParser::g_editableTitles.size() == 0) {
     Gui::drawTextAligned(font24, (Gui::g_framebuffer_width / 2), (Gui::g_framebuffer_height / 2), currTheme.textColor, "No editable games found on this system!", ALIGNED_CENTER);
     Gui::endDraw();
     return;
@@ -147,7 +145,7 @@ void GuiMain::draw() {
       Gui::drawRectangled(selectedX - 5, selectedY - 5, 266, 266, currTheme.highlightColor);
       Gui::drawImage(selectedX, selectedY, 256, 256, Title::g_titles[m_selected.titleId]->getTitleIcon(), IMAGE_MODE_RGB24);
 
-      if (ConfigParser::g_betaTitles[m_selected.titleId])
+      if (EditorConfigParser::g_betaTitles[m_selected.titleId])
         Gui::drawImage(selectedX, selectedY, 150, 150, 256, 256, beta_bin, IMAGE_MODE_ABGR32);
 
       if (m_selected.titleId == Title::g_activeTitle) {
@@ -184,7 +182,7 @@ void GuiMain::draw() {
 
     buttonHintStr  = !tmpEditableOnly ? "\uE0E6 Editable titles     " : "\uE0E6 All titles     ";
     buttonHintStr += m_backupAll ? "(\uE0E7) + \uE0E2 Backup all     " : "(\uE0E7) + \uE0E2 Backup     ";
-    buttonHintStr += "\uE0F0 Update     \uE0E1 Back     \uE0E0 OK";
+    buttonHintStr += "\uE0E1 Back     \uE0E0 OK";
 
     Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, buttonHintStr.c_str(), ALIGNED_RIGHT);
 
@@ -215,7 +213,7 @@ void GuiMain::onInput(u32 kdown) {
       if (static_cast<s16>(m_selected.titleIndex - 2) >= 0)
         m_selected.titleIndex -= 2;
     } else if (kdown & KEY_RIGHT) {
-      if (static_cast<u16>(m_selected.titleIndex + 2) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
+      if (static_cast<u16>(m_selected.titleIndex + 2) < ((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()))
         m_selected.titleIndex += 2;
     } else if (kdown & KEY_UP) {
       if ((m_selected.titleIndex % 2) == 1) {
@@ -223,7 +221,7 @@ void GuiMain::onInput(u32 kdown) {
       }
     } else if (kdown & KEY_DOWN) {
       if ((m_selected.titleIndex % 2) == 0) {
-        if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()))
+        if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
       } else {
         if (m_selected.titleIndex < (std::ceil(xOffset / 256.0F) * 2 + 4))
@@ -258,7 +256,7 @@ void GuiMain::onInput(u32 kdown) {
     if (kdown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
       if (m_selected.titleIndex != -1) {
         if (m_selected.titleIndex / 2 - (xOffset / 256) > 3)
-          xOffsetNext = std::min(static_cast<u32>((m_selected.titleIndex / 2 - 3) * 256), static_cast<u32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5) * 256));
+          xOffsetNext = std::min(static_cast<u32>((m_selected.titleIndex / 2 - 3) * 256), static_cast<u32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()) / 2.0F - 5) * 256));
 
         if (m_selected.titleIndex / 2 - (xOffset / 256) < 1)
           xOffsetNext = std::max((m_selected.titleIndex / 2 - 1) * 256, 0);
@@ -377,27 +375,11 @@ void GuiMain::onInput(u32 kdown) {
     xOffsetNext = 0;
   }
 
-  if (kdown & KEY_MINUS) {
-    UpdateManager updateManager;
-
-    (new MessageBox("Updating configs and EdiZon...\n \nThis may take a while.", MessageBox::NONE))->show();
-    requestDraw();
-
-    switch (updateManager.checkUpdate()) {
-      case NONE: (new MessageBox("Latest configs and scripts are already installed!", MessageBox::OKAY))->show(); break;
-      case ERROR: (new MessageBox("An error while downloading the updates has occured.", MessageBox::OKAY))->show(); break;
-      case EDITOR: (new MessageBox("Updated editor configs and scripts to the latest version!", MessageBox::OKAY))->show(); break;
-      case EDIZON: (new MessageBox("Updated EdiZon and editor configs and scripts to\nthe latest version! Please restart EdiZon!", MessageBox::OKAY))->show(); break;
-    }
-
-    updateEditableTitlesList();
-  }
-
   m_backupAll = (kdown & KEY_ZR) > 0;
 }
 
 void GuiMain::onTouch(touchPosition &touch) {
-  if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
+  if (((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()) == 0) return;
 
   u8 x = floor((touch.px + xOffset) / 256.0F);
   u8 y = floor((touch.py - 32) / 256.0F);
@@ -406,8 +388,8 @@ void GuiMain::onTouch(touchPosition &touch) {
   if (touch.py < 32) return;
 
   if (y < 2) {
-    if (title < ((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size())) {
-      if (m_editableOnly && title > (ConfigParser::g_editableTitles.size() - 1)) return;
+    if (title < ((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size())) {
+      if (m_editableOnly && title > (EditorConfigParser::g_editableTitles.size() - 1)) return;
       
       if (m_selected.titleIndex == title) {
         if (m_selected.titleId == Title::g_activeTitle) {
@@ -472,12 +454,12 @@ void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition,
   m_selected.titleIndex = -1;
   m_selected.extraOption = -1;
 
-  if (((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) == 0) return;
+  if (((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()) == 0) return;
 
   if (finish) {
     s32 velocity = (std::accumulate(positions.begin(), positions.end(), 0) / static_cast<s32>(positions.size())) * 2;
     
-    xOffsetNext = std::min(std::max<s32>(xOffset + velocity * 1.5F, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5)));
+    xOffsetNext = std::min(std::max<s32>(xOffset + velocity * 1.5F, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()) / 2.0F - 5)));
 
     startOffset = xOffsetNext;
 
@@ -486,7 +468,7 @@ void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition,
   }
   else {
     xOffset = startOffset + (static_cast<s32>(startPosition.px) - static_cast<s32>(currPosition.px));
-    xOffset = std::min(std::max<s32>(xOffset, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : ConfigParser::g_editableTitles.size()) / 2.0F - 5)));
+    xOffset = std::min(std::max<s32>(xOffset, 0), 256 * static_cast<s32>(std::ceil(((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()) / 2.0F - 5)));
     xOffsetNext = xOffset;
   }
 
@@ -503,12 +485,12 @@ void GuiMain::onGesture(touchPosition startPosition, touchPosition currPosition,
 }
 
 void GuiMain::updateEditableTitlesList() {
-  ConfigParser::g_editableTitles.clear();
-  ConfigParser::g_betaTitles.clear();
+  EditorConfigParser::g_editableTitles.clear();
+  EditorConfigParser::g_betaTitles.clear();
 
   for (auto title : Title::g_titles) {
-    if (ConfigParser::hasConfig(title.first) == 0) {
-      ConfigParser::g_editableTitles.insert({title.first, true});
+    if (EditorConfigParser::hasConfig(title.first) == 0) {
+      EditorConfigParser::g_editableTitles.insert({title.first, true});
     }
   }
 }

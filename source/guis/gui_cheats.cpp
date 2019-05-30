@@ -116,8 +116,17 @@ GuiCheats::GuiCheats() : Gui() {
 
   if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr || m_heapBaseAddr == 0) {
     m_memoryDump->clear();
+
+    delete m_memoryDump;
+
+    if (m_cheats != nullptr)
+      delete m_cheats;
+
+    remove("/switch/EdiZon/memdump1.dat");
     remove("/switch/EdiZon/memdump2.dat");
     remove("/switch/EdiZon/memdump3.dat");
+
+    Gui::g_nextGui = GUI_MAIN;
   } else {
     m_searchType = m_memoryDump->getDumpInfo().searchDataType;
     m_searchRegion = m_memoryDump->getDumpInfo().searchRegion;
@@ -126,7 +135,7 @@ GuiCheats::GuiCheats() : Gui() {
   }
   
   m_memoryDump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
-  
+
   std::stringstream ss;
   if (m_debugger->getRunningApplicationTID() != 0) {
     if (Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName().length() < 24)
@@ -820,7 +829,7 @@ void GuiCheats::onInput(u32 kdown) {
               }
             }
           } else if (m_selectedEntry == 1) {
-            (new MessageBox("Traversing title memory. \n This may take a while...", MessageBox::NONE))->show();
+            (new MessageBox("Traversing title memory.\n \nThis may take a while...", MessageBox::NONE))->show();
             requestDraw();
            
             overclockSystem(true);

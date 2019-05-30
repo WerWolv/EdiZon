@@ -83,7 +83,6 @@ GuiCheats::GuiCheats() : Gui() {
 
   }
   
-  
   MemoryInfo meminfo = { 0 };
   u64 lastAddr = 0;
 
@@ -114,19 +113,17 @@ GuiCheats::GuiCheats() : Gui() {
 
   m_memoryDump = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::UNDEFINED, false);
 
-  if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr || m_heapBaseAddr == 0) {
+  if ((m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr) && m_memoryDump->getDumpInfo().heapBaseAddress != 0) {
     m_memoryDump->clear();
-
-    delete m_memoryDump;
-
-    if (m_cheats != nullptr)
-      delete m_cheats;
 
     remove("/switch/EdiZon/memdump1.dat");
     remove("/switch/EdiZon/memdump2.dat");
     remove("/switch/EdiZon/memdump3.dat");
 
-    Gui::g_nextGui = GUI_MAIN;
+    if (m_debugger->getRunningApplicationPID() != 0) {
+      Gui::g_nextGui = GUI_MAIN;
+      return;
+    }
   } else {
     m_searchType = m_memoryDump->getDumpInfo().searchDataType;
     m_searchRegion = m_memoryDump->getDumpInfo().searchRegion;

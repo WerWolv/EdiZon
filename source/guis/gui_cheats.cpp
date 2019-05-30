@@ -113,16 +113,19 @@ GuiCheats::GuiCheats() : Gui() {
   }
 
   m_memoryDump = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::UNDEFINED, false);
-  m_memoryDump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
 
-  if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr) {
+  if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr || m_heapBaseAddr == 0) {
     m_memoryDump->clear();
+    remove("/switch/EdiZon/memdump2.dat");
+    remove("/switch/EdiZon/memdump3.dat");
   } else {
     m_searchType = m_memoryDump->getDumpInfo().searchDataType;
     m_searchRegion = m_memoryDump->getDumpInfo().searchRegion;
     m_searchValue[0] = m_memoryDump->getDumpInfo().searchValue[0];
     m_searchValue[1] = m_memoryDump->getDumpInfo().searchValue[1];
   }
+  
+  m_memoryDump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
   
   std::stringstream ss;
   if (m_debugger->getRunningApplicationTID() != 0) {

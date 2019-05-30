@@ -207,7 +207,9 @@ int main(int argc, char** argv) {
   if (isServiceRunning("tx") && !isServiceRunning("rnx") && !Config::getConfig()->hideSX)
     Gui::g_nextGui = GUI_TX_WARNING;
 
-  if (access("/switch/EdiZon/memdump.dat", F_OK) == 0)
+  if (access("/switch/EdiZon/memdump1.dat", F_OK) == 0 ||
+      access("/switch/EdiZon/memdump2.dat", F_OK) == 0 ||
+      access("/switch/EdiZon/memdump3.dat", F_OK) == 0)
     Gui::g_nextGui = GUI_CHEATS;
 
   g_edizonPath = new char[strlen(argv[0]) + 1];

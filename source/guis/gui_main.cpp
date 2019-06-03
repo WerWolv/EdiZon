@@ -342,7 +342,7 @@ void GuiMain::onInput(u32 kdown) {
     }
   } else { /* One of the extra options (Cheats, Tutorial or Credits) is selected */
     if (kdown & KEY_UP) {
-      m_selected.titleIndex = std::ceil(xOffset / 256.0F) * 2 + 2 * m_selected.extraOption + 3;
+      m_selected.titleIndex = std::min(static_cast<u32>(std::ceil(xOffset / 256.0F) * 2 + 2 * m_selected.extraOption + 3), static_cast<u32>(((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()) - 1));
       m_selected.extraOption = -1;
     }
     else if (kdown & KEY_LEFT) {

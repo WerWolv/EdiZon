@@ -111,19 +111,18 @@ GuiCheats::GuiCheats() : Gui() {
     }
   }
 
-  m_memoryDump = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::UNDEFINED, false);
+  m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::UNDEFINED, false);
 
-  if ((m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr) && m_memoryDump->getDumpInfo().heapBaseAddress != 0) {
+  if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr) {
     m_memoryDump->clear();
 
-    remove("/switch/EdiZon/memdump1.dat");
-    remove("/switch/EdiZon/memdump2.dat");
-    remove("/switch/EdiZon/memdump3.dat");
+    remove(EDIZON_DIR "/memdump2.dat");
+    remove(EDIZON_DIR "/memdump3.dat");
 
-    if (m_debugger->getRunningApplicationPID() != 0) {
-      Gui::g_nextGui = GUI_MAIN;
-      return;
-    }
+    m_searchType = SEARCH_TYPE_NONE;
+    m_searchRegion = SEARCH_REGION_NONE;
+    m_searchValue[0]._u64 = 0;
+    m_searchValue[1]._u64 = 0;
   } else {
     m_searchType = m_memoryDump->getDumpInfo().searchDataType;
     m_searchRegion = m_memoryDump->getDumpInfo().searchRegion;
@@ -209,7 +208,6 @@ void GuiCheats::draw() {
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 
   Gui::drawRectangle((u32)((Gui::g_framebuffer_width - 1220) / 2), Gui::g_framebuffer_height - 73, 1220, 1, currTheme.textColor);
-
 
   if (m_debugger->getRunningApplicationPID() == 0) {
     Gui::drawTextAligned(fontHuge, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 - 100, currTheme.textColor, "\uE12C", ALIGNED_CENTER);
@@ -677,9 +675,9 @@ void GuiCheats::onInput(u32 kdown) {
         })->show();
       } else {
         m_memoryDump->clear();
-        remove("/switch/EdiZon/memdump1.dat");
-        remove("/switch/EdiZon/memdump2.dat");
-        remove("/switch/EdiZon/memdump3.dat");
+        remove(EDIZON_DIR "/memdump1.dat");
+        remove(EDIZON_DIR "/memdump2.dat");
+        remove(EDIZON_DIR "/memdump3.dat");
 
         m_searchType = SEARCH_TYPE_NONE;
         m_searchMode = SEARCH_MODE_NONE;
@@ -839,10 +837,10 @@ void GuiCheats::onInput(u32 kdown) {
                 GuiCheats::searchMemoryValuesSecondary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
                 delete m_memoryDump;
 
-                remove("/switch/EdiZon/memdump1.dat");
-                rename("/switch/EdiZon/memdump3.dat", "/switch/EdiZon/memdump1.dat");
+                remove(EDIZON_DIR "/memdump1.dat");
+                rename(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
 
-                m_memoryDump = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::ADDR, false);
+                m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::ADDR, false);
               } else if (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) {
                 GuiCheats::searchMemoryValuesTertiary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
               }
@@ -1030,7 +1028,7 @@ static std::string _getValueDisplayString(searchValue_t searchValue, searchType_
 }
 
 void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
-  (*displayDump) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::ADDR, true);
+  (*displayDump) = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::ADDR, true);
   (*displayDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
   (*displayDump)->setSearchParams(searchType, searchMode, searchRegion, searchValue1, searchValue2);
 
@@ -1132,7 +1130,7 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
 }
 
 void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump **displayDump) {
-  MemoryDump *newDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::ADDR, true);
+  MemoryDump *newDump = new MemoryDump(EDIZON_DIR "/memdump2.dat", DumpType::ADDR, true);
   bool ledOn = false;
 
   for (size_t i = 0; i < ((*displayDump)->size() / sizeof(u64)); i++) {
@@ -1217,7 +1215,7 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
 
   delete newDump;
 
-  remove("/switch/EdiZon/memdump2.dat");
+  remove(EDIZON_DIR "/memdump2.dat");
 }
 
 void GuiCheats::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
@@ -1226,7 +1224,7 @@ void GuiCheats::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searc
   searchValue_t zeroValue;
   zeroValue._u64 = 0;
 
-  (*displayDump) = new MemoryDump("/switch/EdiZon/memdump1.dat", DumpType::DATA, true);
+  (*displayDump) = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::DATA, true);
   (*displayDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
   (*displayDump)->setSearchParams(searchType, searchMode, searchRegion, { 0 }, { 0 });
 
@@ -1268,8 +1266,8 @@ void GuiCheats::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searc
 void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
   bool ledOn = false;
 
-  MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
-  MemoryDump *addrDump = new MemoryDump("/switch/EdiZon/memdump3.dat", DumpType::ADDR, true);
+  MemoryDump *newMemDump = new MemoryDump(EDIZON_DIR "/memdump2.dat", DumpType::DATA, true);
+  MemoryDump *addrDump = new MemoryDump(EDIZON_DIR "/memdump3.dat", DumpType::ADDR, true);
   u64 dumpOffset = 0;
 
   for (MemoryInfo meminfo : memInfos) {
@@ -1351,8 +1349,8 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
 }
 
 void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos) {
-  MemoryDump *newMemDump = new MemoryDump("/switch/EdiZon/memdump2.dat", DumpType::DATA, true);
-  MemoryDump *addrDump = new MemoryDump("/switch/EdiZon/memdump3.dat", DumpType::ADDR, true);
+  MemoryDump *newMemDump = new MemoryDump(EDIZON_DIR "/memdump2.dat", DumpType::DATA, true);
+  MemoryDump *addrDump = new MemoryDump(EDIZON_DIR "/memdump3.dat", DumpType::ADDR, true);
   u64 dumpOffset = 0;
 
   for (MemoryInfo meminfo : memInfos) {
@@ -1415,7 +1413,7 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
   for (u8 i = 0; i < 8; i++) 
     buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)buildID[i];
 
-  lonelyCheatPath << "/switch/EdiZon/cheats/" << buildIDStr.str() << ".txt";
+  lonelyCheatPath << EDIZON_DIR "/cheats/" << buildIDStr.str() << ".txt";
 
   if (access(lonelyCheatPath.str().c_str(), F_OK) == 0) {
     realCheatPath << "/atmosphere/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;

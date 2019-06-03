@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <cstring>
 
-#define CONFIG_PATH "/switch/EdiZon/config.dat"
+#define CONFIG_PATH EDIZON_DIR "/config.dat"
 
 namespace Config {
   typedef struct ConfigData {

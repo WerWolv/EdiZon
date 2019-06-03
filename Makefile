@@ -51,7 +51,8 @@ SOURCES		:=	source source/widgets source/guis source/scripting source/ui_element
 DATA		:=	data
 INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include
 EXEFS_SRC	:=	exefs_src
-ROMFS		:=	romfs
+#ROMFS		:=	romfs
+EDIZON_DIR	:=	//switch\EdiZon
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -66,11 +67,12 @@ CFLAGS	:=	-g -Wall -O3 -ffunction-sections \
 			-DVERSION_MAJOR=${VERSION_MAJOR} \
 			-DVERSION_MINOR=${VERSION_MINOR} \
 			-DVERSION_MICRO=${VERSION_MICRO} \
-			-DVERSION_STRING=\"$(subst $(SPACE),\$(SPACE),${APP_VERSION})\"
+			-DVERSION_STRING=\"$(subst $(SPACE),\$(SPACE),${APP_VERSION})\" \
+			-DEDIZON_DIR=\"$(EDIZON_DIR)\"
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -I$(PORTLIBS)/include/freetype2 $(pkg-config --cflags --libs python3)
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -fexceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-no-as-needed,-Map,$(notdir $*.map)

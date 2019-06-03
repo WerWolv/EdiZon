@@ -96,14 +96,14 @@ void update() {
 
 void createFolders() {
   mkdir("/switch", 0777);
-  mkdir("/switch/EdiZon", 0777);
-  mkdir("/switch/EdiZon/saves", 0777);
-  mkdir("/switch/EdiZon/batch_saves", 0777);
-  mkdir("/switch/EdiZon/restore", 0777);
-  mkdir("/switch/EdiZon/editor", 0777);
-  mkdir("/switch/EdiZon/editor/scripts", 0777);
-  mkdir("/switch/EdiZon/editor/scripts/lib", 0777);
-  mkdir("/switch/EdiZon/editor/scripts/lib/python3.5", 0777);
+  mkdir(EDIZON_DIR "", 0777);
+  mkdir(EDIZON_DIR "/saves", 0777);
+  mkdir(EDIZON_DIR "/batch_saves", 0777);
+  mkdir(EDIZON_DIR "/restore", 0777);
+  mkdir(EDIZON_DIR "/editor", 0777);
+  mkdir(EDIZON_DIR "/editor/scripts", 0777);
+  mkdir(EDIZON_DIR "/editor/scripts/lib", 0777);
+  mkdir(EDIZON_DIR "/editor/scripts/lib/python3.5", 0777);
 }
 
 void requestDraw() {
@@ -165,7 +165,7 @@ void serviceExit() {
 void redirectStdio() {
   nxlinkStdio();
 
-  debugOutputFile = open("/switch/EdiZon/EdiZon.log", O_APPEND | O_WRONLY);
+  debugOutputFile = open(EDIZON_DIR "/EdiZon.log", O_APPEND | O_WRONLY);
 
   if (debugOutputFile >= 0) {
     fflush(stdout);
@@ -198,6 +198,8 @@ int main(int argc, char** argv) {
 
   initTitles();
 
+  printf("%s\n", EDIZON_DIR);
+
   createFolders();
 
   Config::readConfig();
@@ -206,11 +208,6 @@ int main(int argc, char** argv) {
 
   if (isServiceRunning("tx") && !isServiceRunning("rnx") && !Config::getConfig()->hideSX)
     Gui::g_nextGui = GUI_TX_WARNING;
-
-  if (access("/switch/EdiZon/memdump1.dat", F_OK) == 0 ||
-      access("/switch/EdiZon/memdump2.dat", F_OK) == 0 ||
-      access("/switch/EdiZon/memdump3.dat", F_OK) == 0)
-    Gui::g_nextGui = GUI_CHEATS;
 
   g_edizonPath = new char[strlen(argv[0]) + 1];
   strcpy(g_edizonPath, argv[0] + 5);

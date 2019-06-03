@@ -203,7 +203,7 @@
 #define LUA_ROOT	"/usr/local/"
 #define LUA_LDIR	LUA_ROOT "share/lua/" LUA_VDIR "/"
 #define LUA_CDIR	LUA_ROOT "lib/lua/" LUA_VDIR "/"
-#define LUA_PATH_DEFAULT "/switch/EdiZon/editor/scripts/?.lua"
+#define LUA_PATH_DEFAULT EDIZON_DIR "/editor/scripts/?.lua"
 #define LUA_CPATH_DEFAULT \
 		LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so"
 #endif

@@ -9,8 +9,6 @@
 
 using json = nlohmann::json;
 
-const char* SAVE_FILE_DIR = "/switch/EdiZon/";
-
 s32 deleteDirRecursively(const char *path, bool isSave) {
   DIR *d = opendir(path);
      size_t path_len = strlen(path);
@@ -75,7 +73,7 @@ bool doesFolderExist(const char *path) {
 
 bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder, bool fromBatch, std::string backupName) {
   std::stringstream ss;
-  std::string folder_path(SAVE_FILE_DIR);
+  std::string folder_path(EDIZON_DIR);
 
   json metadata;
   std::string metadata_string;
@@ -84,7 +82,7 @@ bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
   std::stringstream metadata_title_id;
 
   if (!fromBatch) {
-    folder_path += "saves/";
+    folder_path += "/saves/";
     mkdir(folder_path.c_str(), 0700);
     ss << folder_path << std::uppercase << std::setfill('0') << std::setw(sizeof(titleID)*2)
      << std::hex << titleID << "/";
@@ -100,9 +98,9 @@ bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
       ss << backupName << "/";
   }
   else {
-    folder_path += "batch_saves/";
+    folder_path += "/batch_saves/";
     mkdir(folder_path.c_str(), 0700);
-    ss << SAVE_FILE_DIR << "batch_saves/" << backupName << "/";
+    ss << folder_path << backupName << "/";
 
 
     mkdir(ss.str().c_str(), 0700);

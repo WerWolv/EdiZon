@@ -232,7 +232,7 @@ Updates UpdateManager::checkUpdate() {
       updatedFile = EDIZON;
   }
 
-  for (auto p : std::filesystem::recursive_directory_iterator("/switch/EdiZon/editor")) {
+  for (auto p : std::filesystem::recursive_directory_iterator(EDIZON_DIR "/editor")) {
     if (remote[p.path().c_str()] == nullptr) {
       if (!p.is_directory()) {
         deleteFile(p.path().c_str());

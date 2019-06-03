@@ -52,7 +52,7 @@ bool LuaInterpreter::initialize(std::string filetype) {
   luaL_newlib(m_luaState, regs);
   lua_setglobal(m_luaState, "edizon");
 
-  std::string path = "/switch/EdiZon/editor/scripts/";
+  std::string path = EDIZON_DIR "/editor/scripts/";
   path += filetype;
   path += ".lua";
 

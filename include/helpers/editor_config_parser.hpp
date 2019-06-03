@@ -12,7 +12,7 @@
 
 using json = nlohmann::json;
 
-#define CONFIG_ROOT "/switch/EdiZon/editor/"
+#define CONFIG_ROOT EDIZON_DIR "/editor/"
 
 class Interpreter;
 

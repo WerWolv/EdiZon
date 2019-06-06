@@ -52,7 +52,7 @@ DATA		:=	data
 INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include
 EXEFS_SRC	:=	exefs_src
 #ROMFS		:=	romfs
-EDIZON_DIR	:=	//switch\EdiZon
+EDIZON_DIR	:=	//switch\\EdiZon
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -178,7 +178,7 @@ $(BUILD):
 #--------------------------------------------------------------------------------
 run: $(BUILD)
 	@echo Starting nxlink
-	@nxlink $(OUTPUT).nro -s -p "EdiZon/EdiZon.nro"
+	@nxlink $(OUTPUT).nro -s -a 192.168.1.107 -p "EdiZon/EdiZon.nro"
 	
 #---------------------------------------------------------------------------------
 clean:

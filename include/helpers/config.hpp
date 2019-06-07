@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <edizon.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <cstring>

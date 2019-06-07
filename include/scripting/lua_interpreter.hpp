@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include <switch.h>
+#include <edizon.h>
 
 class LuaInterpreter : public Interpreter{
 public:

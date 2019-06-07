@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <edizon.h>
 #include <string>
 #include <map>
 #include <memory>

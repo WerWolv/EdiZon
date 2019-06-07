@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include <switch.h>
+#include <edizon.h>
 #include "json.hpp"
 
 #define SAVE_DEV "save"

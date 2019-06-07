@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include <switch.h>
+#include <edizon.h>
 
 class Gui;
 

@@ -194,16 +194,20 @@ void GuiCheats::draw() {
 
   Gui::beginDraw();
 
-  if (!Gui::g_splashDisplayed) {
-    Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x5D, 0x4F, 0x4E, 0xFF));
-    Gui::drawImage(Gui::g_framebuffer_width / 2 - 128, Gui::g_framebuffer_height / 2 - 128, 256, 256, edizon_logo_bin, IMAGE_MODE_BGR24);
+  #if SPLASH_ENABLED
 
-    if (splashCnt++ >= 70)
-      Gui::g_splashDisplayed = true;
+    if (!Gui::g_splashDisplayed) {
+      Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x5D, 0x4F, 0x4E, 0xFF));
+      Gui::drawImage(Gui::g_framebuffer_width / 2 - 128, Gui::g_framebuffer_height / 2 - 128, 256, 256, edizon_logo_bin, IMAGE_MODE_BGR24);
 
-    Gui::endDraw();
-    return;
-  }
+      if (splashCnt++ >= 70)
+        Gui::g_splashDisplayed = true;
+
+      Gui::endDraw();
+      return;
+    }
+
+  #endif
 
   Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, currTheme.backgroundColor);
 

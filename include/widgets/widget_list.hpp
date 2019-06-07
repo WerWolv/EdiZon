@@ -2,7 +2,7 @@
 
 #include "widgets/widget.hpp"
 
-#include <switch.h>
+#include <edizon.h>
 
 class WidgetList : public Widget {
 public:

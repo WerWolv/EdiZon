@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <edizon.h>
 
 typedef union {
   u32 color_abgr;

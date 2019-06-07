@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <switch.h>
+#include <edizon.h>
 
 class Interpreter {
 public:

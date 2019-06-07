@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <switch.h>
+#include <edizon.h>
 
 class PythonInterpreter : public Interpreter{
 public:

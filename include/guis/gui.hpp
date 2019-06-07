@@ -1,6 +1,6 @@
 #pragma once
 
-#include <switch.h>
+#include <edizon.h>
 #include <cstring>
 #include <unordered_map>
 

@@ -1,10 +1,7 @@
 #pragma once
-#include <switch.h>
+#include <edizon.h>
 
 #define DEBUG_LOG(statement, formatStr) (printf("%s : %d %s -> " formatStr "\n", __FUNCTION__, __LINE__, #statement, statement))
-
-#define API_VERSION "v3"
-#define EDIZON_URL "http://api.edizon.werwolv.net/" API_VERSION 
 
 #ifdef __cplusplus
 extern "C" {

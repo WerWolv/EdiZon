@@ -1,4 +1,4 @@
-#include <switch.h>
+#include <edizon.h>
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
@@ -95,6 +95,7 @@ void update() {
 }
 
 void createFolders() {
+  printf(EDIZON_DIR "/saves\n");
   mkdir("/switch", 0777);
   mkdir(EDIZON_DIR "", 0777);
   mkdir(EDIZON_DIR "/saves", 0777);

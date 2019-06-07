@@ -51,8 +51,7 @@ SOURCES		:=	source source/widgets source/guis source/scripting source/ui_element
 DATA		:=	data
 INCLUDES	:=	include libs/nxpy/include libs/lua/include libs/nlohmann libs/nanojpeg/include libs/minizip/include
 EXEFS_SRC	:=	exefs_src
-#ROMFS		:=	romfs
-EDIZON_DIR	:=	//switch\\EdiZon
+ROMFS		:=	romfs
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -67,9 +66,8 @@ CFLAGS	:=	-g -Wall -O3 -ffunction-sections \
 			-DVERSION_MAJOR=${VERSION_MAJOR} \
 			-DVERSION_MINOR=${VERSION_MINOR} \
 			-DVERSION_MICRO=${VERSION_MICRO} \
-			-DVERSION_STRING=\"$(subst $(SPACE),\$(SPACE),${APP_VERSION})\" \
-			-DEDIZON_DIR=\"$(EDIZON_DIR)\"
-
+			-DVERSION_STRING=\"$(subst $(SPACE),\$(SPACE),${APP_VERSION})\"
+			
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -I$(PORTLIBS)/include/freetype2 $(pkg-config --cflags --libs python3)
 
 CXXFLAGS	:= $(CFLAGS) -fexceptions -std=gnu++17
@@ -178,7 +176,7 @@ $(BUILD):
 #--------------------------------------------------------------------------------
 run: $(BUILD)
 	@echo Starting nxlink
-	@nxlink $(OUTPUT).nro -s -a 192.168.1.107 -p "EdiZon/EdiZon.nro"
+	@nxlink $(OUTPUT).nro -s -p "EdiZon/EdiZon.nro"
 	
 #---------------------------------------------------------------------------------
 clean:

@@ -137,7 +137,7 @@ void serviceInitialize() {
   pmdmntGetApplicationPid(&pid);
   pminfoGetTitleId(&Title::g_activeTitle, pid);
 
-  accountGetActiveUser(&activeUser, &accountSelected);
+  accountGetLastOpenedUser(&activeUser, &accountSelected);
 
   if (accountSelected)
     Account::g_activeUser = activeUser;

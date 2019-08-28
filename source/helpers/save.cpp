@@ -164,7 +164,7 @@ Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
 
   for (; R_SUCCEEDED(rc) && total_entries > 0;
     rc = fsSaveDataIteratorRead(&iterator, &info, 1, &total_entries)) {
-    if (info.SaveDataType == FsSaveDataType_SaveData) {
+    if (info.saveDataType == FsSaveDataType_SaveData) {
       saveInfoList.push_back(info);
     }
   }

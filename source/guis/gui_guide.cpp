@@ -113,14 +113,14 @@ void GuiGuide::onInput(u32 kdown) {
 
     if (GuiGuide::g_selectedPage < GUIDE_PAGE_CNT)
     GuiGuide::g_selectedPage++;
-    Gui::g_nextGui = GUI_ABOUT;
+    Gui::g_nextGui = GUI_GUIDE;
     return;
   }
 
   if (kdown & KEY_L) {
     if (GuiGuide::g_selectedPage > 1)
       GuiGuide::g_selectedPage--;
-    Gui::g_nextGui = GUI_ABOUT;
+    Gui::g_nextGui = GUI_GUIDE;
     return;
   }
 }

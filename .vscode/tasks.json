@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "addr2line",
+            "type": "shell",
+            "command": "${DEVKITPRO}/devkitA64/bin/aarch64-none-elf-addr2line.exe",
+            "args": [
+                "-p",
+                "-fiCr",
+                "-e",
+                "${workspaceRoot}/out/EdiZon.elf"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": false
+            }
+        }
+    ]
+}

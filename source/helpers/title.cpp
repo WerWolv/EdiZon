@@ -18,7 +18,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   }
   memset(buf.get(), 0, sizeof(NsApplicationControlData));
 
-  rc = nsGetApplicationControlData(1, saveInfo.titleID, buf.get(), sizeof(NsApplicationControlData), &outsize);
+  rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, saveInfo.titleID, buf.get(), sizeof(NsApplicationControlData), &outsize);
   if (R_FAILED(rc)) {
     m_errorCode = 2;
     return;

@@ -17,7 +17,14 @@ public:
   void pokeMemory(size_t varSize, u64 address, u64 value);
   MemoryInfo queryMemory(u64 address);
   void readMemory(void *buffer, size_t bufferSize, u64 address);
-  void writeMemory(void *buffer, size_t bufferSize, u64 address);
+  bool writeMemory(void *buffer, size_t bufferSize, u64 address);
+
+  template<typename T>
+  bool WriteMemory(u64 address, const T& value)
+  {
+    return Debugger::writeMemory((void*)&value, sizeof(T), address);
+  }
+
 
 private:
   Handle m_debugHandle;

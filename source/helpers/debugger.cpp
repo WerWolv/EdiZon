@@ -45,8 +45,8 @@ void Debugger::readMemory(void *buffer, size_t bufferSize, u64 address) {
   dmntchtReadCheatProcessMemory(address, buffer, bufferSize);
 }
 
-void Debugger::writeMemory(void *buffer, size_t bufferSize, u64 address) {
-  dmntchtWriteCheatProcessMemory(address, buffer, bufferSize);
+bool Debugger::writeMemory(void *buffer, size_t bufferSize, u64 address) {
+  return R_SUCCEEDED(dmntchtWriteCheatProcessMemory(address, buffer, bufferSize));
 }
 
 MemoryInfo Debugger::queryMemory(u64 address) {

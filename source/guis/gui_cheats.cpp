@@ -594,7 +594,7 @@ void GuiCheats::onInput(u32 kdown) {
               if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this .", initialString, SwkbdType::SwkbdType_NumPad, input, 15)) {
                 switch (m_searchType) {
                 case SEARCH_TYPE_FLOAT_32BIT:
-                  auto value = static_cast<float>(std::atof(input)));
+                  auto value = static_cast<float>(std::atof(input));
                   m_debugger->writeMemory(&value, dataTypeSizes[m_searchType], address);
                   break;
                 case SEARCH_TYPE_FLOAT_64BIT:

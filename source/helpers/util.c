@@ -16,7 +16,7 @@ static HidsysNotificationLedPattern g_patternOn, g_patternOff;
 Result amspmdmntInitialize(void) {
   atomicIncrement64(&g_refCnt);
 
-  if (g_pmdmntService.type != ServiceType_Uninitialized)
+  if (serviceIsActive(&g_pmdmntService))
     return 1;
 
   return smGetService(&g_pmdmntService, "pm:dmnt");

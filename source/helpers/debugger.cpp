@@ -19,7 +19,7 @@ Debugger::~Debugger() {
 }
 
 Result Debugger::attachToProcess() {
-    return dmntchtForceOpenCheatProcess();
+  return dmntchtForceOpenCheatProcess();
 }
 
 u64 Debugger::getRunningApplicationTID() {

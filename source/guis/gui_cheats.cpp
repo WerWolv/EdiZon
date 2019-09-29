@@ -592,21 +592,15 @@ void GuiCheats::onInput(u32 kdown) {
 
               strcpy(initialString, _getAddressDisplayString(address, m_debugger, m_searchType).c_str());
               if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this .", initialString, SwkbdType::SwkbdType_NumPad, input, 15)) {
-                switch (m_searchType) {
-                case SEARCH_TYPE_FLOAT_32BIT:
+                if(m_searchType == SEARCH_TYPE_FLOAT_32BIT) {
                   auto value = static_cast<float>(std::atof(input));
                   m_debugger->writeMemory(&value, dataTypeSizes[m_searchType], address);
-                  break;
-                case SEARCH_TYPE_FLOAT_64BIT:
-                  auto value = std::atof(input);
+                } else if(m_searchType == SEARCH_TYPE_FLOAT_32BIT) {
+                  auto value = static_cast<float>(std::atof(input));
                   m_debugger->writeMemory(&value, dataTypeSizes[m_searchType], address);
-                  break;
-                case SEARCH_TYPE_NONE:
-                  break;
-                default:
+                } else if(m_searchType != SEARCH_TYPE_NONE) {
                   auto value = std::atol(input);
-                  m_debugger->writeMemory(&value, dataTypeSizes[m_searchType], address);
-                  break;
+                  m_debugger->writeMemory((void*)&value, dataTypeSizes[m_searchType], address);
                 }
               }
             }

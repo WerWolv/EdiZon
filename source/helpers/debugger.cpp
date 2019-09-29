@@ -37,15 +37,15 @@ u64 Debugger::peekMemory(u64 address) {
   return out;
 }
 
-void Debugger::pokeMemory(size_t varSize, u64 address, u64 value) {
-  dmntchtWriteCheatProcessMemory(address, &value, varSize);
+Result Debugger::pokeMemory(size_t varSize, u64 address, u64 value) {
+  return dmntchtWriteCheatProcessMemory(address, &value, varSize);
 }
 
-void Debugger::readMemory(void *buffer, size_t bufferSize, u64 address) {
-  dmntchtReadCheatProcessMemory(address, buffer, bufferSize);
+Result Debugger::readMemory(void *buffer, size_t bufferSize, u64 address) {
+  return dmntchtReadCheatProcessMemory(address, buffer, bufferSize);
 }
 
-bool Debugger::writeMemory(void *buffer, size_t bufferSize, u64 address) {
+Result Debugger::writeMemory(void *buffer, size_t bufferSize, u64 address) {
   return R_SUCCEEDED(dmntchtWriteCheatProcessMemory(address, buffer, bufferSize));
 }
 

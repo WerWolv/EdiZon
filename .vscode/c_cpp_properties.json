@@ -4,10 +4,10 @@
             "name": "DKP Aarch64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${DEVKITPRO}/devkitA64/include",
-                "${DEVKITPRO}/devkitA64/aarch64-none-elf/include",
-                "${DEVKITPRO}/libnx/include",
-                "${DEVKITPRO}/portlibs/switch/include"
+                "${DEVKITPRO}/devkitA64/include/**",
+                "${DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
+                "${DEVKITPRO}/libnx/include/**",
+                "${DEVKITPRO}/portlibs/switch/include/**"
             ],
             "defines": [
                 "DEBUG",

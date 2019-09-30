@@ -595,8 +595,8 @@ void GuiCheats::onInput(u32 kdown) {
                 if(m_searchType == SEARCH_TYPE_FLOAT_32BIT) {
                   auto value = static_cast<float>(std::atof(input));
                   m_debugger->writeMemory(&value, dataTypeSizes[m_searchType], address);
-                } else if(m_searchType == SEARCH_TYPE_FLOAT_32BIT) {
-                  auto value = static_cast<float>(std::atof(input));
+                } else if(m_searchType == SEARCH_TYPE_FLOAT_64BIT) {
+                  auto value = std::atof(input);
                   m_debugger->writeMemory(&value, dataTypeSizes[m_searchType], address);
                 } else if(m_searchType != SEARCH_TYPE_NONE) {
                   auto value = std::atol(input);

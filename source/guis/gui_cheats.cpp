@@ -591,9 +591,17 @@ void GuiCheats::onInput(u32 kdown) {
               char initialString[21];
 
               strcpy(initialString, _getAddressDisplayString(address, m_debugger, m_searchType).c_str());
-
               if (Gui::requestKeyboardInput("Enter value", "Enter a value that should get written at this .", initialString, SwkbdType::SwkbdType_NumPad, input, 15)) {
-                m_debugger->pokeMemory(dataTypeSizes[m_searchType], address, atol(input));
+                if(m_searchType == SEARCH_TYPE_FLOAT_32BIT) {
+                  auto value = static_cast<float>(std::atof(input));
+                  m_debugger->writeMemory(&value, sizeof(value), address);
+                } else if(m_searchType == SEARCH_TYPE_FLOAT_64BIT) {
+                  auto value = std::atof(input);
+                  m_debugger->writeMemory(&value, sizeof(value), address);
+                } else if(m_searchType != SEARCH_TYPE_NONE) {
+                  auto value = std::atol(input);
+                  m_debugger->writeMemory((void*)&value, dataTypeSizes[m_searchType], address);
+                }
               }
             }
             else if ((m_memoryDump->size() / sizeof(u64)) < 25) {

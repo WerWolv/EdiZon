@@ -3,7 +3,6 @@
 #include <edizon.h>
 
 class Debugger {
-  
 public:
   Debugger();
   ~Debugger();
@@ -14,10 +13,10 @@ public:
   u64 getRunningApplicationPID();
 
   u64 peekMemory(u64 address);
-  void pokeMemory(size_t varSize, u64 address, u64 value);
+  Result pokeMemory(size_t varSize, u64 address, u64 value);
   MemoryInfo queryMemory(u64 address);
-  void readMemory(void *buffer, size_t bufferSize, u64 address);
-  void writeMemory(void *buffer, size_t bufferSize, u64 address);
+  Result readMemory(void *buffer, size_t bufferSize, u64 address);
+  Result writeMemory(void *buffer, size_t bufferSize, u64 address);
 
 private:
   Handle m_debugHandle;

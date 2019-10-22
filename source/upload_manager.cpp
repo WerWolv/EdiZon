@@ -94,7 +94,7 @@ std::string UploadManager::upload(std::string path, std::string fileName, Title 
 
   curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(m_curl, CURLOPT_MIMEPOST, mime);
-  curl_easy_setopt(m_curl, CURLOPT_URL, "https://anonfile.com/api/upload/");
+  curl_easy_setopt(m_curl, CURLOPT_URL, "https://api.anonfile.com/upload");
   curl_easy_setopt(m_curl, CURLOPT_CUSTOMREQUEST, "POST");
   curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, writefunc);
   curl_easy_setopt(m_curl, CURLOPT_SSL_VERIFYPEER, 0L);

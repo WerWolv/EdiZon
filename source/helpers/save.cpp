@@ -71,7 +71,7 @@ bool doesFolderExist(const char *path) {
   return stat(path, &sb) == 0 && S_ISDIR(sb.st_mode);
 }
 
-bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, const char* injectFolder, bool fromBatch, std::string backupName) {
+bool makeExInjDir(char ptr[0x100], u64 titleID, AccountUid userID, bool isInject, const char* injectFolder, bool fromBatch, std::string backupName) {
   std::stringstream ss;
   std::string folder_path(EDIZON_DIR);
 
@@ -105,8 +105,8 @@ bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
 
     mkdir(ss.str().c_str(), 0700);
 
-    u64 userIDH = userID >> 64;
-    u64 userIDL = userID & 0xFFFFFFFFFFFFFFFFULL;
+    u64 userIDH = userID.uid[1];
+    u64 userIDL = userID.uid[0];
 
     ss << std::setfill('0') << std::uppercase << std::hex << userIDH << std::setfill('0') << std::uppercase << std::hex << userIDL << "/";
     mkdir(ss.str().c_str(), 0700);
@@ -121,8 +121,8 @@ bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
 
   metadata.clear();
 
-  u64 userIDH = userID >> 64;
-  u64 userIDL = userID & 0xFFFFFFFFFFFFFFFFULL;
+  u64 userIDH = userID.uid[1];
+  u64 userIDL = userID.uid[0];
   metadata_user_id  << std::setfill('0') << std::uppercase << std::hex << userIDH;
   metadata_user_id  << std::setfill('0') << std::uppercase << std::hex << userIDL;
   metadata["user_id"] = metadata_user_id.str();
@@ -146,38 +146,38 @@ bool makeExInjDir(char ptr[0x100], u64 titleID, u128 userID, bool isInject, cons
 
 Result _getSaveList(std::vector<FsSaveDataInfo> & saveInfoList) {
   Result rc=0;
-  FsSaveDataIterator iterator;
-  size_t total_entries=0;
+  FsSaveDataInfoReader iterator;
+  s64 total_entries=0;
   FsSaveDataInfo info;
 
-  rc = fsOpenSaveDataIterator(&iterator, FsSaveDataSpaceId_NandUser);//See libnx fs.h.
+  rc = fsOpenSaveDataInfoReader(&iterator, FsSaveDataSpaceId_User);//See libnx fs.h.
   if (R_FAILED(rc)) {
     printf("fsOpenSaveDataIterator() failed: 0x%x\n", rc);
     return rc;
   }
 
-  rc = fsSaveDataIteratorRead(&iterator, &info, 1, &total_entries);//See libnx fs.h.
+  rc = fsSaveDataInfoReaderRead(&iterator, &info, 1, &total_entries);//See libnx fs.h.
   if (R_FAILED(rc))
     return rc;
   if (total_entries == 0)
     return MAKERESULT(Module_Libnx, LibnxError_NotFound);
 
   for (; R_SUCCEEDED(rc) && total_entries > 0;
-    rc = fsSaveDataIteratorRead(&iterator, &info, 1, &total_entries)) {
-    if (info.saveDataType == FsSaveDataType_SaveData) {
+    rc = fsSaveDataInfoReaderRead(&iterator, &info, 1, &total_entries)) {
+    if (info.save_data_type == FsSaveDataType_Account) {
       saveInfoList.push_back(info);
     }
   }
 
-  fsSaveDataIteratorClose(&iterator);
+  fsSaveDataInfoReaderClose(&iterator);
 
   return 0;
 }
 
-Result mountSaveByTitleAccountIDs(const u64 titleID, const u128 userID, FsFileSystem& tmpfs) {
+Result mountSaveByTitleAccountIDs(const u64 titleID, const AccountUid userID, FsFileSystem& tmpfs) {
   Result rc = 0;
 
-  rc = fsMount_SaveData(&tmpfs, titleID, userID);//See also libnx fs.h.
+  rc = fsOpen_SaveData(&tmpfs, titleID, userID);//See also libnx fs.h.
   if (R_FAILED(rc)) {
     printf("fsMount_SaveData() failed: 0x%x\n", rc);
     fsdevUnmountDevice(SAVE_DEV);
@@ -301,7 +301,7 @@ s32 copyAllSave(const char * path, bool isInject, const char exInjDir[0x100]) {
   }
 }
 
-s32 backupSave(u64 titleID, u128 userID, bool fromBatch, std::string backupName) {
+s32 backupSave(u64 titleID, AccountUid userID, bool fromBatch, std::string backupName) {
   FsFileSystem fs;
   s32 res = 0;
 
@@ -333,7 +333,7 @@ s32 backupSave(u64 titleID, u128 userID, bool fromBatch, std::string backupName)
   return res;
 }
 
-s32 restoreSave(u64 titleID, u128 userID, const char* path) {
+s32 restoreSave(u64 titleID, AccountUid userID, const char* path) {
   FsFileSystem fs;
   s32 res = 0;
 
@@ -362,7 +362,7 @@ s32 restoreSave(u64 titleID, u128 userID, const char* path) {
   return res;
 }
 
-s32 loadSaveFile(std::vector<u8> *buffer, size_t *length, u64 titleID, u128 userID, const char *path) {
+s32 loadSaveFile(std::vector<u8> *buffer, size_t *length, u64 titleID, AccountUid userID, const char *path) {
   FsFileSystem fs;
   size_t size;
 
@@ -411,7 +411,7 @@ s32 loadSaveFile(std::vector<u8> *buffer, size_t *length, u64 titleID, u128 user
   return 0;
 }
 
-s32 storeSaveFile(u8 *buffer, size_t length, u64 titleID, u128 userID, const char *path) {
+s32 storeSaveFile(u8 *buffer, size_t length, u64 titleID, AccountUid userID, const char *path) {
   FsFileSystem fs;
 
   if (R_FAILED(mountSaveByTitleAccountIDs(titleID, userID, fs))) {

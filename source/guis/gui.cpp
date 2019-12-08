@@ -96,7 +96,7 @@ bool Gui::fontInit() {
 
   if (R_FAILED(plGetSharedFont(0, fonts, FONT_FACES_MAX, &m_fontFacesTotal))) return false;
 
-  for (u32 i = 0; i < m_fontFacesTotal; i++) {
+  for (s32 i = 0; i < m_fontFacesTotal; i++) {
     ret = FT_New_Memory_Face(m_fontLibrary, (FT_Byte*)fonts[i].address, fonts[i].size, 0, &m_fontFaces[i]);
 
     m_fontFacesRet[i] = ret;
@@ -107,7 +107,7 @@ bool Gui::fontInit() {
 }
 
 void Gui::fontExit() {
-  for (u32 i = 0; i < m_fontFacesTotal; i++)
+  for (s32 i = 0; i < m_fontFacesTotal; i++)
     if (m_fontFacesRet[i] == 0) FT_Done_Face(m_fontFaces[i]);
 
   if (m_fontLibret == 0) FT_Done_FreeType(m_fontLibrary);
@@ -126,7 +126,7 @@ bool Gui::setFontType(u32 font) {
     default: return false;
   }
 
-  for (u32 i = 0; i < m_fontFacesTotal; i++) {
+  for (s32 i = 0; i < m_fontFacesTotal; i++) {
     ret = FT_Set_Char_Size(m_fontFaces[i], 0, scale * 64, 300, 300);
 
     if (ret) return false;
@@ -144,7 +144,7 @@ inline bool Gui::fontLoadGlyph(glyph_t* glyph, u32 font, u32 codepoint) {
 
   if (m_fontFacesTotal == 0) return false;
 
-  for (u32 i = 0; i < m_fontFacesTotal; i++) {
+  for (s32 i = 0; i < m_fontFacesTotal; i++) {
     face = m_fontFaces[i];
     m_fontLastUsedFace = face;
     glyphIndex = FT_Get_Char_Index(face, codepoint);
@@ -620,10 +620,10 @@ bool Gui::requestKeyboardInput(std::string headerText, std::string subHeaderText
   return std::strcmp(out_text, "") != 0;
 }
 
-u128 Gui::requestPlayerSelection() {
+AccountUid Gui::requestPlayerSelection() {
   struct UserReturnData{
       u64 result;
-      u128 UID;
+      AccountUid UID;
   } PACKED;
 
   struct UserReturnData outdata;

@@ -23,7 +23,7 @@ GuiAbout::GuiAbout() : Gui() {
 
   if (!threadRunning) {
     threadRunning = true;
-    threadCreate(&networkThread, getVersionInfoAsync, nullptr, 0x2000, 0x2C, -2);
+    threadCreate(&networkThread, getVersionInfoAsync, nullptr, nullptr, 0x2000, 0x2C, -2);
     threadStart(&networkThread);
   }
 }

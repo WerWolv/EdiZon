@@ -9,7 +9,7 @@ extern "C" {
   #include "nanojpeg.h"
 }
 
-Account::Account(u128 userID) : m_userID(userID) {
+Account::Account(AccountUid userID) : m_userID(userID) {
   if (R_FAILED(accountGetProfile(&m_profile, userID))) return;
 
   if (!serviceIsActive(&m_profile.s)) return;
@@ -17,11 +17,11 @@ Account::Account(u128 userID) : m_userID(userID) {
   if (R_FAILED(accountProfileGet(&m_profile, &m_userData, &m_profileBase))) return;
   if (R_FAILED(accountProfileGetImageSize(&m_profile, &m_profileImageSize))) return;
 
-  m_userName = std::string(m_profileBase.username);
+  m_userName = std::string(m_profileBase.nickname);
 
   std::vector<u8> buffer(m_profileImageSize);
   u8 *decodedBuffer;
-  size_t imageSize = 0;
+  u32 imageSize = 0;
 
   if (R_FAILED(accountProfileLoadImage(&m_profile, &buffer[0], m_profileImageSize, &imageSize))) return;
 
@@ -42,7 +42,7 @@ Account::Account(u128 userID) : m_userID(userID) {
 Account::~Account() {
 }
 
-u128 Account::getUserID() {
+AccountUid Account::getUserID() {
   return m_userID;
 }
 

@@ -12,7 +12,8 @@
             "defines": [
                 "DEBUG",
                 "SWITCH",
-                "__SWITCH__"
+                "__SWITCH__",
+                "VERSION_STRING=\"3.1.0\""
             ],
             "compilerPath": "${DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
             "cStandard": "c11",

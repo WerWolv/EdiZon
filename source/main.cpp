@@ -45,35 +45,35 @@ void initTitles() {
   _getSaveList(saveInfoList);
 
   s32 userCount = 0;
-  size_t foundUserCount = 0;
+  s32 foundUserCount = 0;
   
   accountGetUserCount(&userCount);
 
-  u128 userIDs[userCount];
+  AccountUid userIDs[userCount];
   accountListAllUsers(userIDs, userCount, &foundUserCount);
 
   for (auto saveInfo : saveInfoList) {
     bool accountPresent = false;
 
-    for (u32 i = 0; i < foundUserCount; i++)
-      if (userIDs[i] == saveInfo.userID)
+    for (s32 i = 0; i < foundUserCount; i++)
+      if (userIDs[i] == saveInfo.uid)
         accountPresent = true;
 
     if (!accountPresent) continue;
 
-    if (Title::g_titles.find(saveInfo.titleID) == Title::g_titles.end())
-      Title::g_titles.insert({(u64)saveInfo.titleID, new Title(saveInfo)});
+    if (Title::g_titles.find(saveInfo.application_id) == Title::g_titles.end())
+      Title::g_titles.insert({(u64)saveInfo.application_id, new Title(saveInfo)});
       
-    Title::g_titles[saveInfo.titleID]->addUserID(saveInfo.userID);
+    Title::g_titles[saveInfo.application_id]->addUserID(saveInfo.uid);
 
-    if (Account::g_accounts.find(saveInfo.userID) == Account::g_accounts.end()) {
-      Account *account =  new Account(saveInfo.userID);
+    if (Account::g_accounts.find(saveInfo.uid) == Account::g_accounts.end()) {
+      Account *account =  new Account(saveInfo.uid);
 
       if (!account->isInitialized()) {
         delete account;
         continue;
       }
-      Account::g_accounts.insert(std::make_pair(static_cast<u128>(saveInfo.userID), account));
+      Account::g_accounts.insert(std::make_pair(static_cast<AccountUid>(saveInfo.uid), account));
     }
   }
 }
@@ -116,7 +116,7 @@ void serviceInitialize() {
   setsysInitialize();
   socketInitializeDefault();
   nsInitialize();
-  accountInitialize();
+  accountInitialize(AccountServiceType_Administrator);
   plInitialize();
   psmInitialize();
   pminfoInitialize();
@@ -130,17 +130,12 @@ void serviceInitialize() {
   curl_global_init(CURL_GLOBAL_ALL);
 
   u64 pid = 0;
-  u128 activeUser;
-  bool accountSelected;
   Title::g_activeTitle = 0;
 
-  pmdmntGetApplicationPid(&pid);
-  pminfoGetTitleId(&Title::g_activeTitle, pid);
+  pmdmntGetApplicationProcessId(&pid);
+  pminfoGetProgramId(&Title::g_activeTitle, pid);
 
-  accountGetLastOpenedUser(&activeUser, &accountSelected);
-
-  if (accountSelected)
-    Account::g_activeUser = activeUser;
+  accountGetLastOpenedUser(&Account::g_activeUser);
 }
 
 void serviceExit() {
@@ -183,7 +178,7 @@ int main(int argc, char** argv) {
   // Setup Heap for swkbd on applets
   Result rc = svcSetHeapSize(&haddr, 0x10000000);
   if (R_FAILED(rc))
-    fatalSimple(0xDEAD);
+    fatalThrow(0xDEAD);
   fake_heap_end = (char*) haddr + 0x10000000;
 
   serviceInitialize();

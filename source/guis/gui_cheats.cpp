@@ -278,9 +278,9 @@ void GuiCheats::draw() {
   Gui::drawTextAligned(font14, 290, 130, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 290, 150, COLOR_BLACK, buildIDStr.c_str(), ALIGNED_LEFT);
 
-  if (Account::g_activeUser != 0) {
+  if ((Account::g_activeUser.uid[0] != 0) && (Account::g_activeUser.uid[1] != 0)) {
     ss.str("");
-    ss << Account::g_accounts[Account::g_activeUser]->getUserName() << " [ " << std::hex << (u64)(Account::g_activeUser >> 64) << " " << (u64)(Account::g_activeUser & 0xFFFFFFFFFFFFFFFFULL) << " ]";
+    ss << Account::g_accounts[Account::g_activeUser]->getUserName() << " [ " << std::hex << (Account::g_activeUser.uid[1]) << " " << (Account::g_activeUser.uid[0]) << " ]";
     Gui::drawTextAligned(font20, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
   }
 
@@ -1428,7 +1428,7 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
   lonelyCheatPath << EDIZON_DIR "/cheats/" << buildIDStr.str() << ".txt";
 
   if (access(lonelyCheatPath.str().c_str(), F_OK) == 0) {
-    realCheatPath << "/atmosphere/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
+    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
     mkdir(realCheatPath.str().c_str(), 0777);
     realCheatPath << "/cheats/";
     mkdir(realCheatPath.str().c_str(), 0777);
@@ -1444,7 +1444,7 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
 static bool _wrongCheatsPresent(u8 *buildID, u64 titleID) {
   std::stringstream ss;
 
-  ss << "/atmosphere/titles/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID << "/cheats/";
+  ss << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID << "/cheats/";
 
   if (!std::filesystem::exists(ss.str()))
     return false;

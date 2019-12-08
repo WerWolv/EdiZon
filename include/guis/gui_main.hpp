@@ -26,7 +26,7 @@ private:
     s8 extraOption;
 
     u64 titleId;
-    u128 userId;
+    AccountUid userId;
   } m_selected = { 0, -1, 0, 0 };
 
   static inline bool m_editableOnly = false;

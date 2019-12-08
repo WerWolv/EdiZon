@@ -30,12 +30,13 @@ void amspmdmntExit(void) {
 
 bool isServiceRunning(const char *serviceName) {
   Handle handle;
-  bool running = R_FAILED(smRegisterService(&handle, serviceName, false, 1));
+  SmServiceName service_name = smEncodeName(serviceName);
+  bool running = R_FAILED(smRegisterService(&handle, service_name, false, 1));
 
   svcCloseHandle(handle);
 
   if (!running)
-    smUnregisterService(serviceName);
+    smUnregisterService(service_name);
 
   return running;
 }

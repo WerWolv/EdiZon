@@ -37,7 +37,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
 
   m_titleName = std::string(langentry->name);
   m_titleAuthor = std::string(langentry->author);
-  m_titleVersion = std::string(buf->nacp.version);
+  m_titleVersion = std::string(buf->nacp.display_version);
 
   m_titleID = saveInfo.application_id;
 

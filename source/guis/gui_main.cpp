@@ -243,10 +243,10 @@ void GuiMain::onInput(u32 kdown) {
         (new Snackbar("The save files of a running game cannot be accessed."))->show();
         return;
       }
-      u128 userID = Gui::requestPlayerSelection();
-      std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
+      AccountUid userID = Gui::requestPlayerSelection();
+      std::vector<AccountUid> users = Title::g_titles[m_selected.titleId]->getUserIDs();
 
-      if(userID == 0x00)
+      if(userID.uid[0] == 0x00 && userID.uid[1] == 0x00)
         return;
 
       if (std::find(users.begin(), users.end(), userID) != users.end()) {
@@ -292,7 +292,7 @@ void GuiMain::onInput(u32 kdown) {
             u16 failed_titles = 0;
             
             for (auto title : Title::g_titles) {
-              for (u128 userID : Title::g_titles[title.first]->getUserIDs()) {
+              for (AccountUid userID : Title::g_titles[title.first]->getUserIDs()) {
                 if((res = backupSave(title.first, userID, true, backupName))) {
                   batchFailed = true;
                   failed_titles++;
@@ -326,7 +326,7 @@ void GuiMain::onInput(u32 kdown) {
         if (!Gui::requestKeyboardInput("Backup name", "Please enter a name for the backup to be saved under.", initialText.str(), SwkbdType_QWERTY, backupName, 32))
           return;
 
-        for (u128 userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {
+        for (AccountUid userID : Title::g_titles[m_selected.titleId]->getUserIDs()) {
           if((res = backupSave(m_selected.titleId, userID, true, backupName))) {
             batchFailed = true;
           }
@@ -400,12 +400,12 @@ void GuiMain::onTouch(touchPosition &touch) {
           return;
         }
 
-        u128 userID = Gui::requestPlayerSelection();
+        AccountUid userID = Gui::requestPlayerSelection();
 
         Title::g_currTitle = Title::g_titles[m_selected.titleId];
-        std::vector<u128> users = Title::g_titles[m_selected.titleId]->getUserIDs();
+        std::vector<AccountUid> users = Title::g_titles[m_selected.titleId]->getUserIDs();
 
-        if(userID == 0x00)
+        if(userID.uid[0] == 0x00 && userID.uid[1] == 0x00)
           return;
 
         if (std::find(users.begin(), users.end(), userID) != users.end()) {

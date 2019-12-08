@@ -80,7 +80,7 @@ public:
   void drawTooltip(s16 x, s16 y, const char *text, color_t backgroundColor, color_t textColor, u8 alpha, bool flipped);
 
   static bool requestKeyboardInput(std::string headerText, std::string subHeaderText, std::string initialText, SwkbdType type, char *out_text, size_t maxLength);
-  static u128 requestPlayerSelection();
+  static AccountUid requestPlayerSelection();
   static void requestErrorMessage(Result result);
 
 protected:
@@ -92,7 +92,7 @@ private:
   FT_Library m_fontLibrary;
   FT_Face m_fontFaces[FONT_FACES_MAX];
   FT_Face m_fontLastUsedFace;
-  size_t m_fontFacesTotal;
+  s32 m_fontFacesTotal;
 
   std::unordered_map<size_t, std::pair<u16, u16>> m_stringDimensions;
 

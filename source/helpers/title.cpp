@@ -18,7 +18,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   }
   memset(buf.get(), 0, sizeof(NsApplicationControlData));
 
-  rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, saveInfo.titleID, buf.get(), sizeof(NsApplicationControlData), &outsize);
+  rc = nsGetApplicationControlData(NsApplicationControlSource_Storage, saveInfo.application_id, buf.get(), sizeof(NsApplicationControlData), &outsize);
   if (R_FAILED(rc)) {
     m_errorCode = 2;
     return;
@@ -39,7 +39,7 @@ Title::Title(FsSaveDataInfo& saveInfo) {
   m_titleAuthor = std::string(langentry->author);
   m_titleVersion = std::string(buf->nacp.version);
 
-  m_titleID = saveInfo.titleID;
+  m_titleID = saveInfo.application_id;
 
   njInit();
 
@@ -96,10 +96,10 @@ u64 Title::getTitleID() {
   return m_titleID;
 }
 
-std::vector<u128> Title::getUserIDs() {
+std::vector<AccountUid> Title::getUserIDs() {
   return m_userIDs;
 }
 
-void Title::addUserID(u128 userID) {
+void Title::addUserID(AccountUid userID) {
   m_userIDs.push_back(userID);
 }

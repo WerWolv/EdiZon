@@ -278,9 +278,9 @@ void GuiCheats::draw() {
   Gui::drawTextAligned(font14, 290, 130, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 290, 150, COLOR_BLACK, buildIDStr.c_str(), ALIGNED_LEFT);
 
-  if (Account::g_activeUser != 0) {
+  if ((Account::g_activeUser.uid[0] != 0) && (Account::g_activeUser.uid[1] != 0)) {
     ss.str("");
-    ss << Account::g_accounts[Account::g_activeUser]->getUserName() << " [ " << std::hex << (u64)(Account::g_activeUser >> 64) << " " << (u64)(Account::g_activeUser & 0xFFFFFFFFFFFFFFFFULL) << " ]";
+    ss << Account::g_accounts[Account::g_activeUser]->getUserName() << " [ " << std::hex << (Account::g_activeUser.uid[1]) << " " << (Account::g_activeUser.uid[0]) << " ]";
     Gui::drawTextAligned(font20, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
   }
 

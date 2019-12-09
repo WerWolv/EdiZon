@@ -32,6 +32,6 @@ deploy:
   skip_cleanup: true
   overwrite: true
   name: "Snapshot Build"
-  body: "This build could be unstable, you may install and use it at your own risk."
+  body: "This build was compiled on the $(date +'%d.%m.%Y'). It may be unstable, contains more features and bug fixes too though"
   on:
     branch: master

@@ -243,7 +243,7 @@ Updates UpdateManager::checkUpdate() {
     }
   }
 
-  for (auto p : std::filesystem::recursive_directory_iterator("/atmosphere/titles")) {
+  for (auto p : std::filesystem::recursive_directory_iterator("/atmosphere/contents")) {
     std::string currPath = p.path().c_str();
     if (remote[currPath] == nullptr) {
       if (!p.is_directory() && currPath.find("cheats") != std::string::npos) {

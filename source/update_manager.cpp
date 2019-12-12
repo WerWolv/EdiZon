@@ -242,8 +242,17 @@ Updates UpdateManager::checkUpdate() {
       }
     }
   }
+  
+   //lets check for titles or contents on atmosphere here :) 
+   // ELY M.  
+   std::string getamspath;
+	if (std::filesystem::exists("atmosphere/contents")) {
+		getamspath = "/atmosphere/contents/";
+	} else {
+		getamspath = "/atmosphere/titles/";  
+	}
 
-  for (auto p : std::filesystem::recursive_directory_iterator("/atmosphere/contents")) {
+  for (auto p : std::filesystem::recursive_directory_iterator(getamspath)) {
     std::string currPath = p.path().c_str();
     if (remote[currPath] == nullptr) {
       if (!p.is_directory() && currPath.find("cheats") != std::string::npos) {

@@ -17,7 +17,7 @@ static const std::vector<u8> dataTypeSizes      = {    1,   1,     2,     2,    
 static const std::vector<s128> dataTypeMaxValues = { std::numeric_limits<u8>::max(), std::numeric_limits<s8>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max() };
 static const std::vector<s128> dataTypeMinValues = { std::numeric_limits<u8>::min(), std::numeric_limits<s8>::min(), std::numeric_limits<u16>::min(), std::numeric_limits<s16>::min(), std::numeric_limits<u32>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<u64>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<s32>::min(), std::numeric_limits<s64>::min(), std::numeric_limits<u64>::min() };
 
-static std::string titleNameStr, tidStr, pidStr, buildIDStr;
+static std::string titleNameStr, tidStr, pidStr, buildIDStr, getRealCheatPath;
 
 static u32 cheatListOffset = 0;
 
@@ -1418,9 +1418,19 @@ void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchType_t sear
 
 static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
   std::stringstream lonelyCheatPath;
-  std::stringstream realCheatPath;
-  
+  std::stringstream realCheatPath;  
   std::stringstream buildIDStr;
+  
+   
+   //lets check for titles or contents on atmosphere here :) 
+   // ELY M.   
+	if (std::filesystem::exists("atmosphere/contents")) {
+		getRealCheatPath = "/atmosphere/contents/";
+	} else {
+		getRealCheatPath = "/atmosphere/titles/";  
+	}
+
+  
 
   for (u8 i = 0; i < 8; i++) 
     buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)buildID[i];
@@ -1428,7 +1438,7 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
   lonelyCheatPath << EDIZON_DIR "/cheats/" << buildIDStr.str() << ".txt";
 
   if (access(lonelyCheatPath.str().c_str(), F_OK) == 0) {
-    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
+    realCheatPath << getRealCheatPath << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
     mkdir(realCheatPath.str().c_str(), 0777);
     realCheatPath << "/cheats/";
     mkdir(realCheatPath.str().c_str(), 0777);
@@ -1443,8 +1453,17 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID) {
 
 static bool _wrongCheatsPresent(u8 *buildID, u64 titleID) {
   std::stringstream ss;
+  
+  
+   //lets check for titles or contents on atmosphere here :) 
+   // ELY M.  
+	if (std::filesystem::exists("atmosphere/contents")) {
+		getRealCheatPath = "/atmosphere/contents/";
+	} else {
+		getRealCheatPath = "/atmosphere/titles/";  
+	}
 
-  ss << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID << "/cheats/";
+  ss << getRealCheatPath << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID << "/cheats/";
 
   if (!std::filesystem::exists(ss.str()))
     return false;

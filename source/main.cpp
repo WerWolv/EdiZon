@@ -46,7 +46,7 @@ void initTitles() {
 
   s32 userCount = 0;
   s32 foundUserCount = 0;
-  
+
   accountGetUserCount(&userCount);
 
   AccountUid userIDs[userCount];
@@ -63,7 +63,7 @@ void initTitles() {
 
     if (Title::g_titles.find(saveInfo.application_id) == Title::g_titles.end())
       Title::g_titles.insert({(u64)saveInfo.application_id, new Title(saveInfo)});
-      
+
     Title::g_titles[saveInfo.application_id]->addUserID(saveInfo.uid);
 
     if (Account::g_accounts.find(saveInfo.uid) == Account::g_accounts.end()) {
@@ -173,13 +173,6 @@ void redirectStdio() {
 
 int main(int argc, char** argv) {
   void *haddr;
-  extern char *fake_heap_end;
-  
-  // Setup Heap for swkbd on applets
-  Result rc = svcSetHeapSize(&haddr, 0x10000000);
-  if (R_FAILED(rc))
-    fatalThrow(0xDEAD);
-  fake_heap_end = (char*) haddr + 0x10000000;
 
   serviceInitialize();
 
@@ -277,7 +270,7 @@ int main(int argc, char** argv) {
           else
             currGui->onInput(kdown);
         }
-      }     
+      }
     }
 
     if (kheld != kheldOld) {
@@ -358,8 +351,6 @@ int main(int argc, char** argv) {
   framebufferClose(&Gui::g_fb_obj);
 
   serviceExit();
-
-  svcSetHeapSize(&haddr, ((u8*) envGetHeapOverrideAddr() + envGetHeapOverrideSize()) - (u8*) haddr); // clean up the heap
 
   return 0;
 }

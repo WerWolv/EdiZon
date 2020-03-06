@@ -6,7 +6,7 @@
   </p>
 
 A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch. 
-Please note if you are using Atmosphere 0.10.0+, you **must** to use the snapshot version of EdiZon. Older versions of EdiZon do **not** work on the latest Atmosphere.
+Please note if you are using Atmosphere 0.10.0+, you **must** use the snapshot version of EdiZon. Older versions of EdiZon do **not** work on the latest Atmosphere.
 
 # Overview
   EdiZon consists of 3 different main functionalities.

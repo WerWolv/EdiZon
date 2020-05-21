@@ -6,39 +6,18 @@
 
 #define MHz *1E6
 
-static Service g_pmdmntService;
-static u64 g_refCnt;
-
 static u64 g_uniquePadIds[2];
 static size_t g_uniquePadCnt;
 static HidsysNotificationLedPattern g_patternOn, g_patternOff;
 
-Result amspmdmntInitialize(void) {
-  atomicIncrement64(&g_refCnt);
-
-  if (serviceIsActive(&g_pmdmntService))
-    return 1;
-
-  return smGetService(&g_pmdmntService, "pm:dmnt");
-}
-
-void amspmdmntExit(void) {
-  if (atomicDecrement64(&g_refCnt) == 0) {
-    serviceClose(&g_pmdmntService);
-  }
-}
-
 bool isServiceRunning(const char *serviceName) {
-  Handle handle;
+  u8 tmp=0;
   SmServiceName service_name = smEncodeName(serviceName);
-  bool running = R_FAILED(smRegisterService(&handle, service_name, false, 1));
-
-  svcCloseHandle(handle);
-
-  if (!running)
-    smUnregisterService(service_name);
-
-  return running;
+  Result rc = serviceDispatchInOut(smGetServiceSession(), 65100, service_name, tmp);
+  if (R_SUCCEEDED(rc) && tmp & 1)
+    return true;
+  else
+    return false;
 }
 
 void getCurrTimeString(char *buffer) {
@@ -85,39 +64,4 @@ void overclockSystem(bool enable) {
     clkrstSetClockRate(&clkrstSession, enable ? 1600 MHz : 1331 MHz); // Set memory clock
     clkrstCloseSession(&clkrstSession);
   }
-}
-
-Result amspmdmntAtmosphereGetProcessHandle(Handle *out_processHandle) {
-  IpcCommand c;
-  ipcInitialize(&c);
-
-  struct {
-    u64 magic;
-    u64 cmd_id;
-  } *raw;
-
-  raw = ipcPrepareHeader(&c, sizeof(*raw));
-
-  raw->magic = SFCI_MAGIC;
-  raw->cmd_id = 65000;
-
-  Result rc = serviceIpcDispatch(&g_pmdmntService);
-
-  if (R_SUCCEEDED(rc)) {
-    IpcParsedCommand r;
-
-    struct {
-        u64 magic;
-        u64 result;
-    } *resp;
-
-    serviceIpcParse(&g_pmdmntService, &r, sizeof(*resp));
-    resp = r.Raw;
-
-    *out_processHandle = r.Handles[0];
-
-    rc = resp->result;
-  }
-
-  return rc;
 }

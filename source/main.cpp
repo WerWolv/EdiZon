@@ -117,7 +117,7 @@ void serviceInitialize() {
   socketInitializeDefault();
   nsInitialize();
   accountInitialize(AccountServiceType_Administrator);
-  plInitialize();
+  plInitialize(PlServiceType_User);
   psmInitialize();
   pminfoInitialize();
   pmdmntInitialize();

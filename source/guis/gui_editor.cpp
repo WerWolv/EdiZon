@@ -365,14 +365,14 @@ void uploadBackup(std::string path, std::string fileName) {
   (new MessageBox("Uploading savefile...\n \nPress \uE0E1 to cancel.", MessageBox::NONE))->show();
   requestDraw();
 
-  char serial[0x19];
+  SetSysSerialNumber serial;
   u8 serialHash[0x20];
-  setsysGetSerialNumber(serial);
+  setsysGetSerialNumber(&serial);
 
 
   Sha256Context shaCtx;
   sha256ContextCreate(&shaCtx);
-  sha256ContextUpdate(&shaCtx, (u8 *)serial, 0x19);
+  sha256ContextUpdate(&shaCtx, (u8 *)serial.number, 0x19);
   sha256ContextGetHash(&shaCtx, serialHash);
 
   hashStr.str("");

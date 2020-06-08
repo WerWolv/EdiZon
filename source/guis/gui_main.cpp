@@ -239,6 +239,11 @@ void GuiMain::onInput(u32 kdown) {
     }
 
     if (kdown & KEY_A) {
+      AppletType at = appletGetAppletType();
+      if (at != AppletType_Application && at != AppletType_SystemApplication) {
+        (new Snackbar("Edizon need to be ran with full ram access to process save files."))->show();
+        return;
+      }
       if (m_selected.titleId == Title::g_activeTitle) {
         (new Snackbar("The save files of a running game cannot be accessed."))->show();
         return;

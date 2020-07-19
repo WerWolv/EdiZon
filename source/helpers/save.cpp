@@ -7,7 +7,6 @@
 #include "helpers/account.hpp"
 #include "helpers/title.hpp"
 #include "helpers/debugger.hpp"
-
 using json = nlohmann::json;
 
 s32 deleteDirRecursively(const char *path, bool isSave)
@@ -160,9 +159,7 @@ Result _getSaveList(std::vector<FsSaveDataInfo> &saveInfoList)
   FsSaveDataInfoReader iterator;
   s64 total_entries = 0;
   FsSaveDataInfo info;
-  Debugger *l_debugger = new Debugger(); //Debugger *m_debugger;
-  u64 runningid = l_debugger->getRunningApplicationPID();
-
+  Debugger *l_debugger = new Debugger();                            //Debugger *m_debugger;
   rc = fsOpenSaveDataInfoReader(&iterator, FsSaveDataSpaceId_User); //See libnx fs.h.
   if (R_FAILED(rc))
   {
@@ -175,20 +172,17 @@ Result _getSaveList(std::vector<FsSaveDataInfo> &saveInfoList)
     return rc;
   if (total_entries == 0)
     return MAKERESULT(Module_Libnx, LibnxError_NotFound);
+
   for (; R_SUCCEEDED(rc) && total_entries > 0;
        rc = fsSaveDataInfoReaderRead(&iterator, &info, 1, &total_entries))
   {
-    if (runningid == 0)
-    {
-      if (info.save_data_type == FsSaveDataType_Account) // hacked to get only the running title if using cheat engine
-      {
-        saveInfoList.push_back(info);
-      }
-    }
-    if ((info.save_data_type == FsSaveDataType_Account) && (info.application_id == l_debugger->getRunningApplicationPID())) // hacked to get only the running title if using cheat engine
+    if ((info.save_data_type == FsSaveDataType_Account) && (info.application_id == l_debugger->getRunningApplicationTID())) // hacked to get only the running title
     {
       saveInfoList.push_back(info);
-      printf("has hit for title\n");
+    }
+    else if ((info.save_data_type == FsSaveDataType_Account) && (l_debugger->getRunningApplicationTID() == 0)) // hacked to get only the running title
+    {
+      saveInfoList.push_back(info);
     }
   }
 

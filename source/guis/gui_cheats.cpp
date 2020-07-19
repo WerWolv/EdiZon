@@ -885,7 +885,7 @@ void GuiCheats::onInput(u32 kdown)
 
   if (m_debugger->getRunningApplicationPID() == 0)
     return;
-
+// BM1 
   if (m_searchMenuLocation == SEARCH_POINTER)
   {
     if (kdown & KEY_UP)

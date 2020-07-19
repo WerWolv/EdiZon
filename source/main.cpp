@@ -24,22 +24,23 @@
 #include "helpers/util.h"
 #include "helpers/config.hpp"
 
-#define LONG_PRESS_DELAY              2
-#define LONG_PRESS_ACTIVATION_DELAY   300
+#define LONG_PRESS_DELAY 2
+#define LONG_PRESS_ACTIVATION_DELAY 300
 
-char* g_edizonPath;
+char *g_edizonPath;
 
 static int debugOutputFile;
 
 static bool updateThreadRunning = false;
 static Mutex mutexCurrGui;
-static Gui* currGui = nullptr;
+static Gui *currGui = nullptr;
 static s64 inputTicker = 0;
 
 static u32 kheld = 0, kheldOld = 0;
 static u32 kdown = 0;
 
-void initTitles() {
+void initTitles()
+{
   std::vector<FsSaveDataInfo> saveInfoList;
 
   _getSaveList(saveInfoList);
@@ -52,34 +53,41 @@ void initTitles() {
   AccountUid userIDs[userCount];
   accountListAllUsers(userIDs, userCount, &foundUserCount);
 
-  for (auto saveInfo : saveInfoList) {
+  for (auto saveInfo : saveInfoList)
+  {
     bool accountPresent = false;
 
     for (s32 i = 0; i < foundUserCount; i++)
       if (userIDs[i] == saveInfo.uid)
         accountPresent = true;
 
-    if (!accountPresent) continue;
+    if (!accountPresent)
+      continue;
 
     if (Title::g_titles.find(saveInfo.application_id) == Title::g_titles.end())
       Title::g_titles.insert({(u64)saveInfo.application_id, new Title(saveInfo)});
 
     Title::g_titles[saveInfo.application_id]->addUserID(saveInfo.uid);
 
-    if (Account::g_accounts.find(saveInfo.uid) == Account::g_accounts.end()) {
-      Account *account =  new Account(saveInfo.uid);
+    if (Account::g_accounts.find(saveInfo.uid) == Account::g_accounts.end())
+    {
+      Account *account = new Account(saveInfo.uid);
 
-      if (!account->isInitialized()) {
+      if (!account->isInitialized())
+      {
         delete account;
         continue;
       }
       Account::g_accounts.insert(std::make_pair(static_cast<AccountUid>(saveInfo.uid), account));
     }
+    // break; //hack
   }
 }
 
-void update() {
-  while (updateThreadRunning) {
+void update()
+{
+  while (updateThreadRunning)
+  {
     auto begin = std::chrono::steady_clock::now();
 
     mutexLock(&mutexCurrGui);
@@ -87,14 +95,17 @@ void update() {
       currGui->update();
     mutexUnlock(&mutexCurrGui);
 
-    if (kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN)) inputTicker++;
-    else inputTicker = 0;
+    if (kheld & (KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
+      inputTicker++;
+    else
+      inputTicker = 0;
 
     svcSleepThread(1.0E6 - std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - begin).count());
   }
 }
 
-void createFolders() {
+void createFolders()
+{
   printf(EDIZON_DIR "/saves\n");
   mkdir("/switch", 0777);
   mkdir(EDIZON_DIR "", 0777);
@@ -107,12 +118,14 @@ void createFolders() {
   mkdir(EDIZON_DIR "/editor/scripts/lib/python3.5", 0777);
 }
 
-void requestDraw() {
+void requestDraw()
+{
   if (currGui != nullptr)
     currGui->draw();
 }
 
-void serviceInitialize() {
+void serviceInitialize()
+{
   setsysInitialize();
   socketInitializeDefault();
   nsInitialize();
@@ -138,7 +151,8 @@ void serviceInitialize() {
   accountGetLastOpenedUser(&Account::g_activeUser);
 }
 
-void serviceExit() {
+void serviceExit()
+{
   setsysExit();
   socketExit();
   nsExit();
@@ -155,15 +169,16 @@ void serviceExit() {
   curl_global_cleanup();
 
   close(debugOutputFile);
-
 }
 
-void redirectStdio() {
+void redirectStdio()
+{
   nxlinkStdio();
 
   debugOutputFile = open(EDIZON_DIR "/EdiZon.log", O_APPEND | O_WRONLY);
 
-  if (debugOutputFile >= 0) {
+  if (debugOutputFile >= 0)
+  {
     fflush(stdout);
     dup2(debugOutputFile, STDOUT_FILENO);
     fflush(stderr);
@@ -171,7 +186,8 @@ void redirectStdio() {
   }
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
   void *haddr;
 
   serviceInitialize();
@@ -193,7 +209,14 @@ int main(int argc, char** argv) {
 
   Config::readConfig();
 
-  Gui::g_nextGui = GUI_MAIN;
+  Debugger *l_debugger = new Debugger(); //Debugger *m_debugger;
+  if (l_debugger->getRunningApplicationPID() != 0)
+  {
+    Gui::g_splashDisplayed = true;
+    Gui::g_nextGui = GUI_CHEATS;
+  }
+  else
+    Gui::g_nextGui = GUI_MAIN;
 
   if (isServiceRunning("tx") && !isServiceRunning("rnx") && !Config::getConfig()->hideSX)
     Gui::g_nextGui = GUI_TX_WARNING;
@@ -206,63 +229,72 @@ int main(int argc, char** argv) {
   updateThreadRunning = true;
   std::thread updateThread(update);
 
-
-  while (appletMainLoop()) {
+  while (appletMainLoop())
+  {
     hidScanInput();
     kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
     kdown = hidKeysDown(CONTROLLER_P1_AUTO);
 
-    if (Gui::g_nextGui != GUI_INVALID) {
+    if (Gui::g_nextGui != GUI_INVALID)
+    {
       mutexLock(&mutexCurrGui);
-      if (currGui != nullptr) {
+      if (currGui != nullptr)
+      {
         delete currGui;
         currGui = nullptr;
       }
 
-      do {
+      do
+      {
         gui_t nextGuiStart = Gui::g_nextGui;
-        switch (Gui::g_nextGui) {
-          case GUI_MAIN:
-            currGui = new GuiMain();
-            break;
-          case GUI_EDITOR:
-            currGui = new GuiEditor();
-            break;
-          case GUI_TX_WARNING:
-            currGui = new GuiTXWarning();
-            break;
-          case GUI_CHEATS:
-            currGui = new GuiCheats();
-            break;
-          case GUI_GUIDE:
-            currGui = new GuiGuide();
-            break;
-          case GUI_ABOUT:
-            currGui = new GuiAbout();
-            break;
+        switch (Gui::g_nextGui)
+        {
+        case GUI_MAIN:
+          currGui = new GuiMain();
+          break;
+        case GUI_EDITOR:
+          currGui = new GuiEditor();
+          break;
+        case GUI_TX_WARNING:
+          currGui = new GuiTXWarning();
+          break;
+        case GUI_CHEATS:
+          currGui = new GuiCheats();
+          break;
+        case GUI_GUIDE:
+          currGui = new GuiGuide();
+          break;
+        case GUI_ABOUT:
+          currGui = new GuiAbout();
+          break;
 
-          case GUI_INVALID: [[fallthrough]]
-          default: break;
+        case GUI_INVALID:
+          [[fallthrough]] default : break;
         }
         if (nextGuiStart == Gui::g_nextGui)
           Gui::g_nextGui = GUI_INVALID;
-      } while(Gui::g_nextGui != GUI_INVALID);
+      } while (Gui::g_nextGui != GUI_INVALID);
 
       mutexUnlock(&mutexCurrGui);
     }
 
-    if (currGui != nullptr) {
+    if (currGui != nullptr)
+    {
       currGui->draw();
 
-      if (Gui::g_splashDisplayed) {
-        if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0) {
+      if (Gui::g_splashDisplayed)
+      {
+        if (inputTicker > LONG_PRESS_ACTIVATION_DELAY && (inputTicker % LONG_PRESS_DELAY) == 0)
+        {
           if (Gui::g_currMessageBox != nullptr)
             Gui::g_currMessageBox->onInput(kheld);
           else if (Gui::g_currListSelector != nullptr)
             Gui::g_currListSelector->onInput(kheld);
           else
             currGui->onInput(kheld);
-        } else if (kdown || hidKeysUp(CONTROLLER_P1_AUTO)) {
+        }
+        else if (kdown || hidKeysUp(CONTROLLER_P1_AUTO))
+        {
           if (Gui::g_currMessageBox != nullptr)
             Gui::g_currMessageBox->onInput(kdown);
           else if (Gui::g_currListSelector != nullptr)
@@ -273,7 +305,8 @@ int main(int argc, char** argv) {
       }
     }
 
-    if (kheld != kheldOld) {
+    if (kheld != kheldOld)
+    {
       inputTicker = 0;
     }
 
@@ -286,11 +319,13 @@ int main(int argc, char** argv) {
     if (touchCount > 0)
       hidTouchRead(&touchPosCurr, 0);
 
-    if(touchCount > 0 && touchCountOld == 0)
+    if (touchCount > 0 && touchCountOld == 0)
       hidTouchRead(&touchPosStart, 0);
 
-    if (abs(static_cast<s16>(touchPosStart.px - touchPosCurr.px)) < 10 && abs(static_cast<s16>(touchPosStart.py - touchPosCurr.py)) < 10) {
-      if (touchCount == 0 && touchCountOld > 0) {
+    if (abs(static_cast<s16>(touchPosStart.px - touchPosCurr.px)) < 10 && abs(static_cast<s16>(touchPosStart.py - touchPosCurr.py)) < 10)
+    {
+      if (touchCount == 0 && touchCountOld > 0)
+      {
         touchHappend = true;
 
         if (Gui::g_currMessageBox != nullptr)
@@ -300,7 +335,9 @@ int main(int argc, char** argv) {
         else
           currGui->onTouch(touchPosCurr);
       }
-    } else if (touchCount > 0) {
+    }
+    else if (touchCount > 0)
+    {
       if (Gui::g_currMessageBox != nullptr)
         Gui::g_currMessageBox->onGesture(touchPosStart, touchPosCurr, false);
       else if (Gui::g_currListSelector != nullptr)
@@ -309,7 +346,8 @@ int main(int argc, char** argv) {
         currGui->onGesture(touchPosStart, touchPosCurr, false);
     }
 
-    if (touchCount == 0 && touchCountOld > 0 && !touchHappend) {
+    if (touchCount == 0 && touchCountOld > 0 && !touchHappend)
+    {
       if (Gui::g_currMessageBox != nullptr)
         Gui::g_currMessageBox->onGesture(touchPosStart, touchPosCurr, true);
       else if (Gui::g_currListSelector != nullptr)
@@ -324,7 +362,8 @@ int main(int argc, char** argv) {
 
     kheldOld = kheld;
 
-    if (Gui::g_requestExit) {
+    if (Gui::g_requestExit)
+    {
       if (Gui::g_currMessageBox == nullptr)
         break;
     }

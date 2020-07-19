@@ -30,6 +30,7 @@ void _dmntchtCleanup(void) {
     serviceClose(&g_dmntchtSrv);
 }
 
+
 Service* dmntchtGetServiceSession(void) {
     return &g_dmntchtSrv;
 }

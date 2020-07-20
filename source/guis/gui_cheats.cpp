@@ -105,7 +105,7 @@ GuiCheats::GuiCheats() : Gui()
       m_frozenAddresses.insert({frozenAddresses[i].address, frozenAddresses[i].value.value});
   }
 
-  MemoryInfo meminfo = {0}; 
+  MemoryInfo meminfo = {0};
   u64 lastAddr = 0;
 
   do
@@ -123,7 +123,7 @@ GuiCheats::GuiCheats() : Gui()
 
     for (u64 addrOffset = meminfo.addr; addrOffset < meminfo.addr + meminfo.size; addrOffset += 0x20000000)
     {
-      switch (meminfo.type) 
+      switch (meminfo.type)
       {
       case MemType_CodeStatic:
       case MemType_CodeMutable:
@@ -156,7 +156,6 @@ GuiCheats::GuiCheats() : Gui()
   m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::UNDEFINED, false);
   // start mod make list of memory found toggle between current find and bookmark
   m_memoryDumpBookmark = new MemoryDump(EDIZON_DIR "/memdumpbookmark.dat", DumpType::ADDR, false);
-  m_AttributeDumpBookmark = new MemoryDump(EDIZON_DIR "/attdumpbookmark.dat", DumpType::ADDR, false);
   // end mod
 
   if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDump->getDumpInfo().heapBaseAddress != m_heapBaseAddr)
@@ -183,26 +182,59 @@ GuiCheats::GuiCheats() : Gui()
   m_memoryDump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
 
   // start mod bookmark BM2
-  // std::stringstream filebuildIDStr;
-  // {
-  //   std::stringstream buildIDStr;
-  //   for (u8 i = 0; i < 8; i++)
-  //     buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
-  //   buildIDStr.str("attrdumpbookmark");
-  //   filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".dat";
-  // }
+  std::stringstream filebuildIDStr;
+  {
+    std::stringstream buildIDStr;
+    for (u8 i = 0; i < 8; i++)
+      buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+    // buildIDStr.str("attdumpbookmark");
+    filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".dat";
+  }
+
+  m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, false);
   if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDumpBookmark->getDumpInfo().heapBaseAddress != m_heapBaseAddr)
   // is a different run need to refresh the list
   {
+    // delete m_AttributeDumpBookmark;
     // rename(filebuildIDStr.str().c_str(), EDIZON_DIR "/tempbookmark.dat");
-    // MemoryDump *tempdump;
-    // tempdump = new MemoryDump(EDIZON_DIR "/tempbookmark.dat", DumpType::ADDR, false);
+    MemoryDump *tempdump;
+    tempdump = new MemoryDump(EDIZON_DIR "/tempbookmark.dat", DumpType::ADDR, true);
     m_memoryDumpBookmark->clear();
-    m_AttributeDumpBookmark->clear();
     delete m_memoryDumpBookmark;
-    delete m_AttributeDumpBookmark;
     m_memoryDumpBookmark = new MemoryDump(EDIZON_DIR "/memdumpbookmark.dat", DumpType::ADDR, true);
-    m_AttributeDumpBookmark = new MemoryDump(EDIZON_DIR "/attdumpbookmark.dat", DumpType::ADDR, true);
+
+    if (m_AttributeDumpBookmark->size() > 0)
+    {
+      bookmark_t bookmark;
+      u64 address;
+      for (u64 i = 0; i < m_AttributeDumpBookmark->size(); i += sizeof(bookmark_t))
+      {
+        m_AttributeDumpBookmark->getData(i, (u8 *)&bookmark, sizeof(bookmark_t));
+        if (bookmark.heap)
+        {
+          address = bookmark.offset + m_heapBaseAddr;
+        }
+        else
+        {
+          address = bookmark.offset + m_mainBaseAddr;
+        }
+        // check memory before adding
+        MemoryInfo meminfo;
+        meminfo = m_debugger->queryMemory(address);
+        if (meminfo.perm == Perm_Rw)
+        {
+          m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+          tempdump->addData((u8 *)&bookmark, sizeof(bookmark_t));
+        }
+      }
+    }
+    tempdump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+    tempdump->flushBuffer();
+    delete tempdump;
+
+    m_AttributeDumpBookmark->clear();
+    delete m_AttributeDumpBookmark;
+    m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, true);
     // m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, true);
 
     // if (tempdump->size() > 0) // create new bookmark list from past

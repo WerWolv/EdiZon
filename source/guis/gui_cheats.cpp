@@ -105,7 +105,7 @@ GuiCheats::GuiCheats() : Gui()
       m_frozenAddresses.insert({frozenAddresses[i].address, frozenAddresses[i].value.value});
   }
 
-  MemoryInfo meminfo = {0};
+  MemoryInfo meminfo = {0}; 
   u64 lastAddr = 0;
 
   do
@@ -123,7 +123,7 @@ GuiCheats::GuiCheats() : Gui()
 
     for (u64 addrOffset = meminfo.addr; addrOffset < meminfo.addr + meminfo.size; addrOffset += 0x20000000)
     {
-      switch (meminfo.type)
+      switch (meminfo.type) 
       {
       case MemType_CodeStatic:
       case MemType_CodeMutable:
@@ -182,23 +182,84 @@ GuiCheats::GuiCheats() : Gui()
 
   m_memoryDump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
 
-  // start mod bookmark
-
+  // start mod bookmark BM2
+  // std::stringstream filebuildIDStr;
+  // {
+  //   std::stringstream buildIDStr;
+  //   for (u8 i = 0; i < 8; i++)
+  //     buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+  //   buildIDStr.str("attrdumpbookmark");
+  //   filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".dat";
+  // }
   if (m_debugger->getRunningApplicationPID() == 0 || m_memoryDumpBookmark->getDumpInfo().heapBaseAddress != m_heapBaseAddr)
+  // is a different run need to refresh the list
   {
+    // rename(filebuildIDStr.str().c_str(), EDIZON_DIR "/tempbookmark.dat");
+    // MemoryDump *tempdump;
+    // tempdump = new MemoryDump(EDIZON_DIR "/tempbookmark.dat", DumpType::ADDR, false);
     m_memoryDumpBookmark->clear();
     m_AttributeDumpBookmark->clear();
     delete m_memoryDumpBookmark;
     delete m_AttributeDumpBookmark;
     m_memoryDumpBookmark = new MemoryDump(EDIZON_DIR "/memdumpbookmark.dat", DumpType::ADDR, true);
     m_AttributeDumpBookmark = new MemoryDump(EDIZON_DIR "/attdumpbookmark.dat", DumpType::ADDR, true);
+    // m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, true);
+
+    // if (tempdump->size() > 0) // create new bookmark list from past
+    // {
+
+    //   u64 offset = 0;
+    //   u64 bufferSize = MAX_BUFFER_SIZE % sizeof(bookmark_t) * sizeof(bookmark_t); // need to be multiple of
+    //   u8 *buffer = new u8[bufferSize];
+
+    //   while (offset < tempdump->size())
+    //   {
+    //     if (tempdump->size() - offset < bufferSize)
+    //       bufferSize = tempdump->size() - offset;
+    //     tempdump->getData(offset, buffer, bufferSize);
+    //     bookmark_t bookmark;
+    //     u64 address;
+    //     for (u64 i = 0; i < bufferSize; i += sizeof(bookmark_t))
+    //     {
+    //       memcpy(&bookmark, buffer + i, sizeof(bookmark_t));
+    //       if (bookmark.heap)
+    //       {
+    //         address = bookmark.offset + m_heapBaseAddr;
+    //       }
+    //       else
+    //       {
+    //         address = bookmark.offset + m_mainBaseAddr;
+    //       }
+    //       // check memory before adding
+    //       MemoryInfo meminfo;
+    //       meminfo = m_debugger->queryMemory(address);
+    //       if (meminfo.perm == Perm_Rw)
+    //       {
+    //         m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+    //         m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+    //       }
+    //     }
+
+    //     offset += bufferSize;
+    //   }
+
+    //   delete buffer;
+    //   m_AttributeDumpBookmark->flushBuffer();
+    //   m_memoryDumpBookmark->flushBuffer();
+    // }
+
+    // delete tempdump;
+    // remove(EDIZON_DIR "/tempbookmark.dat");
+    // }
+    // else
+    //   m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, false);
     m_memoryDumpBookmark->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
     m_AttributeDumpBookmark->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
-    //    m_memoryDumpBookmark->setSearchParams(searchType, searchMode, searchRegion, searchValue1, searchValue2);
   }
   else
     m_memoryDumpBookmark->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
   // end mod
+
   std::stringstream ss;
 
   // check this
@@ -609,7 +670,7 @@ void GuiCheats::drawSearchPointerMenu()
   if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 4)
     Gui::drawRectangled(622 + strWidth, 405, 3, 35, currTheme.highlightColor);
 
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0EF Start Search     \uE0E1 Back     \uE0E0 Edit", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0EF Start Search     \uE0E1 Abort     \uE0E0 Edit", ALIGNED_RIGHT);
 
   // if (m_selectedEntry == 3)
   //   Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 155, 345, 310, 90, currTheme.highlightColor);
@@ -853,6 +914,8 @@ void GuiCheats::onInput(u32 kdown)
     else if (m_searchMenuLocation == SEARCH_POINTER)
     {
       m_searchMenuLocation = SEARCH_NONE;
+      m_abort = true;
+      printf("abort pressed .. \n");
     }
     else if (m_searchMenuLocation == SEARCH_editRAM)
     {
@@ -885,21 +948,25 @@ void GuiCheats::onInput(u32 kdown)
 
   if (m_debugger->getRunningApplicationPID() == 0)
     return;
-
+  // BM2
   if (m_searchMenuLocation == SEARCH_POINTER)
   {
+    if (kdown & KEY_PLUS)
+    {
+      m_abort = false;
+      (new Snackbar("Starting pointer search"))->show();
+      startpointersearch(m_EditorBaseAddr);
+    }
     if (kdown & KEY_UP)
     {
       if (m_selectedEntry > 0)
         m_selectedEntry--;
     }
-
     if (kdown & KEY_DOWN)
     {
       if (m_selectedEntry < 4)
         m_selectedEntry++;
     }
-
     if (kdown & KEY_R)
     {
       if (m_selectedEntry == 0 && m_max_depth < MAX_POINTER_DEPTH)
@@ -919,7 +986,6 @@ void GuiCheats::onInput(u32 kdown)
         m_forwarddump = !m_forwarddump;
       };
     }
-
     if (kdown & KEY_L)
     {
       if (m_selectedEntry == 0 && m_max_depth > 2)
@@ -1066,6 +1132,18 @@ void GuiCheats::onInput(u32 kdown)
           bookmark_t bookmark;
           bookmark.type = m_searchType;
           Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", "", SwkbdType_QWERTY, bookmark.label, 18);
+
+          if (address >= m_memoryDump->getDumpInfo().heapBaseAddress && address < (m_memoryDump->getDumpInfo().heapBaseAddress + m_memoryDump->getDumpInfo().heapSize))
+          {
+            bookmark.offset = address - m_memoryDump->getDumpInfo().heapBaseAddress;
+            bookmark.heap = true;
+          }
+          else if (address >= m_memoryDump->getDumpInfo().mainBaseAddress && address < (m_memoryDump->getDumpInfo().mainBaseAddress + m_memoryDump->getDumpInfo().mainSize))
+          {
+            bookmark.offset = address - m_memoryDump->getDumpInfo().mainBaseAddress;
+            bookmark.heap = false;
+          }
+
           m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
           m_AttributeDumpBookmark->flushBuffer();
 
@@ -1089,6 +1167,7 @@ void GuiCheats::onInput(u32 kdown)
           printf("start pointer search ....................\n");
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           printf("Address %lx \n\n\n", m_EditorBaseAddr);
+          m_abort = false;
           m_Time1 = time(NULL);
           // m_pointeroffsetDump = new MemoryDump(EDIZON_DIR "/pointerdump1.dat", DumpType::POINTER, true);
           m_searchValue[0]._u64 = m_EditorBaseAddr - 0x800;
@@ -1341,6 +1420,7 @@ void GuiCheats::onInput(u32 kdown)
       {
         if (m_memoryDump1 != nullptr)
         { // in bookmark mode
+          m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           m_searchMenuLocation = SEARCH_POINTER;
           // (new Snackbar("Searching pointer "))->show();
         }
@@ -1956,7 +2036,7 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
 
   MemoryDump *helperDump = new MemoryDump(EDIZON_DIR "/memdump1a.dat", DumpType::HELPER, true); // has address, size, count for fetching buffer from memory
   MemoryDump *newdataDump = new MemoryDump(EDIZON_DIR "/datadump2.dat", DumpType::DATA, true);
-  MemoryDump *newstringDump = new MemoryDump(EDIZON_DIR "/stringdump.dat", DumpType::DATA, true); // to del when not needed
+  MemoryDump *newstringDump = new MemoryDump(EDIZON_DIR "/stringdump.csv", DumpType::DATA, true); // to del when not needed
 
   helperinfo_t helperinfo;
   helperinfo.count = 0;
@@ -2115,9 +2195,14 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
             newdataDump->addData((u8 *)&realValue, sizeof(u64));
             helperinfo.count++;
             // printf("%lx,%lx\n",address,realValue);
-            char st[25];                                         // replace the printf
-            snprintf(st, 25, "'%lx,'%lx\n", address, realValue); //
-            newstringDump->addData((u8 *)&st, sizeof(st));       //
+            std::stringstream ss; // replace the printf
+            ss.str("");
+            ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
+            ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
+            char st[27];
+            // st[28] = 13;
+            snprintf(st, 27, "%s\n", ss.str().c_str());    //
+            newstringDump->addData((u8 *)&st, sizeof(st)); //
           }
           break;
         }
@@ -3081,7 +3166,9 @@ void GuiCheats::startpointersearch(u64 targetaddress) //, MemoryDump **displayDu
   m_dataDump = new MemoryDump(EDIZON_DIR "/datadump2.dat", DumpType::DATA, false);           // pointed targets is in this file
   m_pointeroffsetDump = new MemoryDump(EDIZON_DIR "/ptrdump1.dat", DumpType::POINTER, true); // create file but maybe later just open it
   pointer_chain_t pointerchain;
-  printf("check point 1\n");
+  printf("Start pointer search %lx\n", targetaddress);
+  m_Time1 = time(NULL);
+  m_pointer_found = 0;
   pointerchain.depth = 0;
   try
   {
@@ -3098,6 +3185,8 @@ void GuiCheats::startpointersearch(u64 targetaddress) //, MemoryDump **displayDu
 
   m_pointeroffsetDump->flushBuffer();
   delete m_pointeroffsetDump;
+  printf("End pointer search \n");
+  printf("Time taken =%d  Found %d pointer chain\n", time(NULL) - m_Time1, m_pointer_found);
 }
 
 void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerchain) //MemoryDump **displayDump, MemoryDump **dataDump,
@@ -3120,6 +3209,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
       printf("+%lx z=%d ", pointerchain.offset[z], z);
     printf("\n\n");
     // printf("\nsize=%d\n", sizeof(pointer_chain_t));
+    m_pointer_found++;
     return; // consider don't return to find more
   };
 
@@ -3151,6 +3241,8 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
     // return;                                           // just to check
     for (u64 i = 0; i < bufferSize; i += sizeof(u64)) // for (size_t i = 0; i < (bufferSize / sizeof(u64)); i++)
     {
+      if (m_abort)
+        return;
       u64 pointedaddress = *reinterpret_cast<u64 *>(&buffer[i]);
       if (targetaddress >= pointedaddress)
       {
@@ -3198,7 +3290,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
   // pointerchain.offset[pointerchain.depth] = minimum;
   pointerchain.depth++;
 
-  // printf("**Found %d sources \n", sources.size());
+  printf("**Found %d sources for address %lx at depth %d\n", sources.size(), targetaddress, pointerchain.depth);
   for (sourceinfo_t sourceinfo : sources)
   {
     // targetaddress = 0x1000;
@@ -3227,7 +3319,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
       pointersearch(newtargetaddress, pointerchain);
     }
   }
- 
+
   return;
 
   // (*displayDump)->getData(pointerchain.fileoffset[pointerchain.depth] * sizeof(u64), &address, sizeof(u64));

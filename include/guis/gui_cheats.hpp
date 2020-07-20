@@ -78,6 +78,8 @@ private:
   u64 m_max_range = 0x300;
   u64 m_low_main_heap_addr = 0x100000000;
   u64 m_high_main_heap_addr = 0x10000000000;
+  u64 m_pointer_found = 0;
+  bool m_abort = false;
 
   std::map<u64, u64> m_frozenAddresses;
 
@@ -124,6 +126,8 @@ private:
     char label[18];
     searchType_t type;
     pointer_chain_t pointer;
+    bool heap = true;
+    u32 offset = 0;
   };
   pointer_chain_t m_hitcount;
 

@@ -201,6 +201,15 @@ int main(int argc, char **argv)
   setsysGetColorSetId(&colorSetId);
   setTheme(colorSetId);
 
+  Debugger *l_debugger = new Debugger(); //Debugger *m_debugger;
+  if (l_debugger->getRunningApplicationPID() != 0)
+  {
+    Gui::g_splashDisplayed = true;
+    Gui::g_nextGui = GUI_CHEATS;
+  }
+  else
+    Gui::g_nextGui = GUI_MAIN;
+    
 #if SPLASH_ENABLED
   if (!Gui::g_splashDisplayed)
   {
@@ -218,14 +227,6 @@ int main(int argc, char **argv)
 
   Config::readConfig();
 
-  Debugger *l_debugger = new Debugger(); //Debugger *m_debugger;
-  if (l_debugger->getRunningApplicationPID() != 0)
-  {
-    Gui::g_splashDisplayed = true;
-    Gui::g_nextGui = GUI_CHEATS;
-  }
-  else
-    Gui::g_nextGui = GUI_MAIN;
 
   if (isServiceRunning("tx") && !isServiceRunning("rnx") && !Config::getConfig()->hideSX)
     Gui::g_nextGui = GUI_TX_WARNING;

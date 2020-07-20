@@ -183,7 +183,7 @@ Result _getSaveList(std::vector<FsSaveDataInfo> &saveInfoList)
     else if ((info.save_data_type == FsSaveDataType_Account) && (l_debugger->getRunningApplicationTID() == 0)) // hacked to get only the running title
     {
       saveInfoList.push_back(info);
-    }
+    } 
   }
 
   fsSaveDataInfoReaderClose(&iterator);

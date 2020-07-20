@@ -151,7 +151,7 @@ GuiCheats::GuiCheats() : Gui()
   //BM Begin pointer search init
 
   // MemoryDump *m_pointeroffsetDump = new MemoryDump(EDIZON_DIR "/pointerdump1.dat", DumpType::POINTER, false);
-  // m_pointeroffsetDump->setPointerSearchParams(m_max_depth, m_numoffset, m_max_range, m_buildID);
+  // m_pointeroffsetDump->setPointerSearchParams(m_max_depth, m_numoffset, m_maxrange, m_buildID);
 
   m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::UNDEFINED, false);
   // start mod make list of memory found toggle between current find and bookmark
@@ -314,16 +314,14 @@ void GuiCheats::draw()
     return;
   }
 
-  if (m_menuLocation == CHEATS)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
-  else if (m_memoryDump1 == nullptr)
+  if (m_memoryDump1 == nullptr)
   {
     if (m_memoryDump->size() == 0)
     {
       if (m_frozenAddresses.size() != 0)
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Frozen es     \uE0E3 Search RAM     \uE0E1 Quit", ALIGNED_RIGHT);
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Frozen es     \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
       else
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle      \uE0E3 Search RAM     \uE0E1 Quit", ALIGNED_RIGHT);
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle      \uE0E3 Search RAM     \uE0E1 Back", ALIGNED_RIGHT);
       // Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 E4 \uE0E5 E5 \uE0E6 E6 \uE0E7 E7 \uE0E8 E8 \uE0E9 E9 \uE0EA EA \uE0EF EF \uE0F0 F0 \uE0F1 F1 \uE0F2 F2 \uE0F3 F3 \uE0F4 F4 \uE0F5 F5 ", ALIGNED_RIGHT);
       // Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E1 E1 \uE0E0 E0 \uE0E1 E1 \uE0E2 E2 \uE0E3 E3 \uE0D9 D9 \uE0DA DA \uE0DF DF \uE0F0 F0 \uE0F6 F6 \uE0F7 F7 \uE0F8 F8 \uE0F9 F9 \uE0FA FA ", ALIGNED_RIGHT);
     }
@@ -331,20 +329,20 @@ void GuiCheats::draw()
     {
       if (m_memoryDump->size() > 0)
       {
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle \uE0EF BM add \uE0F0 Reset search \uE0E3 Search again \uE0E2 Freeze value  \uE0E0 Edit value   \uE0E1 Quit", ALIGNED_RIGHT);
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle \uE0EF BM add \uE0F0 Reset search \uE0E3 Search again \uE0E2 Freeze value  \uE0E0 Edit value   \uE0E1 Back", ALIGNED_RIGHT);
       }
       else
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E1 Quit", ALIGNED_RIGHT);
+        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E1 Back", ALIGNED_RIGHT);
     }
   }
   else
   {
     if (m_memoryDumpBookmark->size() > 0)
     {
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0EF BM label  \uE0E3 Add Cheat \uE0F0 Delete BM   \uE0E2 Freeze value  \uE0E0 Edit value \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0EF BM label  \uE0E3 Delete BM   \uE0E2 Freeze value  \uE0E0 Edit value   \uE0E1 Back", ALIGNED_RIGHT);
     }
     else
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle \uE0E1 Back", ALIGNED_RIGHT);
   }
 
   Gui::drawRectangle(256, 50, Gui::g_framebuffer_width - 256, 206, currTheme.separatorColor);
@@ -532,104 +530,9 @@ void GuiCheats::draw()
 
   drawSearchRAMMenu();
   drawEditRAMMenu();
-  drawSearchPointerMenu();
   Gui::endDraw();
 }
 // BM2
-
-void GuiCheats::drawSearchPointerMenu()
-{
-  if (m_searchMenuLocation != SEARCH_POINTER)
-    return;
-  static u32 cursorBlinkCnt = 0;
-  u32 strWidth = 0;
-  std::stringstream ss;
-
-  Gui::drawRectangled(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x00, 0x00, 0x00, 0xA0));
-
-  Gui::drawRectangle(50, 50, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.backgroundColor);
-  Gui::drawRectangle(100, 135, Gui::g_framebuffer_width - 200, 1, currTheme.textColor);
-  Gui::drawText(font24, 120, 70, currTheme.textColor, "\uE132   Search Pointer");
-  Gui::drawTextAligned(font14, Gui::g_framebuffer_width / 2, 500, currTheme.textColor,
-                       "Set the parameters of your pointer search. You can keep the time require within reasonable range by trading off between \n"
-                       "max depth, max range and max source. The impact of these setting to the time taken to complete the search will largely \n"
-                       "depends on the game itself too. Dump forward only assume pointer pointing to larger address is forward which may not be.",
-                       ALIGNED_CENTER);
-
-  //Gui::drawRectangle(300, 250, Gui::g_framebuffer_width - 600, 80, currTheme.separatorColor);
-  // Gui::drawRectangle(300, 327, Gui::g_framebuffer_width - 600, 3, currTheme.textColor);
-  //  m_max_depth = 2;
-  //  m_max_range = 0x300;
-  //  m_max_source = 200;
-
-  // if (m_searchValueFormat == FORMAT_DEC)
-  //   ss << _getValueDisplayString(m_searchValue[0], m_searchType);
-  // else if (m_searchValueFormat == FORMAT_HEX)
-
-  Gui::drawText(font20, 310, 165, currTheme.textColor, "Max Depth");
-  ss.str("");
-  ss << std::uppercase << std::dec << m_max_depth;
-  Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 165, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-  if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 0)
-    Gui::drawRectangled(622 + strWidth, 165, 3, 35, currTheme.highlightColor);
-
-  Gui::drawText(font20, 310, 225, currTheme.textColor, "Max Range");
-  ss.str("");
-  ss << "0x" << std::uppercase << std::hex << m_max_range;
-  Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 225, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-  if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 1)
-    Gui::drawRectangled(622 + strWidth, 225, 3, 35, currTheme.highlightColor);
-
-  Gui::drawText(font20, 310, 285, currTheme.textColor, "Max Source");
-  ss.str("");
-  ss << std::uppercase << std::dec << m_max_source;
-  Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 285, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-  if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 2)
-    Gui::drawRectangled(622 + strWidth, 285, 3, 35, currTheme.highlightColor);
-
-  Gui::drawText(font20, 310, 345, currTheme.textColor, "Target Address");
-  ss.str("");
-  ss << "0x" << std::uppercase << std::hex << m_EditorBaseAddr;
-  Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 345, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-  if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 3)
-    Gui::drawRectangled(622 + strWidth, 345, 3, 35, currTheme.highlightColor);
-
-  Gui::drawText(font20, 310, 405, currTheme.textColor, "Dump Forward only");
-  ss.str("");
-  if (m_forwarddump)
-    ss << "YES";
-  else
-    ss << "NO";
-  Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 405, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
-  if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 4)
-    Gui::drawRectangled(622 + strWidth, 405, 3, 35, currTheme.highlightColor);
-
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0EF Start Search     \uE0E1 Back     \uE0E0 Edit", ALIGNED_RIGHT);
-
-  // if (m_selectedEntry == 3)
-  //   Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 155, 345, 310, 90, currTheme.highlightColor);
-
-  // if (m_searchType != SEARCH_TYPE_NONE && m_searchMode != SEARCH_MODE_NONE && m_searchRegion != SEARCH_REGION_NONE)
-  // {
-  //   Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 150, 350, 300, 80, currTheme.selectedColor);
-  //   Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 375, currTheme.backgroundColor, "Search Now!", ALIGNED_CENTER);
-  // }
-  // else
-  // {
-  //   Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 150, 350, 300, 80, currTheme.selectedButtonColor);
-  //   Gui::drawTextAligned(font20, Gui::g_framebuffer_width / 2, 375, currTheme.separatorColor, "Search Now!", ALIGNED_CENTER);
-  // }
-
-  //   break;
-  // case SEARCH_NONE:
-  //   break;
-}
-
 void GuiCheats::drawEditRAMMenu()
 {
   static u32 cursorBlinkCnt = 0;
@@ -850,10 +753,6 @@ void GuiCheats::onInput(u32 kdown)
       Gui::g_requestExit = true;
       return;
     }
-    else if (m_searchMenuLocation == SEARCH_POINTER)
-    {
-      m_searchMenuLocation = SEARCH_NONE;
-    }
     else if (m_searchMenuLocation == SEARCH_editRAM)
     {
       m_searchMenuLocation = SEARCH_NONE;
@@ -885,57 +784,6 @@ void GuiCheats::onInput(u32 kdown)
 
   if (m_debugger->getRunningApplicationPID() == 0)
     return;
-
-  if (m_searchMenuLocation == SEARCH_POINTER)
-  {
-    if (kdown & KEY_UP)
-    {
-      if (m_selectedEntry > 0)
-        m_selectedEntry--;
-    }
-
-    if (kdown & KEY_DOWN)
-    {
-      if (m_selectedEntry < 4)
-        m_selectedEntry++;
-    }
-
-    if (kdown & KEY_R)
-    {
-      if (m_selectedEntry == 0 && m_max_depth < MAX_POINTER_DEPTH)
-      {
-        m_max_depth++;
-      }
-      else if (m_selectedEntry == 1 && m_max_range < MAX_POINTER_RANGE)
-      {
-        m_max_range += 0x100;
-      }
-      else if (m_selectedEntry == 2 && m_max_source < MAX_NUM_SOURCE_POINTER)
-      {
-        m_max_source += 10;
-      }
-      else if (m_selectedEntry == 4)
-      {
-        m_forwarddump = !m_forwarddump;
-      };
-    }
-
-    if (kdown & KEY_L)
-    {
-      if (m_selectedEntry == 0 && m_max_depth > 2)
-      {
-        m_max_depth--;
-      }
-      else if (m_selectedEntry == 1 && m_max_range > 0x100)
-      {
-        m_max_range -= 0x100;
-      }
-      else if (m_selectedEntry == 2 && m_max_source > 20)
-      {
-        m_max_source -= 10;
-      };
-    }
-  }
 
   if (m_searchMenuLocation == SEARCH_NONE)
   {
@@ -988,8 +836,7 @@ void GuiCheats::onInput(u32 kdown)
     if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS)
     {
       printf("start checking pointer\n");
-      (new Snackbar("Adding address from cheat not supported yet"))->show();
-      // pointercheck(); disable for now;
+      pointercheck();
     }
     // end mod
 
@@ -1104,14 +951,6 @@ void GuiCheats::onInput(u32 kdown)
         // end
         if (kdown & KEY_A && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR)
         {
-          searchType_t savetype = m_searchType;
-          if (m_memoryDump1 != nullptr)
-          {
-            bookmark_t bookmark;
-            m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
-            m_searchType = bookmark.type;
-          }
-
           u64 address = 0;
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));
 
@@ -1194,8 +1033,6 @@ void GuiCheats::onInput(u32 kdown)
           }
           else
             (new Snackbar("Too many addresses! Narrow down the selection before editing."))->show();
-
-          m_searchType = savetype; // restore value
         }
       }
     }
@@ -1314,8 +1151,6 @@ void GuiCheats::onInput(u32 kdown)
         // (new Snackbar("Switch to Normal List!"))->show();
       }
       printf("%s\n", "L key pressed");
-      if (m_menuLocation == CANDIDATES)
-        m_selectedEntry = 0;
     }
     if (kdown & KEY_ZR)
     {
@@ -1339,12 +1174,7 @@ void GuiCheats::onInput(u32 kdown)
     {
       if (m_searchMenuLocation == SEARCH_NONE)
       {
-        if (m_memoryDump1 != nullptr)
-        { // in bookmark mode
-          m_searchMenuLocation = SEARCH_POINTER;
-          // (new Snackbar("Searching pointer "))->show();
-        }
-        else if (m_searchMode == SEARCH_MODE_NONE)
+        if (m_searchMode == SEARCH_MODE_NONE)
         {
           m_searchMenuLocation = SEARCH_MODE;
           // m_selectedEntry = m_searchType == SEARCH_TYPE_NONE ? 0 : m_searchType;
@@ -3123,7 +2953,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
     return; // consider don't return to find more
   };
 
-  if (pointerchain.depth == m_max_depth)
+  if (pointerchain.depth == MAX_POINTER_DEPTH)
   {
     // printf("max pointer depth reached\n\n");
     return;
@@ -3135,7 +2965,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
   u64 bufferSize = MAX_BUFFER_SIZE;
   u8 *buffer = new u8[bufferSize];
   u64 distance;
-  u64 minimum = m_max_range;         // a large number to start
+  u64 minimum = MAX_POINTER_RANGE;   // a large number to start
   std::vector<sourceinfo_t> sources; // potential sources that points at target with a offset, we will search for the nearest address being pointed by pointer/pointers
   sourceinfo_t sourceinfo;
   // std::vector<u64> distances;
@@ -3179,11 +3009,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
           // pointerchain.offset[pointerchain.depth] = distance;
         }
       }
-      if (sources.size() > m_max_source)
-        break;
     }
-    if (sources.size() > m_max_source)
-      break;
     // if (writeback)
     // {
     //   m_dataDump->putData(offset, buffer, bufferSize);
@@ -3227,7 +3053,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
       pointersearch(newtargetaddress, pointerchain);
     }
   }
- 
+
   return;
 
   // (*displayDump)->getData(pointerchain.fileoffset[pointerchain.depth] * sizeof(u64), &address, sizeof(u64));
@@ -3251,7 +3077,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
 // m_targetmemInfos.clear();
 // m_target = address;
 // m_max_depth = depth;
-// m_max_range = range;
+// m_maxrange = range;
 // m_numoffset = num;
 
 // std::vector<MemoryInfo> mainInfos;
@@ -3327,7 +3153,7 @@ void GuiCheats::searchpointer(u64 address, u64 depth, u64 range, struct pointer_
   // use separate function if need to get rid of range in the passed variable     // u64 m_max_depth; used in first call
   // u64 m_target;
   // u64 m_numoffset;
-  // u64 m_max_range;
+  // u64 m_maxrange;
   // u64 m_low_main_heap_addr; The lowerst of main or heap start
   // u64 m_high_main_heap_addr; The highest
   // printf("in function current depth is %d @@@@@@@@@@@@@@@@@@@@@\n", depth);

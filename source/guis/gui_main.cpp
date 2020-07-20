@@ -19,7 +19,7 @@
 static s64 xOffset, xOffsetNext;
 static bool finishedDrawing = true;
 static s64 startOffset = 0;
-
+ 
 static color_t arrowColor;
 
 GuiMain::GuiMain() : Gui() {

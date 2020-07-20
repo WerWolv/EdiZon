@@ -213,7 +213,7 @@ int main(int argc, char **argv)
   if (l_debugger->getRunningApplicationPID() != 0)
   {
     Gui::g_splashDisplayed = true;
-    Gui::g_nextGui = GUI_CHEATS;
+    Gui::g_nextGui = GUI_CHEATS; 
   }
   else
     Gui::g_nextGui = GUI_MAIN;

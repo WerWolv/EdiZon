@@ -201,6 +201,15 @@ int main(int argc, char **argv)
   setsysGetColorSetId(&colorSetId);
   setTheme(colorSetId);
 
+#if SPLASH_ENABLED
+  if (!Gui::g_splashDisplayed)
+  {
+    static Gui *currGui = nullptr;
+    currGui = new GuiMain();
+    currGui->draw();
+  }
+#endif
+
   initTitles();
 
   printf("%s\n", EDIZON_DIR);
@@ -213,7 +222,7 @@ int main(int argc, char **argv)
   if (l_debugger->getRunningApplicationPID() != 0)
   {
     Gui::g_splashDisplayed = true;
-    Gui::g_nextGui = GUI_CHEATS; 
+    Gui::g_nextGui = GUI_CHEATS;
   }
   else
     Gui::g_nextGui = GUI_MAIN;

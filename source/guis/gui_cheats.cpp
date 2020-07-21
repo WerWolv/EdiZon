@@ -234,7 +234,19 @@ GuiCheats::GuiCheats() : Gui()
 
     m_AttributeDumpBookmark->clear();
     delete m_AttributeDumpBookmark;
-    m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, true);
+
+    remove(filebuildIDStr.str().c_str());
+    while (access(filebuildIDStr.str().c_str(), F_OK) == 0)
+    {
+      printf("waiting for delete\n");
+    }
+    rename(EDIZON_DIR "/tempbookmark.dat", filebuildIDStr.str().c_str());
+    while (access(filebuildIDStr.str().c_str(), F_OK) != 0)
+    {
+      printf("waiting for rename\n");
+    }
+
+    m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, false);
     // m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, true);
 
     // if (tempdump->size() > 0) // create new bookmark list from past

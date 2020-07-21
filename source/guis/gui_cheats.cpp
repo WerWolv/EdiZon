@@ -218,7 +218,8 @@ GuiCheats::GuiCheats() : Gui()
         {
           address = bookmark.offset + m_mainBaseAddr;
         }
-        if (bookmark.deleted) continue; // don't add deleted bookmark
+        if (bookmark.deleted)
+          continue; // don't add deleted bookmark
         // check memory before adding
         MemoryInfo meminfo;
         meminfo = m_debugger->queryMemory(address);
@@ -1099,6 +1100,7 @@ void GuiCheats::onInput(u32 kdown)
     if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS)
     {
       printf("start checking pointer\n");
+      
       (new Snackbar("Adding address from cheat not supported yet"))->show();
       // pointercheck(); disable for now;
     }
@@ -1175,8 +1177,8 @@ void GuiCheats::onInput(u32 kdown)
           { //Bookmark case
             bookmark_t bookmark;
             m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
-            Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", bookmark.label, SwkbdType_QWERTY, bookmark.label, 18);
-            m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+            if (Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", bookmark.label, SwkbdType_QWERTY, bookmark.label, 18))
+              m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
           }
           else
           {
@@ -1773,7 +1775,7 @@ void GuiCheats::onInput(u32 kdown)
             }
             if (std::string(str) == "")
               return;
-
+            m_searchValue[m_searchValueIndex]._u64 = 0; //hack to fix bug elsewhere
             if (m_searchValueFormat == FORMAT_HEX)
             {
               m_searchValue[m_searchValueIndex]._u64 = static_cast<u64>(std::stoul(str, nullptr, 16));

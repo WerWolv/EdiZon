@@ -1170,32 +1170,42 @@ void GuiCheats::onInput(u32 kdown)
         // add bookmark
         if (kdown & KEY_PLUS && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR)
         {
-          u64 address = 0;
-          m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));
-
-          bookmark_t bookmark;
-          bookmark.type = m_searchType;
-          Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", "", SwkbdType_QWERTY, bookmark.label, 18);
-
-          if (address >= m_memoryDump->getDumpInfo().heapBaseAddress && address < (m_memoryDump->getDumpInfo().heapBaseAddress + m_memoryDump->getDumpInfo().heapSize))
-          {
-            bookmark.offset = address - m_memoryDump->getDumpInfo().heapBaseAddress;
-            bookmark.heap = true;
+          if (m_memoryDump1 != nullptr)
+          { //Bookmark case
+            bookmark_t bookmark;
+            m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+            Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", bookmark.label, SwkbdType_QWERTY, bookmark.label, 18);
+            m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
           }
-          else if (address >= m_memoryDump->getDumpInfo().mainBaseAddress && address < (m_memoryDump->getDumpInfo().mainBaseAddress + m_memoryDump->getDumpInfo().mainSize))
+          else
           {
-            bookmark.offset = address - m_memoryDump->getDumpInfo().mainBaseAddress;
-            bookmark.heap = false;
+            u64 address = 0;
+            m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));
+
+            bookmark_t bookmark;
+            bookmark.type = m_searchType;
+            Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", "", SwkbdType_QWERTY, bookmark.label, 18);
+
+            if (address >= m_memoryDump->getDumpInfo().heapBaseAddress && address < (m_memoryDump->getDumpInfo().heapBaseAddress + m_memoryDump->getDumpInfo().heapSize))
+            {
+              bookmark.offset = address - m_memoryDump->getDumpInfo().heapBaseAddress;
+              bookmark.heap = true;
+            }
+            else if (address >= m_memoryDump->getDumpInfo().mainBaseAddress && address < (m_memoryDump->getDumpInfo().mainBaseAddress + m_memoryDump->getDumpInfo().mainSize))
+            {
+              bookmark.offset = address - m_memoryDump->getDumpInfo().mainBaseAddress;
+              bookmark.heap = false;
+            }
+
+            m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+            m_AttributeDumpBookmark->flushBuffer();
+
+            m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+            m_memoryDumpBookmark->flushBuffer();
+
+            (new Snackbar("Address added to bookmark!"))->show(); // prompt for label
+            printf("%s\n", "PLUS key pressed");
           }
-
-          m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
-          m_AttributeDumpBookmark->flushBuffer();
-
-          m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
-          m_memoryDumpBookmark->flushBuffer();
-
-          (new Snackbar("Address added to bookmark!"))->show(); // prompt for label
-          printf("%s\n", "PLUS key pressed");
         }
         // add bookmark end
         // show memory editor
@@ -1346,55 +1356,64 @@ void GuiCheats::onInput(u32 kdown)
     {
       //make sure not using bookmark m_searchType
       if (m_memoryDump1 != nullptr)
-      {
-        m_memoryDump = m_memoryDump1;
-        m_memoryDump1 = nullptr;
-      }
-      m_addresslist_offset = 0;
-      // end mod
-      if (m_memoryDump->size() == 0)
-      {
-        std::vector<std::string> options;
-
-        if (m_frozenAddresses.size() == 0)
-          return;
-
-        std::stringstream ss;
-        for (auto [addr, value] : m_frozenAddresses)
-        {
-          ss << "[ BASE + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (addr - m_addressSpaceBaseAddr) << " ]  ";
-          ss << "( " << std::dec << value << " )";
-          options.push_back(ss.str());
-          ss.str("");
-        }
-
-        (new ListSelector("Frozen Addresses", "\uE0E0 Unfreeze     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
-                                                                                            if (k & KEY_A)
-                                                                                            {
-                                                                                              auto itr = m_frozenAddresses.begin();
-                                                                                              std::advance(itr, selectedItem);
-
-                                                                                              dmntchtDisableFrozenAddress(itr->first);
-                                                                                              m_frozenAddresses.erase(itr->first);
-                                                                                            }
-                                                                                          })
-            ->show();
+      { //Bookmark case
+        bookmark_t bookmark;
+        m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+        bookmark.deleted = true;
+        m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+        // m_memoryDumpBookmark->flushBuffer();
+        // m_memoryDump = m_memoryDump1;
+        // m_memoryDump1 = nullptr;
       }
       else
       {
-        m_memoryDump->clear();
-        remove(EDIZON_DIR "/memdump1.dat");
-        remove(EDIZON_DIR "/memdump1a.dat");
-        remove(EDIZON_DIR "/memdump2.dat");
-        remove(EDIZON_DIR "/memdump3.dat");
 
-        // m_searchType = SEARCH_TYPE_NONE;
-        // m_searchMode = SEARCH_MODE_NONE;
-        // m_searchRegion = SEARCH_REGION_NONE;
-        // m_searchValue[0]._u64 = 0;
-        // m_searchValue[1]._u64 = 0;
+        m_addresslist_offset = 0;
+        // end mod
+        if (m_memoryDump->size() == 0)
+        {
+          std::vector<std::string> options;
 
-        m_menuLocation = CHEATS;
+          if (m_frozenAddresses.size() == 0)
+            return;
+
+          std::stringstream ss;
+          for (auto [addr, value] : m_frozenAddresses)
+          {
+            ss << "[ BASE + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (addr - m_addressSpaceBaseAddr) << " ]  ";
+            ss << "( " << std::dec << value << " )";
+            options.push_back(ss.str());
+            ss.str("");
+          }
+
+          (new ListSelector("Frozen Addresses", "\uE0E0 Unfreeze     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
+                                                                                              if (k & KEY_A)
+                                                                                              {
+                                                                                                auto itr = m_frozenAddresses.begin();
+                                                                                                std::advance(itr, selectedItem);
+
+                                                                                                dmntchtDisableFrozenAddress(itr->first);
+                                                                                                m_frozenAddresses.erase(itr->first);
+                                                                                              }
+                                                                                            })
+              ->show();
+        }
+        else
+        {
+          m_memoryDump->clear();
+          remove(EDIZON_DIR "/memdump1.dat");
+          remove(EDIZON_DIR "/memdump1a.dat");
+          remove(EDIZON_DIR "/memdump2.dat");
+          remove(EDIZON_DIR "/memdump3.dat");
+
+          // m_searchType = SEARCH_TYPE_NONE;
+          // m_searchMode = SEARCH_MODE_NONE;
+          // m_searchRegion = SEARCH_REGION_NONE;
+          // m_searchValue[0]._u64 = 0;
+          // m_searchValue[1]._u64 = 0;
+
+          m_menuLocation = CHEATS;
+        }
       }
     }
     // start mod KEY_PLUS

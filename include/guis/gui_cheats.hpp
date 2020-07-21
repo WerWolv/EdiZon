@@ -128,6 +128,7 @@ private:
     pointer_chain_t pointer;
     bool heap = true;
     u32 offset = 0;
+    bool deleted =false;
   };
   pointer_chain_t m_hitcount;
 

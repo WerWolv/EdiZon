@@ -107,6 +107,10 @@ private:
     u64 offset;
   };
 
+#define IS_PTRCODE_START 0x580F0000 
+#define IS_OFFSET 0x580F1000
+#define IS_FINAL 0x780F0000
+
 #define MAX_NUM_SOURCE_POINTER 200 // bound check for debugging;
 #define MAX_POINTER_DEPTH 6        // up to 4 seems OK with forward only search took 94s. 215s for big dump
 #define MAX_POINTER_RANGE 0x2000

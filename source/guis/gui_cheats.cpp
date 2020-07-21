@@ -1099,9 +1099,132 @@ void GuiCheats::onInput(u32 kdown)
 
     if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS)
     {
-      printf("start checking pointer\n");
-      
-      (new Snackbar("Adding address from cheat not supported yet"))->show();
+      // printf("start adding cheat to bookmark\n");
+      // m_cheatCnt
+      DmntCheatDefinition cheat = m_cheats[m_selectedEntry].definition;
+      bookmark_t bookmark;
+      memcpy(&bookmark.label, &cheat.readable_name, sizeof(bookmark.label));
+      bookmark.pointer.depth = 0;
+      bool success = false;
+      u32 offset[MAX_POINTER_DEPTH + 1];
+      u64 depth = 0;
+      u64 address;
+      bool no7 = true;
+
+      for (u8 i = 0; i < cheat.num_opcodes; i++)
+      {
+        u8 opcode = (cheat.opcodes[i] >> 28) & 0xF;
+        u8 Register = (cheat.opcodes[i] >> 16) & 0xF;
+        u8 FSA = (cheat.opcodes[i] >> 12) & 0xF;
+        u8 T = (cheat.opcodes[i] >> 24) & 0xF;
+
+        printf("code %lx opcode %d register %d FSA %d %lx \n", cheat.opcodes[i], opcode, Register, FSA, cheat.opcodes[i + 1]);
+
+        if (depth > MAX_POINTER_DEPTH)
+        {
+          (new Snackbar("this code is bigger than space catered on the bookmark !!"))->show();
+          printf("!!!!!!!!!!!!!!!!!!!!!!!this code is bigger than space catered on the bookmark !! \n");
+          break;
+        }
+
+        if (depth == 0)
+        {
+          if (opcode == 5 && FSA == 0)
+          {
+            i++;
+            offset[depth] = cheat.opcodes[i];
+            depth++;
+          }
+          continue;
+        }
+        if (opcode == 5 && FSA == 1)
+        {
+          i++;
+          offset[depth] = cheat.opcodes[i];
+          depth++;
+          continue;
+        }
+        if (opcode == 7 && FSA == 0)
+        {
+          i++;
+          offset[depth] = cheat.opcodes[i];
+          // success = true;
+          no7 = false;
+          continue;
+          // break;
+        }
+        if (opcode == 6)
+        {
+          if (no7)
+          {
+            offset[depth] = 0;
+          }
+          switch (T)
+          {
+          case 1:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_8BIT;
+            break;
+          case 2:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_16BIT;
+            break;
+          case 4:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_32BIT;
+            break;
+          case 8:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_64BIT;
+            break;
+          default:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_32BIT;
+            break;
+          }
+          success = true;
+          break;
+        }
+      }
+
+      if (success)
+      {
+        // compute address
+        printf("success ! \n");
+        bookmark.pointer.depth = depth;
+        u64 nextaddress = m_mainBaseAddr;
+        printf("main[%lx]", nextaddress);
+        u8 i = 0;
+        for (int z = depth; z >= 0; z--)
+        {
+          // bookmark_t bm;
+          bookmark.pointer.offset[z] = offset[i];
+          printf("+%lx z=%d ", bookmark.pointer.offset[z], z);
+          nextaddress += bookmark.pointer.offset[z];
+          printf("[%lx]", nextaddress);
+          // m_memoryDumpBookmark->addData((u8 *)&nextaddress, sizeof(u64));
+          // m_AttributeDumpBookmark->addData((u8 *)&bm, sizeof(bookmark_t));
+          MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
+          if (meminfo.perm == Perm_Rw)
+          {
+            address = nextaddress;
+            m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+          }
+          else
+          {
+            printf("*access denied*\n");
+            success = false;
+            break;
+          }
+          printf("(%lx)", nextaddress);
+          i++;
+        }
+        printf("\n");
+
+        m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+        m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+        (new Snackbar("Adding address from cheat to bookmark"))->show();
+      }
+      else
+      {
+        (new Snackbar("Not able to extract address from cheat"))->show();
+      }
+
       // pointercheck(); disable for now;
     }
     // end mod
@@ -3212,7 +3335,14 @@ void GuiCheats::pointercheck()
           printf("+%lx z=%d ", pointer_chain.offset[z], z);
           nextaddress += pointer_chain.offset[z];
           printf("[%lx]", nextaddress);
-          m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+          MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
+          if (meminfo.perm == Perm_Rw)
+            m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+          else
+          {
+            printf("*access denied*");
+            break;
+          }
           printf("(%lx)", nextaddress);
         }
         printf("\n\n");
@@ -3236,6 +3366,7 @@ void GuiCheats::startpointersearch(u64 targetaddress) //, MemoryDump **displayDu
   m_Time1 = time(NULL);
   m_pointer_found = 0;
   pointerchain.depth = 0;
+  m_abort = false;
   try
   {
     pointersearch(targetaddress, pointerchain); //&m_memoryDump, &m_dataDump,

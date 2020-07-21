@@ -218,6 +218,7 @@ GuiCheats::GuiCheats() : Gui()
         {
           address = bookmark.offset + m_mainBaseAddr;
         }
+        if (bookmark.deleted) continue; // don't add deleted bookmark
         // check memory before adding
         MemoryInfo meminfo;
         meminfo = m_debugger->queryMemory(address);
@@ -624,7 +625,7 @@ void GuiCheats::draw()
           ss << "And " << std::dec << ((m_memoryDump->size() / sizeof(u64)) - 8) << " others...";
 
         Gui::drawRectangle(Gui::g_framebuffer_width - 555, 300 + line * 40, 545, 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
-        Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 545, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, bookmark.label, ALIGNED_LEFT);
+        Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 545, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, bookmark.deleted ? "To be deleted" : bookmark.label, ALIGNED_LEFT);
         Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 340, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
       }
   }
@@ -1359,7 +1360,7 @@ void GuiCheats::onInput(u32 kdown)
       { //Bookmark case
         bookmark_t bookmark;
         m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
-        bookmark.deleted = true;
+        bookmark.deleted = !bookmark.deleted;
         m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
         // m_memoryDumpBookmark->flushBuffer();
         // m_memoryDump = m_memoryDump1;

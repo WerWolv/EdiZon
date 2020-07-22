@@ -1210,7 +1210,7 @@ void GuiCheats::onInput(u32 kdown)
           {
             printf("*access denied*\n");
             success = false;
-            break;
+            // break;
           }
           printf("(%lx)", nextaddress);
           i++;
@@ -1225,7 +1225,22 @@ void GuiCheats::onInput(u32 kdown)
       }
       else
       {
-        (new Snackbar("Not able to extract address from cheat"))->show();
+        if (bookmark.pointer.depth > 2) // depth of 2 means only one pointer hit high chance of wrong positive
+        {
+          (new MessageBox("Extracted pointer chain is broken on current memory state\n \n If the game is in correct state\n \n would you like to try to rebase the chain?", MessageBox::YES_NO))
+              ->setSelectionAction([&](u8 selection) {
+                if (selection)
+                {
+                  // to insert rebase code here
+                  (new Snackbar("Rebasing ..."))->show();
+                }
+                else
+                  Gui::g_currMessageBox->hide();
+              })
+              ->show();
+        }
+        else
+          (new Snackbar("Not able to extract address from cheat"))->show();
       }
 
       // pointercheck(); //disable for now;

@@ -1,9 +1,5 @@
 # EdiZon SE
-  <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/icon.jpg"><br />
-      <a href="https://github.com/WerWolv/EdiZon/releases/latest"><img src="https://img.shields.io/github/downloads/WerWolv/EdiZon/total.svg" alt="Latest Release" /></a>
-    <a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
-    <a href="https://travis-ci.com/WerWolv/EdiZon"><img src="https://travis-ci.com/WerWolv/EdiZon.svg?branch=master" alt="Build Status" /></a>
-  </p>
+
 This fork is based on the solid foundation of EdiZon. The changes made are on the game memory hack aspect. 
 
 I have added bookmark functionality, completed the range search feature and enhanced the speed to enable search for small value which generates lots of hits.
@@ -13,6 +9,13 @@ Work in progress : Pointer search so more location can preserve over different g
 
 PS: In app help on button currently don't show hint what right stick down and left stick down do. Right stick down relates to memory edit and Left stick down relates to pointer search. Just try it to figure it out.
 
+
+  <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/icon.jpg"><br />
+      <a href="https://github.com/WerWolv/EdiZon/releases/latest"><img src="https://img.shields.io/github/downloads/WerWolv/EdiZon/total.svg" alt="Latest Release" /></a>
+    <a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
+    <a href="https://travis-ci.com/WerWolv/EdiZon"><img src="https://travis-ci.com/WerWolv/EdiZon.svg?branch=master" alt="Build Status" /></a>
+  </p>
+  
 A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch. 
 Please note if you are using Atmosphere 0.10.0+, you **must** use the snapshot version of EdiZon. Older versions of EdiZon do **not** work on the latest Atmosphere.
 

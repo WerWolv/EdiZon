@@ -1000,8 +1000,9 @@ void GuiCheats::onInput(u32 kdown)
     if (kdown & KEY_PLUS)
     {
       m_abort = false;
-      (new Snackbar("Starting pointer search"))->show();
-      startpointersearch(m_EditorBaseAddr);
+      // (new Snackbar("Starting pointer search"))->show();
+      printf("starting pointer search from plus %lx \n", m_EditorBaseAddr);
+      // startpointersearch(m_EditorBaseAddr);
     }
     if (kdown & KEY_UP)
     {
@@ -1097,7 +1098,7 @@ void GuiCheats::onInput(u32 kdown)
       m_searchValue[1]._u64 = 0x8000000000;
     }
 
-    if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS)
+    if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS && (m_cheatCnt > 0))
     {
       // printf("start adding cheat to bookmark\n");
       // m_cheatCnt
@@ -1215,7 +1216,9 @@ void GuiCheats::onInput(u32 kdown)
           i++;
         }
         printf("\n");
-
+      }
+      if (success)
+      {
         m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
         m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
         (new Snackbar("Adding address from cheat to bookmark"))->show();
@@ -1225,7 +1228,7 @@ void GuiCheats::onInput(u32 kdown)
         (new Snackbar("Not able to extract address from cheat"))->show();
       }
 
-      // pointercheck(); disable for now;
+      // pointercheck(); //disable for now;
     }
     // end mod
 
@@ -1611,6 +1614,7 @@ void GuiCheats::onInput(u32 kdown)
         { // in bookmark mode
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           m_searchMenuLocation = SEARCH_POINTER;
+          // pointercheck();
           // (new Snackbar("Searching pointer "))->show();
         }
         else if (m_searchMode == SEARCH_MODE_NONE)
@@ -3325,7 +3329,7 @@ void GuiCheats::pointercheck()
       m_pointeroffsetDump->getData(offset, buffer, bufferSize);
       for (u64 i = 0; i < bufferSize; i += sizeof(pointer_chain_t))
       {
-        pointer_chain_t pointer_chain = *reinterpret_cast<pointer_chain_t *>(&buffer[i]);
+        pointer_chain = *reinterpret_cast<pointer_chain_t *>(&buffer[i]);
         u64 nextaddress = m_mainBaseAddr;
         printf("main[%lx]", nextaddress);
         // m_debugger->readMemory(&nextaddress, sizeof(u64), ( m_mainBaseAddr+ pointer_chain.offset[pointer_chain.depth]));

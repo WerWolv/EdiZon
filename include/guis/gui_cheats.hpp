@@ -46,7 +46,7 @@ private:
   {
     CHEATS,
     CANDIDATES
-  } m_menuLocation = CHEATS;
+  } m_menuLocation = CANDIDATES;
   enum
   {
     SEARCH_NONE,

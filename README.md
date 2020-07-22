@@ -10,6 +10,8 @@ Work in progress : Pointer search so more location can preserve over different g
 PS: In app help on button currently don't show hint what right stick down and left stick down do. Right stick down relates to memory edit and Left stick down relates to pointer search. Just try it to figure it out.
 
 
+
+
   <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/icon.jpg"><br />
       <a href="https://github.com/WerWolv/EdiZon/releases/latest"><img src="https://img.shields.io/github/downloads/WerWolv/EdiZon/total.svg" alt="Latest Release" /></a>
     <a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>

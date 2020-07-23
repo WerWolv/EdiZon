@@ -12,6 +12,7 @@
 #include "helpers/memory_dump.hpp"
 
 #include "helpers/dmntcht.h"
+
 enum
 {
   FORMAT_DEC,
@@ -107,7 +108,7 @@ private:
     u64 offset;
   };
 
-#define IS_PTRCODE_START 0x580F0000 
+#define IS_PTRCODE_START 0x580F0000
 #define IS_OFFSET 0x580F1000
 #define IS_FINAL 0x780F0000
 
@@ -117,7 +118,6 @@ private:
 #define MAX_POINTER_TARGET 3
   bool m_forwardonly = false;
   bool m_forwarddump = false; // reduce from 138 to 26
-
   struct pointer_chain_t
   {
     u64 depth;
@@ -132,20 +132,25 @@ private:
     pointer_chain_t pointer;
     bool heap = true;
     u32 offset = 0;
-    bool deleted =false;
+    bool deleted = false;
   };
+  bookmark_t bookmark;
   pointer_chain_t m_hitcount;
 
+  void rebasepointer(); //struct bookmark_t bookmark);
+  // bool check_chain(bookmark_t *bookmark, u64 *address);
   // void startpointersearch(u64 address, u64 depth, u64 range, u64 num, MemoryDump **displayDump);
   // void startpointersearch(u64 address, u64 depth, u64 range, u64 num, MemoryDump **displayDump);
   // void pointersearch(u64 targetaddress, MemoryDump **displayDump, MemoryDump **dataDump, pointer_chain_t pointerchain);
   void pointersearch(u64 targetaddress, struct pointer_chain_t pointerchain);
   void pointercheck();
   void startpointersearch(u64 targetaddress); //, MemoryDump **displayDump);
-  void searchpointer(u64 address, u64 depth, u64 range, pointer_chain_t pointerchain);
+  void searchpointer(u64 address, u64 depth, u64 range, struct pointer_chain_t pointerchain);
+
   u64 m_heapSize = 0;
   u64 m_mainSize = 0;
-
+  u64 m_heapEnd = 0;
+  u64 m_mainend = 0;
   u8 m_buildID[0x20];
 
   DmntCheatEntry *m_cheats;

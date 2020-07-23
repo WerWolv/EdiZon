@@ -81,5 +81,8 @@
         "numbers": "cpp",
         "span": "cpp"
     },
-    "C_Cpp.default.includePath": ["include"]
+    "C_Cpp.default.includePath": [
+        "include"
+    ],
+    "C_Cpp.errorSquiggles": "Disabled"
 }

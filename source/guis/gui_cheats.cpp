@@ -10,7 +10,7 @@
 #include "helpers/util.h"
 
 #include "edizon_logo_bin.h"
-
+// #define checkheap
 #define MAX_BUFFER_SIZE 0x1000000 // increase size for faster speed
 
 static const std::vector<std::string> dataTypes = {"u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "f32", "f64", "ptr"};
@@ -68,15 +68,15 @@ GuiCheats::GuiCheats() : Gui()
   m_heapSize = metadata.heap_extents.size;
   m_mainSize = metadata.main_nso_extents.size;
 
-  if (m_mainBaseAddr < m_heapBaseAddr)
+  if (m_mainBaseAddr < m_heapBaseAddr) // not used but have to move lower for it to be correct 
   {
     m_low_main_heap_addr = m_mainBaseAddr;
-    m_high_main_heap_addr = m_heapBaseAddr + m_heapSize;
+    m_high_main_heap_addr = m_heapEnd;
   }
   else
   {
     m_low_main_heap_addr = m_heapBaseAddr;
-    m_high_main_heap_addr = m_mainBaseAddr + m_mainSize;
+    m_high_main_heap_addr = m_mainend;
   }
 
   memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
@@ -105,16 +105,43 @@ GuiCheats::GuiCheats() : Gui()
       m_frozenAddresses.insert({frozenAddresses[i].address, frozenAddresses[i].value.value});
   }
 
+#ifdef checkheap
+  printf("m_heapBaseAddr = %lx m_heapSize = %lx m_mainBaseAddr + m_mainSize = %lx\n", m_heapBaseAddr, m_heapSize, m_mainBaseAddr + m_mainSize);
+#endif
   MemoryInfo meminfo = {0};
   u64 lastAddr = 0;
+  m_heapBaseAddr = 0;
+  m_heapSize = 0;
+  m_heapEnd = 0;
+  m_mainend = 0;
 
   do
   {
     lastAddr = meminfo.addr;
     meminfo = m_debugger->queryMemory(meminfo.addr + meminfo.size);
 
+    if (meminfo.type == MemType_Heap)
+    {
+      if (m_heapBaseAddr == 0)
+      {
+        m_heapBaseAddr = meminfo.addr;
+      }
+      m_heapSize += meminfo.size;              // not going to use this but calculate this anyway this don't match for some game
+      m_heapEnd = meminfo.addr + meminfo.size; // turns out that m_heapEnd may not be same as m_heapBaseAddr + m_heapSize
+    }
+
+    if (meminfo.type == MemType_CodeMutable)
+    {
+      m_mainend = meminfo.addr + meminfo.size; // same for m_mainend not the same as m_mainBaseAddr + m_mainSize;
+    }
+    
     m_memoryInfo.push_back(meminfo);
   } while (lastAddr < meminfo.addr + meminfo.size);
+
+#ifdef checkheap
+  printf("m_heapBaseAddr = %lx m_heapSize = %lx m_heapEnd = %lx m_mainend =%lx\n", m_heapBaseAddr, m_heapSize, m_heapEnd, m_mainend);
+  // for some game heap info was very far off
+#endif
 
   for (MemoryInfo meminfo : m_memoryInfo)
   {
@@ -480,11 +507,11 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 900, 75, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "HEAP  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_heapBaseAddr;
-  ss << " - 0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_heapBaseAddr + m_heapSize;
+  ss << " - 0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_heapEnd;
   Gui::drawTextAligned(font14, 900, 105, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "MAIN  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_mainBaseAddr;
-  ss << " - 0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_mainBaseAddr + m_mainSize;
+  ss << " - 0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_mainend;
   Gui::drawTextAligned(font14, 900, 135, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
 
   Gui::drawRectangle(256, 50, 394, 137, COLOR_WHITE);
@@ -1103,7 +1130,7 @@ void GuiCheats::onInput(u32 kdown)
       // printf("start adding cheat to bookmark\n");
       // m_cheatCnt
       DmntCheatDefinition cheat = m_cheats[m_selectedEntry].definition;
-      bookmark_t bookmark;
+      //bookmark_t bookmark;
       memcpy(&bookmark.label, &cheat.readable_name, sizeof(bookmark.label));
       bookmark.pointer.depth = 0;
       bool success = false;
@@ -1119,7 +1146,7 @@ void GuiCheats::onInput(u32 kdown)
         u8 FSA = (cheat.opcodes[i] >> 12) & 0xF;
         u8 T = (cheat.opcodes[i] >> 24) & 0xF;
 
-        printf("code %lx opcode %d register %d FSA %d %lx \n", cheat.opcodes[i], opcode, Register, FSA, cheat.opcodes[i + 1]);
+        printf("code %x opcode %d register %d FSA %d %x \n", cheat.opcodes[i], opcode, Register, FSA, cheat.opcodes[i + 1]);
 
         if (depth > MAX_POINTER_DEPTH)
         {
@@ -1232,10 +1259,10 @@ void GuiCheats::onInput(u32 kdown)
                 if (selection)
                 {
                   // to insert rebase code here
-                  (new Snackbar("Rebasing ..."))->show();
+                  // (new Snackbar("Rebasing ..."))->show();
+                  rebasepointer(); //bookmark);
                 }
-                else
-                  Gui::g_currMessageBox->hide();
+                Gui::g_currMessageBox->hide();
               })
               ->show();
         }
@@ -1372,7 +1399,7 @@ void GuiCheats::onInput(u32 kdown)
           m_searchValue[1]._u64 = m_EditorBaseAddr;
           startpointersearch(m_EditorBaseAddr);
           printf("done pointer search \n");
-          printf("Time taken =%d\n", time(NULL) - m_Time1);
+          printf("Time taken =%ld\n", time(NULL) - m_Time1);
 
           // m_EditorBaseAddr = static_cast<u64>(std::stoul(input, nullptr, 16));
           // m_searchMenuLocation = SEARCH_editRAM;
@@ -2395,7 +2422,7 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
           }
           break;
         case SEARCH_MODE_POINTER: //m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize
-          if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainBaseAddr + m_mainSize))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapBaseAddr + m_heapSize))))
+          if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
           {
             if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
               break;
@@ -2484,7 +2511,7 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
     }
     if (helpercount != (*displayDump)->size() / sizeof(u64))
     {
-      printf("Integrity problem with helper file helpercount = %d  memdumpsize = %d \n", helpercount, (*displayDump)->size() / sizeof(u64));
+      printf("Integrity problem with helper file helpercount = %d  memdumpsize = %ld \n", helpercount, (*displayDump)->size() / sizeof(u64));
       (new Snackbar("Helper integrity check failed !"))->show();
       return;
     }
@@ -2620,7 +2647,7 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
         }
         break;
       case SEARCH_MODE_POINTER: //m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize
-        if ((value._s64 >= m_mainBaseAddr && value._s64 <= (m_mainBaseAddr + m_mainSize)) || (value._s64 >= m_heapBaseAddr && value._s64 <= (m_heapBaseAddr + m_heapSize)))
+        if ((value._s64 >= m_mainBaseAddr && value._s64 <= (m_mainend)) || (value._s64 >= m_heapBaseAddr && value._s64 <= (m_heapEnd)))
         {
           newDump->addData((u8 *)&address, sizeof(u64));
           newdataDump->addData((u8 *)&value, sizeof(u64));
@@ -2659,7 +2686,7 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
         break;
       }
     }
-    printf("%d of %d done \n", offset, (*displayDump)->size()); // maybe consider message box this info
+    printf("%ld of %ld done \n", offset, (*displayDump)->size()); // maybe consider message box this info
     offset += bufferSize;
   }
 
@@ -2846,8 +2873,8 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
     ledOn = !ledOn;
     printf("%s%lx\n", "meminfo.size ", meminfo.size);
     printf("%s%lx\n", "meminfo.addr ", meminfo.addr);
-    printf("%s%lx\n", "meminfo.type ", meminfo.type);
-    printf("%s%lx\n", "meminfo.perm ", meminfo.perm);
+    printf("%s%x\n", "meminfo.type ", meminfo.type);
+    printf("%s%x\n", "meminfo.perm ", meminfo.perm);
     u64 offset = 0;
     u64 bufferSize = MAX_BUFFER_SIZE; // hack increase from 40K to 1M
     u8 *buffer = new u8[bufferSize];
@@ -3086,7 +3113,7 @@ void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchValue_t sea
     }
     if (helpercount != (*displayDump)->size() / sizeof(u64))
     {
-      printf("Integrity problem with helper file helpercount = %d  memdumpsize = %d \n", helpercount, (*displayDump)->size() / sizeof(u64));
+      printf("Integrity problem with helper file helpercount = %d  memdumpsize = %ld \n", helpercount, (*displayDump)->size() / sizeof(u64));
       (new Snackbar("Helper integrity check failed !"))->show();
       return;
     }
@@ -3402,15 +3429,119 @@ void GuiCheats::startpointersearch(u64 targetaddress) //, MemoryDump **displayDu
   m_pointeroffsetDump->flushBuffer();
   delete m_pointeroffsetDump;
   printf("End pointer search \n");
-  printf("Time taken =%d  Found %d pointer chain\n", time(NULL) - m_Time1, m_pointer_found);
+  printf("Time taken =%ld  Found %ld pointer chain\n", time(NULL) - m_Time1, m_pointer_found);
 }
+
+void GuiCheats::rebasepointer() //struct bookmark_t bookmark) //Go through memory and add to bookmark potential target with different first offset
+{
+  for (MemoryInfo meminfo : m_memoryInfo)
+  {
+    if (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable)
+      continue;
+
+    u64 offset = 0;
+    u64 bufferSize = MAX_BUFFER_SIZE; // consider to increase from 10k to 1M (not a big problem)
+    u8 *buffer = new u8[bufferSize];
+    while (offset < meminfo.size)
+    {
+      if (meminfo.size - offset < bufferSize)
+        bufferSize = meminfo.size - offset;
+      try
+      {
+        m_debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+      }
+      catch (...)
+      {
+        printf(" have error with readmemory \n");
+      };
+
+      searchValue_t realValue = {0};
+      for (u32 i = 0; i < bufferSize; i += sizeof(u64))
+      {
+        u64 Address = meminfo.addr + offset + i;
+        memset(&realValue, 0, 8);
+        memcpy(&realValue, buffer + i, sizeof(u64));
+
+        if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+        {
+          bookmark.pointer.offset[bookmark.pointer.depth] = Address - m_mainBaseAddr;
+          bool success = true;
+          u64 nextaddress = m_mainBaseAddr;
+          u64 address;
+          printf("main[%lx]", nextaddress);
+
+          for (int z = bookmark.pointer.depth; z >= 0; z--)
+          {
+            // bookmark_t bm;
+
+            printf("+%lx z=%d ", bookmark.pointer.offset[z], z);
+            nextaddress += bookmark.pointer.offset[z];
+            printf("[%lx]", nextaddress);
+            MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
+            if (meminfo.perm == Perm_Rw)
+            {
+              address = nextaddress;
+              m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+            }
+            else
+            {
+              printf("*access denied*\n");
+              success = false;
+              break;
+            }
+            printf("(%lx)", nextaddress);
+          }
+          printf("\n");
+
+          if (success)
+          {
+            m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+            m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+            // (new Snackbar("Adding address from cheat to bookmark"))->show();
+          }
+        }
+      }
+      offset += bufferSize;
+    }
+    delete[] buffer;
+  }
+}
+
+// bool GuiCheats::check_chain(bookmark_t *bookmark, u64 *address)
+// {
+//   // return false;
+//   bool success = true;
+//   u64 nextaddress = m_mainBaseAddr;
+//   printf("main[%lx]", nextaddress);
+//   for (int z = (*bookmark).pointer.depth; z >= 0; z--)
+//   {
+//     printf("+%lx z=%d ", (*bookmark).pointer.offset[z], z);
+//     nextaddress += (*bookmark).pointer.offset[z];
+//     printf("[%lx]", nextaddress);
+//     MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
+//     if (meminfo.perm == Perm_Rw)
+//     {
+//       *address = nextaddress;
+//       m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+//     }
+//     else
+//     {
+//       printf("*access denied*");
+//       success = false;
+//       break;
+//     }
+//     printf("(%lx)", nextaddress);
+//   }
+//   printf("\n");
+//   return success;
+// }
 
 void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerchain) //MemoryDump **displayDump, MemoryDump **dataDump,
 {
   // printf("target address = %lx depth = %d \n", targetaddress, pointerchain.depth);
 
   // printf("check point 1a\n");
-  if ((m_mainBaseAddr <= targetaddress) && (targetaddress <= (m_mainBaseAddr + m_mainSize)))
+  if ((m_mainBaseAddr <= targetaddress) && (targetaddress <= (m_mainend)))
   {
     printf("\ntarget reached!=========================\n");
     printf("final offset is %lx \n", targetaddress - m_mainBaseAddr);
@@ -3506,7 +3637,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
   // pointerchain.offset[pointerchain.depth] = minimum;
   pointerchain.depth++;
 
-  printf("**Found %d sources for address %lx at depth %d\n", sources.size(), targetaddress, pointerchain.depth);
+  printf("**Found %ld sources for address %lx at depth %ld\n", sources.size(), targetaddress, pointerchain.depth);
   for (sourceinfo_t sourceinfo : sources)
   {
     // targetaddress = 0x1000;
@@ -3520,7 +3651,7 @@ void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerc
     // printf("fileoffset = %lx thefileoffset =%lx new target address is %lx old target was %lx\n", sourceinfo.foffset, thefileoffset, newtargetaddress, targetaddress);
     if (m_forwardonly)
     {
-      if ((targetaddress > newtargetaddress) || ((m_mainBaseAddr <= newtargetaddress) && (newtargetaddress <= (m_mainBaseAddr + m_mainSize))))
+      if ((targetaddress > newtargetaddress) || ((m_mainBaseAddr <= newtargetaddress) && (newtargetaddress <= (m_mainend))))
       {
         pointerchain.fileoffset[pointerchain.depth - 1] = sourceinfo.foffset;
         pointerchain.offset[pointerchain.depth - 1] = sourceinfo.offset;
@@ -3649,7 +3780,7 @@ void GuiCheats::searchpointer(u64 address, u64 depth, u64 range, struct pointer_
     pointerchain.depth++;
     m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t)); //((u8 *)&address, sizeof(u64));
     // *m_pointeroffsetDump->getData(offset * sizeof(pointer_chain_t) , void *buffer, size_t bufferSize);
-    printf("found at depth %d\n", pointerchain.depth);
+    printf("found at depth %ld\n", pointerchain.depth);
     return;
   }
   if (depth == 0)

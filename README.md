@@ -3,7 +3,7 @@
 This fork is based on the solid foundation of EdiZon. The changes made are on the game memory hack aspect. 
 
 I have added bookmark functionality, completed the range search feature and enhanced the speed to enable search for small value which generates lots of hits.
-Bookmark automatically adjust relative to main and heap so static location relative to main and heap will continue to work for different game run. You can also extract the memory location pointed by cheat code to bookmark to explore/edit the ram around there. 
+Bookmark automatically adjust relative to main and heap so static location relative to main and heap will continue to work for different game run. You can also extract the memory location pointed by cheat code to bookmark to explore/edit the ram around there. Able to rebase first offset of cheat code for game version change that only affects the first offset. 
 
 Work in progress : Pointer search so more location can preserve over different game run and stage change in game.
 

@@ -11,8 +11,19 @@
 
 #include "edizon_logo_bin.h"
 // #define checkheap
+// #define printpointerchain
 #define MAX_BUFFER_SIZE 0x1000000 // increase size for faster speed
-
+#define STARTTIMER \
+  time_t unixTime1 = time(NULL);
+#define ENDTIMER \
+  printf(" Time used is %d \n", time(NULL) - unixTime1);
+#define R_UNLESS(expr, res)                   \
+  ({                                          \
+    if (!(expr))                              \
+    {                                         \
+      return static_cast<::ams::Result>(res); \
+    }                                         \
+  })
 static const std::vector<std::string> dataTypes = {"u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "f32", "f64", "ptr"};
 static const std::vector<u8> dataTypeSizes = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 8};
 static const std::vector<s128> dataTypeMaxValues = {std::numeric_limits<u8>::max(), std::numeric_limits<s8>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max()};
@@ -68,7 +79,7 @@ GuiCheats::GuiCheats() : Gui()
   m_heapSize = metadata.heap_extents.size;
   m_mainSize = metadata.main_nso_extents.size;
 
-  if (m_mainBaseAddr < m_heapBaseAddr) // not used but have to move lower for it to be correct 
+  if (m_mainBaseAddr < m_heapBaseAddr) // not used but have to move lower for it to be correct
   {
     m_low_main_heap_addr = m_mainBaseAddr;
     m_high_main_heap_addr = m_heapEnd;
@@ -134,7 +145,7 @@ GuiCheats::GuiCheats() : Gui()
     {
       m_mainend = meminfo.addr + meminfo.size; // same for m_mainend not the same as m_mainBaseAddr + m_mainSize;
     }
-    
+
     m_memoryInfo.push_back(meminfo);
   } while (lastAddr < meminfo.addr + meminfo.size);
 
@@ -1258,9 +1269,12 @@ void GuiCheats::onInput(u32 kdown)
               ->setSelectionAction([&](u8 selection) {
                 if (selection)
                 {
-                  // to insert rebase code here
-                  // (new Snackbar("Rebasing ..."))->show();
-                  rebasepointer(); //bookmark);
+                  searchValue_t value;
+                  while (!getinput("Enter the value at this memory", "You must know what type is the value and set it correctly in the search memory type setting", "", &value))
+                  {
+                  } 
+                  printf("value = %ld\n",value);
+                  rebasepointer(value); //bookmark);
                 }
                 Gui::g_currMessageBox->hide();
               })
@@ -2647,7 +2661,7 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
         }
         break;
       case SEARCH_MODE_POINTER: //m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize
-        if ((value._s64 >= m_mainBaseAddr && value._s64 <= (m_mainend)) || (value._s64 >= m_heapBaseAddr && value._s64 <= (m_heapEnd)))
+        if ((value._u64 >= m_mainBaseAddr && value._u64 <= (m_mainend)) || (value._u64 >= m_heapBaseAddr && value._u64 <= (m_heapEnd)))
         {
           newDump->addData((u8 *)&address, sizeof(u64));
           newdataDump->addData((u8 *)&value, sizeof(u64));
@@ -3432,8 +3446,9 @@ void GuiCheats::startpointersearch(u64 targetaddress) //, MemoryDump **displayDu
   printf("Time taken =%ld  Found %ld pointer chain\n", time(NULL) - m_Time1, m_pointer_found);
 }
 
-void GuiCheats::rebasepointer() //struct bookmark_t bookmark) //Go through memory and add to bookmark potential target with different first offset
+void GuiCheats::rebasepointer(searchValue_t value) //struct bookmark_t bookmark) //Go through memory and add to bookmark potential target with different first offset
 {
+  STARTTIMER
   for (MemoryInfo meminfo : m_memoryInfo)
   {
     if (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable)
@@ -3462,21 +3477,25 @@ void GuiCheats::rebasepointer() //struct bookmark_t bookmark) //Go through memor
         memset(&realValue, 0, 8);
         memcpy(&realValue, buffer + i, sizeof(u64));
 
-        if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+        if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd)))
         {
           bookmark.pointer.offset[bookmark.pointer.depth] = Address - m_mainBaseAddr;
           bool success = true;
           u64 nextaddress = m_mainBaseAddr;
           u64 address;
+#ifdef printpointerchain
           printf("main[%lx]", nextaddress);
-
+#endif
           for (int z = bookmark.pointer.depth; z >= 0; z--)
           {
             // bookmark_t bm;
-
+#ifdef printpointerchain
             printf("+%lx z=%d ", bookmark.pointer.offset[z], z);
+#endif
             nextaddress += bookmark.pointer.offset[z];
+#ifdef printpointerchain
             printf("[%lx]", nextaddress);
+#endif
             MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
             if (meminfo.perm == Perm_Rw)
             {
@@ -3485,18 +3504,28 @@ void GuiCheats::rebasepointer() //struct bookmark_t bookmark) //Go through memor
             }
             else
             {
+#ifdef printpointerchain
               printf("*access denied*\n");
+#endif
               success = false;
               break;
             }
+#ifdef printpointerchain
             printf("(%lx)", nextaddress);
+#endif
           }
+#ifdef printpointerchain
           printf("\n");
+#endif
 
-          if (success)
+          if (success && valuematch(value, address))
           {
+            bookmark.type = m_searchType;
             m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
             m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+#ifdef printpointerchain
+            printf("Success  BM added   \n");
+#endif
             // (new Snackbar("Adding address from cheat to bookmark"))->show();
           }
         }
@@ -3505,6 +3534,9 @@ void GuiCheats::rebasepointer() //struct bookmark_t bookmark) //Go through memor
     }
     delete[] buffer;
   }
+  ENDTIMER
+  m_memoryDumpBookmark->flushBuffer();
+  m_AttributeDumpBookmark->flushBuffer();
 }
 
 // bool GuiCheats::check_chain(bookmark_t *bookmark, u64 *address)
@@ -3919,4 +3951,69 @@ static bool _wrongCheatsPresent(u8 *buildID, u64 titleID)
   bool realCheatDoesExist = std::filesystem::exists(ss.str());
 
   return !(cheatsFolderEmpty || realCheatDoesExist);
+}
+
+ bool GuiCheats::getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue)
+{
+  char str[0x21];
+  Gui::requestKeyboardInput(headerText, subHeaderText, initialText, m_searchValueFormat == FORMAT_DEC ? SwkbdType_NumPad : SwkbdType_QWERTY, str, 0x20);
+  if (std::string(str) == "")
+    return false;
+  (*searchValue)._u64 = 0;
+  if (m_searchValueFormat == FORMAT_HEX)
+  {
+    (*searchValue)._u64 = static_cast<u64>(std::stoul(str, nullptr, 16));
+  }
+  else
+  {
+    switch (m_searchType)
+    {
+    case SEARCH_TYPE_UNSIGNED_8BIT:
+      (*searchValue)._u8 = static_cast<u8>(std::stoul(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_UNSIGNED_16BIT:
+      (*searchValue)._u16 = static_cast<u16>(std::stoul(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_UNSIGNED_32BIT:
+      (*searchValue)._u32 = static_cast<u32>(std::stoul(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_UNSIGNED_64BIT:
+      (*searchValue)._u64 = static_cast<u64>(std::stoul(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_SIGNED_8BIT:
+      (*searchValue)._s8 = static_cast<s8>(std::stol(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_SIGNED_16BIT:
+      (*searchValue)._s16 = static_cast<s16>(std::stol(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_SIGNED_32BIT:
+      (*searchValue)._s32 = static_cast<s32>(std::stol(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_SIGNED_64BIT:
+      (*searchValue)._s64 = static_cast<s64>(std::stol(str, nullptr, 0));
+      break;
+    case SEARCH_TYPE_FLOAT_32BIT:
+      (*searchValue)._f32 = static_cast<float>(std::stof(str));
+      break;
+    case SEARCH_TYPE_FLOAT_64BIT:
+      (*searchValue)._f64 = static_cast<double>(std::stod(str));
+      break;
+    case SEARCH_TYPE_POINTER:
+      (*searchValue)._u64 = static_cast<u64>(std::stol(str));
+      break;
+    case SEARCH_TYPE_NONE:
+      break;
+    }
+  }
+  return true;
+}
+bool GuiCheats::valuematch(searchValue_t value, u64 nextaddress)
+{
+  searchValue_t realvalue;
+  realvalue._u64 = 0;
+  m_debugger->readMemory(&realvalue, dataTypeSizes[m_searchType], nextaddress);
+  if (realvalue._u64 == value._u64)
+    return true;
+  else
+    return false;
 }

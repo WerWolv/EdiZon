@@ -137,7 +137,7 @@ private:
   bookmark_t bookmark;
   pointer_chain_t m_hitcount;
 
-  void rebasepointer(); //struct bookmark_t bookmark);
+  void rebasepointer(searchValue_t value); //struct bookmark_t bookmark);
   // bool check_chain(bookmark_t *bookmark, u64 *address);
   // void startpointersearch(u64 address, u64 depth, u64 range, u64 num, MemoryDump **displayDump);
   // void startpointersearch(u64 address, u64 depth, u64 range, u64 num, MemoryDump **displayDump);
@@ -146,7 +146,8 @@ private:
   void pointercheck();
   void startpointersearch(u64 targetaddress); //, MemoryDump **displayDump);
   void searchpointer(u64 address, u64 depth, u64 range, struct pointer_chain_t pointerchain);
-
+  bool valuematch(searchValue_t value, u64 nextaddress);
+  bool getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue);
   u64 m_heapSize = 0;
   u64 m_mainSize = 0;
   u64 m_heapEnd = 0;

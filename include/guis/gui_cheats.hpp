@@ -148,6 +148,7 @@ private:
   void searchpointer(u64 address, u64 depth, u64 range, struct pointer_chain_t pointerchain);
   bool valuematch(searchValue_t value, u64 nextaddress);
   bool getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue);
+  bool addcodetofile(u64 index);
   u64 m_heapSize = 0;
   u64 m_mainSize = 0;
   u64 m_heapEnd = 0;

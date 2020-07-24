@@ -1145,7 +1145,7 @@ void GuiCheats::onInput(u32 kdown)
       memcpy(&bookmark.label, &cheat.readable_name, sizeof(bookmark.label));
       bookmark.pointer.depth = 0;
       bool success = false;
-      u32 offset[MAX_POINTER_DEPTH + 1];
+      u64 offset[MAX_POINTER_DEPTH + 1] = {0};
       u64 depth = 0;
       u64 address;
       bool no7 = true;
@@ -1272,8 +1272,8 @@ void GuiCheats::onInput(u32 kdown)
                   searchValue_t value;
                   while (!getinput("Enter the value at this memory", "You must know what type is the value and set it correctly in the search memory type setting", "", &value))
                   {
-                  } 
-                  printf("value = %ld\n",value);
+                  }
+                  printf("value = %ld\n", value);
                   rebasepointer(value); //bookmark);
                 }
                 Gui::g_currMessageBox->hide();
@@ -1670,6 +1670,25 @@ void GuiCheats::onInput(u32 kdown)
         { // in bookmark mode
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           m_searchMenuLocation = SEARCH_POINTER;
+          bookmark_t bookmark;
+          m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+          // printf("m_selectedEntry + m_addresslist_offset %ld\n", m_selectedEntry + m_addresslist_offset);
+          // u64 index = m_selectedEntry + m_addresslist_offset;
+          if (bookmark.pointer.depth > 1)
+          {
+            addcodetofile(m_selectedEntry + m_addresslist_offset);
+            // (new MessageBox("Add current pointer chain to cheat file?", MessageBox::YES_NO))
+            //     ->setSelectionAction([&](u8 selection) {
+            //       if (selection)
+            //       {
+            //         addcodetofile(index); // index also does not preserve; need to figure out why this won't work
+            //         m_searchMenuLocation = SEARCH_NONE;
+            //       }
+            //       Gui::g_currMessageBox->hide();
+            //     })
+            //     ->show();
+          }
+
           // pointercheck();
           // (new Snackbar("Searching pointer "))->show();
         }
@@ -3953,7 +3972,7 @@ static bool _wrongCheatsPresent(u8 *buildID, u64 titleID)
   return !(cheatsFolderEmpty || realCheatDoesExist);
 }
 
- bool GuiCheats::getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue)
+bool GuiCheats::getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue)
 {
   char str[0x21];
   Gui::requestKeyboardInput(headerText, subHeaderText, initialText, m_searchValueFormat == FORMAT_DEC ? SwkbdType_NumPad : SwkbdType_QWERTY, str, 0x20);
@@ -4016,4 +4035,78 @@ bool GuiCheats::valuematch(searchValue_t value, u64 nextaddress)
     return true;
   else
     return false;
+}
+bool GuiCheats::addcodetofile(u64 index)
+{
+  std::stringstream buildIDStr;
+  std::stringstream filebuildIDStr;
+  {
+    for (u8 i = 0; i < 8; i++)
+      buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+    // buildIDStr.str("attdumpbookmark");
+    filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".txt";
+  }
+
+  std::stringstream realCheatPath;
+  {
+    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << "/cheats/";
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << buildIDStr.str() << ".txt";
+  }
+
+  bookmark_t bookmark;
+  u64 address;
+  m_AttributeDumpBookmark->getData(index * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+  m_memoryDump->getData(index * sizeof(u64), &address, sizeof(u64));
+  searchValue_t realvalue;
+  realvalue._u64 = 0;
+  m_debugger->readMemory(&realvalue, dataTypeSizes[bookmark.type], address);
+
+  FILE *pfile;
+  pfile = fopen(filebuildIDStr.str().c_str(), "a");
+  std::stringstream ss;
+  if (pfile != NULL)
+  {
+    // printf("going to write to file\n");
+    ss.str("");
+    ss << "[" << bookmark.label << "]"
+       << "\n";
+    ss << "580F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[bookmark.pointer.depth] << "\n";
+    for (int z = bookmark.pointer.depth - 1; z > 0; z--)
+    {
+      ss << "580F1000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[z] << "\n";
+    }
+    ss << "780F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[0] << "\n";
+    ss << "6" << dataTypeSizes[bookmark.type] + 0 << "0F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << realvalue._u64 << "\n";
+    printf("index = %ld depth = %ld offset = %ld offset = %ld offset = %ld offset = %ld\n", index, bookmark.pointer.depth, bookmark.pointer.offset[3], bookmark.pointer.offset[2], bookmark.pointer.offset[1], bookmark.pointer.offset[0]);
+    printf("address = %lx value = %lx \n", address, realvalue._u64);
+    printf("dataTypeSizes[bookmark.type] %d\n", dataTypeSizes[bookmark.type]);
+
+    // std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
+    // ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
+    // snprintf(st, 27, "%s\n", ss.str().c_str()); char st[27];
+    // fputs(filebuildIDStr.str().c_str(), pfile);
+    // fputs("fopen example", pfile);
+    //std::endl is basicly:
+    //std::cout << "\n" << std::flush; "\r\n"
+    // char st[1000];
+    // snprintf(st, 1000, "%s\n", ss.str().c_str());
+    fputs(ss.str().c_str(), pfile);
+    fclose(pfile);
+  }
+  else
+    printf("failed writing to cheat file on Edizon dir \n");
+
+  pfile = fopen(realCheatPath.str().c_str(), "a");
+  if (pfile != NULL)
+  {
+    fputs(ss.str().c_str(), pfile);
+    fclose(pfile);
+  }
+  else
+    printf("failed writing to cheat file on contents dir \n");
+
+  return true;
 }

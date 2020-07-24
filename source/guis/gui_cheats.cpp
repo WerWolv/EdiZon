@@ -1677,6 +1677,9 @@ void GuiCheats::onInput(u32 kdown)
           if (bookmark.pointer.depth > 1)
           {
             addcodetofile(m_selectedEntry + m_addresslist_offset);
+            m_searchMenuLocation = SEARCH_NONE;
+            // dmntchtForceOpenCheatProcess();
+            (new Snackbar("Coded added to cheat file, reload to take effect"))->show();
             // (new MessageBox("Add current pointer chain to cheat file?", MessageBox::YES_NO))
             //     ->setSelectionAction([&](u8 selection) {
             //       if (selection)

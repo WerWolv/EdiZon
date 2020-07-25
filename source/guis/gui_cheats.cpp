@@ -1039,8 +1039,14 @@ void GuiCheats::onInput(u32 kdown)
     {
       m_abort = false;
       // (new Snackbar("Starting pointer search"))->show();
+      m_searchMenuLocation = SEARCH_NONE;
       printf("starting pointer search from plus %lx \n", m_EditorBaseAddr);
-      // startpointersearch(m_EditorBaseAddr);
+      m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
+      m_abort = false;
+      m_Time1 = time(NULL);
+      startpointersearch2(m_EditorBaseAddr); // need help here; don't know what always crash when startpointersearch2 is called from here
+      printf("done pointer search \n");
+      printf("Time taken =%ld\n", time(NULL) - m_Time1);
     }
     if (kdown & KEY_UP)
     {
@@ -1671,28 +1677,30 @@ void GuiCheats::onInput(u32 kdown)
         { // in bookmark mode
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           m_searchMenuLocation = SEARCH_POINTER;
-          bookmark_t bookmark;
-          m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
-          // printf("m_selectedEntry + m_addresslist_offset %ld\n", m_selectedEntry + m_addresslist_offset);
-          // u64 index = m_selectedEntry + m_addresslist_offset;
-          if (bookmark.pointer.depth > 1)
+          if (false)
           {
-            addcodetofile(m_selectedEntry + m_addresslist_offset);
-            m_searchMenuLocation = SEARCH_NONE;
-            // dmntchtForceOpenCheatProcess();
-            (new Snackbar("Coded added to cheat file, reload to take effect"))->show();
-            // (new MessageBox("Add current pointer chain to cheat file?", MessageBox::YES_NO))
-            //     ->setSelectionAction([&](u8 selection) {
-            //       if (selection)
-            //       {
-            //         addcodetofile(index); // index also does not preserve; need to figure out why this won't work
-            //         m_searchMenuLocation = SEARCH_NONE;
-            //       }
-            //       Gui::g_currMessageBox->hide();
-            //     })
-            //     ->show();
+            bookmark_t bookmark;
+            m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+            // printf("m_selectedEntry + m_addresslist_offset %ld\n", m_selectedEntry + m_addresslist_offset);
+            // u64 index = m_selectedEntry + m_addresslist_offset;
+            if (bookmark.pointer.depth > 1)
+            {
+              addcodetofile(m_selectedEntry + m_addresslist_offset);
+              m_searchMenuLocation = SEARCH_NONE;
+              // dmntchtForceOpenCheatProcess();
+              (new Snackbar("Coded added to cheat file, reload to take effect"))->show();
+              // (new MessageBox("Add current pointer chain to cheat file?", MessageBox::YES_NO))
+              //     ->setSelectionAction([&](u8 selection) {
+              //       if (selection)
+              //       {
+              //         addcodetofile(index); // index also does not preserve; need to figure out why this won't work
+              //         m_searchMenuLocation = SEARCH_NONE;
+              //       }
+              //       Gui::g_currMessageBox->hide();
+              //     })
+              //     ->show();
+            }
           }
-
           // pointercheck();
           // (new Snackbar("Searching pointer "))->show();
         }
@@ -3791,6 +3799,8 @@ void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **disp
 
     m_AttributeDumpBookmark->addData((u8 *)&m_bookmark, sizeof(bookmark_t));
     m_AttributeDumpBookmark->flushBuffer();
+    m_memoryDumpBookmark->addData((u8 *)&m_mainBaseAddr, sizeof(u64)); //need to update
+    m_memoryDumpBookmark->flushBuffer();
     // m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t));
     // m_pointeroffsetDump->flushBuffer(); // is this useful?
     printf("main");

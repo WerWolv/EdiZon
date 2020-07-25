@@ -116,6 +116,27 @@ private:
 #define MAX_POINTER_DEPTH 6        // up to 4 seems OK with forward only search took 94s. 215s for big dump
 #define MAX_POINTER_RANGE 0x2000
 #define MAX_POINTER_TARGET 3
+  struct PointerSearch_state
+  {
+    // u64 depth = 0;                                                       // depth and index[depth] is where the search is at, pointersearch2 will increment depth and call itself with nexttarget
+    u64 index[MAX_POINTER_DEPTH + 1] = {0};                              // when there is a hit retrieve the offsets with indexs and sources[index].offset
+    u64 num_offsets[MAX_POINTER_DEPTH + 1] = {0};                        // for analysis
+    u64 num_sources[MAX_POINTER_DEPTH + 1] = {0};                        // this is how we will go down the column
+    sourceinfo_t sources[MAX_POINTER_DEPTH + 1][MAX_NUM_SOURCE_POINTER]; //the data matrix to get nexttarget from foffset and m_memoryDump1
+  };
+  PointerSearch_state *m_PointerSearch = nullptr;
+  void startpointersearch2(u64 targetaddress);
+  void pointersearch2(u64 targetaddress, u64 depth);
+  void resumepointersearch2();
+  bool m_pointersearch_done = false;
+#define PS_depth depth
+#define PS_index m_PointerSearch->index[PS_depth]
+// #define PS_indexP m_PointerSearch->index[PS_depth-1]
+#define PS_num_offsets m_PointerSearch->num_offsets[PS_depth]
+#define PS_num_sources m_PointerSearch->num_sources[PS_depth]
+// #define PS_num_sourcesP m_PointerSearch->num_sources[PS_depth-1]
+#define PS_sources m_PointerSearch->sources[PS_depth]
+
   bool m_forwardonly = false;
   bool m_forwarddump = false; // reduce from 138 to 26
   struct pointer_chain_t
@@ -134,8 +155,9 @@ private:
     u32 offset = 0;
     bool deleted = false;
   };
-  bookmark_t bookmark;
-  pointer_chain_t m_hitcount;
+  bookmark_t m_bookmark;      //global for use in pointer search , target address to be updated dynamically by display routine TBD
+  bookmark_t bookmark;        //maybe not used
+  pointer_chain_t m_hitcount; // maybe not used
 
   void rebasepointer(searchValue_t value); //struct bookmark_t bookmark);
   // bool check_chain(bookmark_t *bookmark, u64 *address);

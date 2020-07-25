@@ -3448,34 +3448,34 @@ void GuiCheats::pointercheck()
   }
 }
 
-void GuiCheats::startpointersearch(u64 targetaddress) //, MemoryDump **displayDump, MemoryDump **dataDump, pointer_chain_t pointerchain)
-{
-  m_dataDump = new MemoryDump(EDIZON_DIR "/datadump2.dat", DumpType::DATA, false);           // pointed targets is in this file
-  m_pointeroffsetDump = new MemoryDump(EDIZON_DIR "/ptrdump1.dat", DumpType::POINTER, true); // create file but maybe later just open it
-  pointer_chain_t pointerchain;
-  printf("Start pointer search %lx\n", targetaddress);
-  m_Time1 = time(NULL);
-  m_pointer_found = 0;
-  pointerchain.depth = 0;
-  m_abort = false;
-  try
-  {
-    pointersearch(targetaddress, pointerchain); //&m_memoryDump, &m_dataDump,
-  }
-  catch (...)
-  {
-    printf("Caught an exception\n");
-  }
-  // add some rubbish just for testing
-  // char st[250];                                         // replace the printf
-  // snprintf(st, 250, "Just for testing ====="); //
-  // m_pointeroffsetDump->addData((u8 *)&st, sizeof(st)); //
-
-  m_pointeroffsetDump->flushBuffer();
-  delete m_pointeroffsetDump;
-  printf("End pointer search \n");
-  printf("Time taken =%ld  Found %ld pointer chain\n", time(NULL) - m_Time1, m_pointer_found);
-}
+// void GuiCheats::startpointersearch(u64 targetaddress) //, MemoryDump **displayDump, MemoryDump **dataDump, pointer_chain_t pointerchain)
+// {
+//   m_dataDump = new MemoryDump(EDIZON_DIR "/datadump2.dat", DumpType::DATA, false);           // pointed targets is in this file
+//   m_pointeroffsetDump = new MemoryDump(EDIZON_DIR "/ptrdump1.dat", DumpType::POINTER, true); // create file but maybe later just open it
+//   pointer_chain_t pointerchain;
+//   printf("Start pointer search %lx\n", targetaddress);
+//   m_Time1 = time(NULL);
+//   m_pointer_found = 0;
+//   pointerchain.depth = 0;
+//   m_abort = false;
+//   try
+//   {
+//     pointersearch(targetaddress, pointerchain); //&m_memoryDump, &m_dataDump,
+//   }
+//   catch (...)
+//   {
+//     printf("Caught an exception\n");
+//   }
+//   // add some rubbish just for testing
+//   // char st[250];                                         // replace the printf
+//   // snprintf(st, 250, "Just for testing ====="); //
+//   // m_pointeroffsetDump->addData((u8 *)&st, sizeof(st)); //
+//
+//   m_pointeroffsetDump->flushBuffer();
+//   delete m_pointeroffsetDump;
+//   printf("End pointer search \n");
+//   printf("Time taken =%ld  Found %ld pointer chain\n", time(NULL) - m_Time1, m_pointer_found);
+// }
 
 void GuiCheats::rebasepointer(searchValue_t value) //struct bookmark_t bookmark) //Go through memory and add to bookmark potential target with different first offset
 {
@@ -3599,153 +3599,153 @@ void GuiCheats::rebasepointer(searchValue_t value) //struct bookmark_t bookmark)
 //   return success;
 // }
 
-void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerchain) //MemoryDump **displayDump, MemoryDump **dataDump,
-{
-  // printf("target address = %lx depth = %d \n", targetaddress, pointerchain.depth);
-
-  // printf("check point 1a\n");
-  if ((m_mainBaseAddr <= targetaddress) && (targetaddress <= (m_mainend)))
-  {
-    printf("\ntarget reached!=========================\n");
-    printf("final offset is %lx \n", targetaddress - m_mainBaseAddr);
-    // pointerchain.depth++;
-    // pointerchain.offset[pointerchain.depth] = targetaddress - m_mainBaseAddr;
-    //   // save pointerchain
-    pointerchain.offset[pointerchain.depth] = targetaddress - m_mainBaseAddr;
-    m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t));
-    m_pointeroffsetDump->flushBuffer(); // is this useful?
-    printf("main");
-    for (int z = pointerchain.depth; z >= 0; z--)
-      printf("+%lx z=%d ", pointerchain.offset[z], z);
-    printf("\n\n");
-    // printf("\nsize=%d\n", sizeof(pointer_chain_t));
-    m_pointer_found++;
-    return; // consider don't return to find more
-  };
-
-  if (pointerchain.depth == m_max_depth)
-  {
-    // printf("max pointer depth reached\n\n");
-    return;
-  }
-
-  // printf("\n starting pointer search for address = %lx at depth %d ", targetaddress, pointerchain.depth);
-  u64 offset = 0;
-  u64 thefileoffset = 0;
-  u64 bufferSize = MAX_BUFFER_SIZE;
-  u8 *buffer = new u8[bufferSize];
-  u64 distance;
-  u64 minimum = m_max_range;         // a large number to start
-  std::vector<sourceinfo_t> sources; // potential sources that points at target with a offset, we will search for the nearest address being pointed by pointer/pointers
-  sourceinfo_t sourceinfo;
-  // std::vector<u64> distances;
-
-  while (offset < m_dataDump->size())
-  {
-    if (m_dataDump->size() - offset < bufferSize)
-      bufferSize = m_dataDump->size() - offset;
-    // printf("checkpoint 2\n");
-    m_dataDump->getData(offset, buffer, bufferSize); // BM4
-    bool writeback = false;
-    // printf("checkpoint 3\n");
-    // return;                                           // just to check
-    for (u64 i = 0; i < bufferSize; i += sizeof(u64)) // for (size_t i = 0; i < (bufferSize / sizeof(u64)); i++)
-    {
-      if (m_abort)
-        return;
-      u64 pointedaddress = *reinterpret_cast<u64 *>(&buffer[i]);
-      if (targetaddress >= pointedaddress)
-      {
-        distance = targetaddress - pointedaddress;
-        if (distance < minimum)
-        {
-          // minimum = distance;
-          // sources.clear();
-          sourceinfo.foffset = offset + i;
-          sourceinfo.offset = distance;
-          sources.push_back(sourceinfo);
-          thefileoffset = offset + i;
-          // *reinterpret_cast<u64 *>(&buffer[i]) = 0; // to prevent endless loop
-          // writeback = true;                         //
-        }
-        else if (distance == minimum)
-        {
-          sourceinfo.foffset = offset + i;
-          sourceinfo.offset = distance;
-          sources.push_back(sourceinfo);
-          // sources.push_back(offset + i);
-          thefileoffset = offset + i;
-          // *reinterpret_cast<u64 *>(&buffer[i]) = 0; // to prevent endless loop
-          // writeback = true;                         //
-          // pointerchain.fileoffset[pointerchain.depth] = offset + i;
-          // pointerchain.offset[pointerchain.depth] = distance;
-        }
-      }
-      if (sources.size() > m_max_source)
-        break;
-    }
-    if (sources.size() > m_max_source)
-      break;
-    // if (writeback)
-    // {
-    //   m_dataDump->putData(offset, buffer, bufferSize);
-    //   m_dataDump->flushBuffer();
-    // }
-    offset += bufferSize;
-  }
-  delete[] buffer; // release memory use for the search of sources
-
-  // Now we have fileoffsets stored in sources to repeat this process
-  // printf("memory scan completed offset is %lx at depth %lx\n\n", minimum, pointerchain.depth);
-  // pointerchain.offset[pointerchain.depth] = minimum;
-  pointerchain.depth++;
-
-  printf("**Found %ld sources for address %lx at depth %ld\n", sources.size(), targetaddress, pointerchain.depth);
-  for (sourceinfo_t sourceinfo : sources)
-  {
-    // targetaddress = 0x1000;
-    // printf("size of memorydump is %lx ", m_memoryDump1->size()); // I swapped the bookmark
-    //m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
-    u64 newtargetaddress;
-    m_memoryDump1->getData(sourceinfo.foffset, &newtargetaddress, sizeof(u64)); // fileoffset is in byte
-
-    // u64 checkaddress;                                             // debug use
-    // m_dataDump->getData(foffset, &checkaddress, sizeof(u64));     //double check it for debug purpose
-    // printf("fileoffset = %lx thefileoffset =%lx new target address is %lx old target was %lx\n", sourceinfo.foffset, thefileoffset, newtargetaddress, targetaddress);
-    if (m_forwardonly)
-    {
-      if ((targetaddress > newtargetaddress) || ((m_mainBaseAddr <= newtargetaddress) && (newtargetaddress <= (m_mainend))))
-      {
-        pointerchain.fileoffset[pointerchain.depth - 1] = sourceinfo.foffset;
-        pointerchain.offset[pointerchain.depth - 1] = sourceinfo.offset;
-        pointersearch(newtargetaddress, pointerchain);
-      }
-    }
-    else
-    {
-      /* code */
-      pointerchain.fileoffset[pointerchain.depth - 1] = sourceinfo.foffset;
-      pointerchain.offset[pointerchain.depth - 1] = sourceinfo.offset;
-      pointersearch(newtargetaddress, pointerchain);
-    }
-  }
-
-  return;
-
-  // (*displayDump)->getData(pointerchain.fileoffset[pointerchain.depth] * sizeof(u64), &address, sizeof(u64));
-
-  // printf("depth is %d new address is %lx offset is %lx code offset is %lx \n", pointerchain.depth, address, pointerchain.fileoffset[pointerchain.depth], pointerchain.offset[pointerchain.depth]);
-  // if (address < m_mainBaseAddr + m_mainSize)
-  // {
-  //   printf("target reached!");
-  //   printf("final offset is %lx \n", address - m_mainBaseAddr);
-  //   pointerchain.depth++;
-  //   pointerchain.offset[pointerchain.depth] = address - m_mainBaseAddr;
-  //   // save pointerchain
-  //   m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t));
-  //   return;
-}
-// change address to new one
+// void GuiCheats::pointersearch(u64 targetaddress, struct pointer_chain_t pointerchain) //MemoryDump **displayDump, MemoryDump **dataDump,
+// {
+//   // printf("target address = %lx depth = %d \n", targetaddress, pointerchain.depth);
+//
+//   // printf("check point 1a\n");
+//   if ((m_mainBaseAddr <= targetaddress) && (targetaddress <= (m_mainend)))
+//   {
+//     printf("\ntarget reached!=========================\n");
+//     printf("final offset is %lx \n", targetaddress - m_mainBaseAddr);
+//     // pointerchain.depth++;
+//     // pointerchain.offset[pointerchain.depth] = targetaddress - m_mainBaseAddr;
+//     //   // save pointerchain
+//     pointerchain.offset[pointerchain.depth] = targetaddress - m_mainBaseAddr;
+//     m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t));
+//     m_pointeroffsetDump->flushBuffer(); // is this useful?
+//     printf("main");
+//     for (int z = pointerchain.depth; z >= 0; z--)
+//       printf("+%lx z=%d ", pointerchain.offset[z], z);
+//     printf("\n\n");
+//     // printf("\nsize=%d\n", sizeof(pointer_chain_t));
+//     m_pointer_found++;
+//     return; // consider don't return to find more
+//   };
+//
+//   if (pointerchain.depth == m_max_depth)
+//   {
+//     // printf("max pointer depth reached\n\n");
+//     return;
+//   }
+//
+//   // printf("\n starting pointer search for address = %lx at depth %d ", targetaddress, pointerchain.depth);
+//   u64 offset = 0;
+//   u64 thefileoffset = 0;
+//   u64 bufferSize = MAX_BUFFER_SIZE;
+//   u8 *buffer = new u8[bufferSize];
+//   u64 distance;
+//   u64 minimum = m_max_range;         // a large number to start
+//   std::vector<sourceinfo_t> sources; // potential sources that points at target with a offset, we will search for the nearest address being pointed by pointer/pointers
+//   sourceinfo_t sourceinfo;
+//   // std::vector<u64> distances;
+//
+//   while (offset < m_dataDump->size())
+//   {
+//     if (m_dataDump->size() - offset < bufferSize)
+//       bufferSize = m_dataDump->size() - offset;
+//     // printf("checkpoint 2\n");
+//     m_dataDump->getData(offset, buffer, bufferSize); // BM4
+//     bool writeback = false;
+//     // printf("checkpoint 3\n");
+//     // return;                                           // just to check
+//     for (u64 i = 0; i < bufferSize; i += sizeof(u64)) // for (size_t i = 0; i < (bufferSize / sizeof(u64)); i++)
+//     {
+//       if (m_abort)
+//         return;
+//       u64 pointedaddress = *reinterpret_cast<u64 *>(&buffer[i]);
+//       if (targetaddress >= pointedaddress)
+//       {
+//         distance = targetaddress - pointedaddress;
+//         if (distance < minimum)
+//         {
+//           // minimum = distance;
+//           // sources.clear();
+//           sourceinfo.foffset = offset + i;
+//           sourceinfo.offset = distance;
+//           sources.push_back(sourceinfo);
+//           thefileoffset = offset + i;
+//           // *reinterpret_cast<u64 *>(&buffer[i]) = 0; // to prevent endless loop
+//           // writeback = true;                         //
+//         }
+//         else if (distance == minimum)
+//         {
+//           sourceinfo.foffset = offset + i;
+//           sourceinfo.offset = distance;
+//           sources.push_back(sourceinfo);
+//           // sources.push_back(offset + i);
+//           thefileoffset = offset + i;
+//           // *reinterpret_cast<u64 *>(&buffer[i]) = 0; // to prevent endless loop
+//           // writeback = true;                         //
+//           // pointerchain.fileoffset[pointerchain.depth] = offset + i;
+//           // pointerchain.offset[pointerchain.depth] = distance;
+//         }
+//       }
+//       if (sources.size() > m_max_source)
+//         break;
+//     }
+//     if (sources.size() > m_max_source)
+//       break;
+//     // if (writeback)
+//     // {
+//     //   m_dataDump->putData(offset, buffer, bufferSize);
+//     //   m_dataDump->flushBuffer();
+//     // }
+//     offset += bufferSize;
+//   }
+//   delete[] buffer; // release memory use for the search of sources
+//
+//   // Now we have fileoffsets stored in sources to repeat this process
+//   // printf("memory scan completed offset is %lx at depth %lx\n\n", minimum, pointerchain.depth);
+//   // pointerchain.offset[pointerchain.depth] = minimum;
+//   pointerchain.depth++;
+// 
+//   printf("**Found %ld sources for address %lx at depth %ld\n", sources.size(), targetaddress, pointerchain.depth);
+//   for (sourceinfo_t sourceinfo : sources)
+//   {
+//     // targetaddress = 0x1000;
+//     // printf("size of memorydump is %lx ", m_memoryDump1->size()); // I swapped the bookmark
+//     //m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
+//     u64 newtargetaddress;
+//     m_memoryDump1->getData(sourceinfo.foffset, &newtargetaddress, sizeof(u64)); // fileoffset is in byte
+// 
+//     // u64 checkaddress;                                             // debug use
+//     // m_dataDump->getData(foffset, &checkaddress, sizeof(u64));     //double check it for debug purpose
+//     // printf("fileoffset = %lx thefileoffset =%lx new target address is %lx old target was %lx\n", sourceinfo.foffset, thefileoffset, newtargetaddress, targetaddress);
+//     if (m_forwardonly)
+//     {
+//       if ((targetaddress > newtargetaddress) || ((m_mainBaseAddr <= newtargetaddress) && (newtargetaddress <= (m_mainend))))
+//       {
+//         pointerchain.fileoffset[pointerchain.depth - 1] = sourceinfo.foffset;
+//         pointerchain.offset[pointerchain.depth - 1] = sourceinfo.offset;
+//         pointersearch(newtargetaddress, pointerchain);
+//       }
+//     }
+//     else
+//     {
+//       /* code */
+//       pointerchain.fileoffset[pointerchain.depth - 1] = sourceinfo.foffset;
+//       pointerchain.offset[pointerchain.depth - 1] = sourceinfo.offset;
+//       pointersearch(newtargetaddress, pointerchain);
+//     }
+//   }
+// 
+//   return;
+// 
+//   // (*displayDump)->getData(pointerchain.fileoffset[pointerchain.depth] * sizeof(u64), &address, sizeof(u64));
+// 
+//   // printf("depth is %d new address is %lx offset is %lx code offset is %lx \n", pointerchain.depth, address, pointerchain.fileoffset[pointerchain.depth], pointerchain.offset[pointerchain.depth]);
+//   // if (address < m_mainBaseAddr + m_mainSize)
+//   // {
+//   //   printf("target reached!");
+//   //   printf("final offset is %lx \n", address - m_mainBaseAddr);
+//   //   pointerchain.depth++;
+//   //   pointerchain.offset[pointerchain.depth] = address - m_mainBaseAddr;
+//   //   // save pointerchain
+//   //   m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t));
+//   //   return;
+// }
+// // change address to new one
 void GuiCheats::startpointersearch2(u64 targetaddress) // using global m_bookmark which has the label field already set correctly
 {
   m_PointerSearch = new PointerSearch_state;
@@ -3966,98 +3966,98 @@ void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **disp
 //   for (u8 i = 0; i < 20; i++)
 //     printf("%d= %d ", i, m_hitcount.offset[i]);
 
-void GuiCheats::searchpointer(u64 address, u64 depth, u64 range, struct pointer_chain_t pointerchain) //assumed range don't extend beyond a segment, need to make seperate call to cover multi segment
-{
-  // using global to reduce overhead
-  // use separate function if need to get rid of range in the passed variable     // u64 m_max_depth; used in first call
-  // u64 m_target;
-  // u64 m_numoffset;
-  // u64 m_max_range;
-  // u64 m_low_main_heap_addr; The lowerst of main or heap start
-  // u64 m_high_main_heap_addr; The highest
-  // printf("in function current depth is %d @@@@@@@@@@@@@@@@@@@@@\n", depth);
-  // return;
-  m_hitcount.offset[pointerchain.depth]++;
-
-  if (address <= m_target && m_target <= address + range)
-  {
-    printf("found =========================");
-    pointerchain.offset[pointerchain.depth] = m_target - address;
-    pointerchain.depth++;
-    m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t)); //((u8 *)&address, sizeof(u64));
-    // *m_pointeroffsetDump->getData(offset * sizeof(pointer_chain_t) , void *buffer, size_t bufferSize);
-    printf("found at depth %ld\n", pointerchain.depth);
-    return;
-  }
-  if (depth == 0)
-  {
-    // printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
-    return;
-    // printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-  }
-  pointerchain.depth++; // for all call
-  depth--;              // for all call
-  // u8 *buffer = new u8[range];
-  u32 num = m_numoffset;
-  u32 nextrange;
-  u64 nextaddress;
-  // u32 endaddress = address + range;
-  // printf("I am at 1");
-  u64 bufferSize = MAX_BUFFER_SIZE;
-  if (range < bufferSize)
-    bufferSize = range;
-  u8 *buffer = new u8[bufferSize];
-  // printf("I am at 2");
-  for (MemoryInfo meminfo : m_targetmemInfos) // a shorten list that has only the real targets
-  {
-    if (address < meminfo.addr)
-    {
-      // printf("I am at 4");
-      return; // address not accessible}
-    }
-    if (address > meminfo.addr + meminfo.size)
-    {
-      // printf("I am at 5, address =%lx meminfo.addr = %1x, meminfo.size =%1x \n", address, meminfo.addr, meminfo.size);
-      continue; // next segment
-    }
-    u64 offset = 0;
-    u64 segmentend = meminfo.addr + meminfo.size;
-    // printf("I am at 3\n");
-    while (address + offset < segmentend)
-    {
-      if (segmentend - (address + offset) < bufferSize)
-        bufferSize = segmentend - (address + offset);
-
-      // printf("reading address %lx bufferSize %lx meminfo.addr is %lx meminfo.size is %lx   ", (address + offset), bufferSize, meminfo.addr, meminfo.size);
-      // printf("Time since last update %d \n", time(NULL) - m_Time1); //   printf("Top level meminfo.addr %lx\n time= %d\n", meminfo.addr, time(NULL) - m_Time1);
-      // return;
-      m_debugger->readMemory(buffer, bufferSize, (address + offset));
-      for (u64 i = 0; i < bufferSize; i += sizeof(u64)) //for (u64 i = 0; i < bufferSize; i += dataTypeSizes[searchType])
-      {
-        nextaddress = *reinterpret_cast<u64 *>(&buffer[i]);
-        // printf("nextaddress = %lx \n", nextaddress);
-        if ((nextaddress >= m_low_main_heap_addr) && (nextaddress <= m_high_main_heap_addr))
-        {
-          // printf("found ptr === %lx ======================================= pointerchain.depth is %d ==============offset+i is  %d \n",nextaddress, pointerchain.depth, offset + i);
-          pointerchain.offset[pointerchain.depth] = offset + i; // per call
-          searchpointer(nextaddress, depth, m_max_range, pointerchain);
-          num--;
-          if (num == 0)
-          {
-            // printf("not found returning &&&&&&&&&&&&&&&&&&&&\n\n");
-            return;
-          }
-        }
-        range -= sizeof(u64);
-        if (range == 0)
-          return;
-      }
-
-      offset += bufferSize;
-    }
-  }
-  delete[] buffer;
-}
+// void GuiCheats::searchpointer(u64 address, u64 depth, u64 range, struct pointer_chain_t pointerchain) //assumed range don't extend beyond a segment, need to make seperate call to cover multi segment
+// {
+//   // using global to reduce overhead
+//   // use separate function if need to get rid of range in the passed variable     // u64 m_max_depth; used in first call
+//   // u64 m_target;
+//   // u64 m_numoffset;
+//   // u64 m_max_range;
+//   // u64 m_low_main_heap_addr; The lowerst of main or heap start
+//   // u64 m_high_main_heap_addr; The highest
+//   // printf("in function current depth is %d @@@@@@@@@@@@@@@@@@@@@\n", depth);
+//   // return;
+//   m_hitcount.offset[pointerchain.depth]++;
+//
+//   if (address <= m_target && m_target <= address + range)
+//   {
+//     printf("found =========================");
+//     pointerchain.offset[pointerchain.depth] = m_target - address;
+//     pointerchain.depth++;
+//     m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t)); //((u8 *)&address, sizeof(u64));
+//     // *m_pointeroffsetDump->getData(offset * sizeof(pointer_chain_t) , void *buffer, size_t bufferSize);
+//     printf("found at depth %ld\n", pointerchain.depth);
+//     return;
+//   }
+//   if (depth == 0)
+//   {
+//     // printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+//     return;
+//     // printf("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+//   }
+//   pointerchain.depth++; // for all call
+//   depth--;              // for all call
+//   // u8 *buffer = new u8[range];
+//   u32 num = m_numoffset;
+//   u32 nextrange;
+//   u64 nextaddress;
+//   // u32 endaddress = address + range;
+//   // printf("I am at 1");
+//   u64 bufferSize = MAX_BUFFER_SIZE;
+//   if (range < bufferSize)
+//     bufferSize = range;
+//   u8 *buffer = new u8[bufferSize];
+//   // printf("I am at 2");
+//   for (MemoryInfo meminfo : m_targetmemInfos) // a shorten list that has only the real targets
+//   {
+//     if (address < meminfo.addr)
+//     {
+//       // printf("I am at 4");
+//       return; // address not accessible}
+//     }
+//     if (address > meminfo.addr + meminfo.size)
+//     {
+//       // printf("I am at 5, address =%lx meminfo.addr = %1x, meminfo.size =%1x \n", address, meminfo.addr, meminfo.size);
+//       continue; // next segment
+//     }
+//     u64 offset = 0;
+//     u64 segmentend = meminfo.addr + meminfo.size;
+//     // printf("I am at 3\n");
+//     while (address + offset < segmentend)
+//     {
+//       if (segmentend - (address + offset) < bufferSize)
+//         bufferSize = segmentend - (address + offset);
+//
+//       // printf("reading address %lx bufferSize %lx meminfo.addr is %lx meminfo.size is %lx   ", (address + offset), bufferSize, meminfo.addr, meminfo.size);
+//       // printf("Time since last update %d \n", time(NULL) - m_Time1); //   printf("Top level meminfo.addr %lx\n time= %d\n", meminfo.addr, time(NULL) - m_Time1);
+//       // return;
+//       m_debugger->readMemory(buffer, bufferSize, (address + offset));
+//       for (u64 i = 0; i < bufferSize; i += sizeof(u64)) //for (u64 i = 0; i < bufferSize; i += dataTypeSizes[searchType])
+//       {
+//         nextaddress = *reinterpret_cast<u64 *>(&buffer[i]);
+//         // printf("nextaddress = %lx \n", nextaddress);
+//         if ((nextaddress >= m_low_main_heap_addr) && (nextaddress <= m_high_main_heap_addr))
+//         {
+//           // printf("found ptr === %lx ======================================= pointerchain.depth is %d ==============offset+i is  %d \n",nextaddress, pointerchain.depth, offset + i);
+//           pointerchain.offset[pointerchain.depth] = offset + i; // per call
+//           searchpointer(nextaddress, depth, m_max_range, pointerchain);
+//           num--;
+//           if (num == 0)
+//           {
+//             // printf("not found returning &&&&&&&&&&&&&&&&&&&&\n\n");
+//             return;
+//           }
+//         }
+//         range -= sizeof(u64);
+//         if (range == 0)
+//           return;
+//       }
+//
+//       offset += bufferSize;
+//     }
+//   }
+//   delete[] buffer;
+// }
 
 /**
  * Primary:

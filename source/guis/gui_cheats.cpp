@@ -16,7 +16,7 @@
 #define STARTTIMER \
   time_t unixTime1 = time(NULL);
 #define ENDTIMER \
-  printf(" Time used is %d \n", time(NULL) - unixTime1);
+  printf(" Time used is %ld \n", time(NULL) - unixTime1);
 #define R_UNLESS(expr, res)                   \
   ({                                          \
     if (!(expr))                              \
@@ -844,7 +844,7 @@ void GuiCheats::drawSearchRAMMenu()
   u32 strWidth = 0;
   std::stringstream ss;
 
-  if (m_searchMenuLocation == SEARCH_NONE)
+  if ((m_searchMenuLocation == SEARCH_NONE) || (m_searchMenuLocation == SEARCH_POINTER) || (m_searchMenuLocation == SEARCH_editRAM))
     return;
 
   Gui::drawRectangled(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x00, 0x00, 0x00, 0xA0));
@@ -980,6 +980,8 @@ void GuiCheats::drawSearchRAMMenu()
 
     break;
   case SEARCH_NONE:
+  case SEARCH_editRAM:
+  case SEARCH_POINTER:
     break;
   }
 }
@@ -995,10 +997,11 @@ void GuiCheats::onInput(u32 kdown)
       Gui::g_requestExit = true;
       return;
     }
-    else if (m_searchMenuLocation == SEARCH_POINTER)
+    else if ((m_searchMenuLocation == SEARCH_POINTER) || (m_showpointermenu))
     {
       m_searchMenuLocation = SEARCH_NONE;
       m_abort = true;
+      m_showpointermenu = false;
       printf("abort pressed .. \n");
     }
     else if (m_searchMenuLocation == SEARCH_editRAM)
@@ -1039,14 +1042,17 @@ void GuiCheats::onInput(u32 kdown)
     {
       m_abort = false;
       // (new Snackbar("Starting pointer search"))->show();
-      m_searchMenuLocation = SEARCH_NONE;
+      // m_searchMenuLocation = SEARCH_NONE;
       printf("starting pointer search from plus %lx \n", m_EditorBaseAddr);
       m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
       m_abort = false;
       m_Time1 = time(NULL);
       startpointersearch2(m_EditorBaseAddr); // need help here; don't know what always crash when startpointersearch2 is called from here
+      char st[100];
+      snprintf(st, 100, "Done pointer search found %ld pointer in %d seconds", m_pointer_found, time(NULL) - m_Time1);
       printf("done pointer search \n");
       printf("Time taken =%ld\n", time(NULL) - m_Time1);
+      (new Snackbar(st))->show();
     }
     if (kdown & KEY_UP)
     {
@@ -1279,7 +1285,7 @@ void GuiCheats::onInput(u32 kdown)
                   while (!getinput("Enter the value at this memory", "You must know what type is the value and set it correctly in the search memory type setting", "", &value))
                   {
                   }
-                  printf("value = %ld\n", value);
+                  printf("value = %ld\n", value._u64);
                   rebasepointer(value); //bookmark);
                 }
                 Gui::g_currMessageBox->hide();
@@ -1651,7 +1657,10 @@ void GuiCheats::onInput(u32 kdown)
       if (m_menuLocation == CANDIDATES)
         m_selectedEntry = 0;
     }
-    if (kdown & KEY_ZR)
+
+    u32 kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
+
+    if ((kdown & KEY_ZR) && !(kheld & KEY_ZL))
     {
       m_addresslist_offset += 8;
       if (m_addresslist_offset >= (m_memoryDump->size() / sizeof(u64)))
@@ -1661,7 +1670,7 @@ void GuiCheats::onInput(u32 kdown)
       // printf("%s\n", "ZR key pressed");
     }
 
-    if (kdown & KEY_ZL)
+    if ((kdown & KEY_ZR) && (kheld & KEY_ZL))
     {
       if (m_addresslist_offset >= 8)
         m_addresslist_offset -= 8;
@@ -1669,7 +1678,8 @@ void GuiCheats::onInput(u32 kdown)
     }
 
     // End Mod
-    if (kdown & KEY_Y)
+    // hidScanInput();
+    if ((kdown & KEY_Y) && (kheld & KEY_ZL))
     {
       if (m_searchMenuLocation == SEARCH_NONE)
       {
@@ -1677,7 +1687,21 @@ void GuiCheats::onInput(u32 kdown)
         { // in bookmark mode
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           m_searchMenuLocation = SEARCH_POINTER;
-          if (false)
+          // m_showpointermenu = true;
+        }
+      }
+    }
+
+    if ((kdown & KEY_Y) && !(kheld & KEY_ZL))
+    {
+      if (m_searchMenuLocation == SEARCH_NONE)
+      {
+        if (m_memoryDump1 != nullptr)
+        { // in bookmark mode
+          m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
+          // m_searchMenuLocation = SEARCH_POINTER;
+          // m_showpointermenu = true;
+          if (m_menuLocation == CANDIDATES)
           {
             bookmark_t bookmark;
             m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
@@ -1732,12 +1756,12 @@ void GuiCheats::onInput(u32 kdown)
       printf("%s\n", tidStr.c_str());
       printf("%s\n", buildIDStr.c_str());
       //make sure not using bookmark
-      if (m_memoryDump1 != nullptr)
-      {
-        m_memoryDump = m_memoryDump1;
-        m_memoryDump1 = nullptr;
-      }
-      m_addresslist_offset = 0;
+      // if (m_memoryDump1 != nullptr)
+      // {
+      //   m_memoryDump = m_memoryDump1;
+      //   m_memoryDump1 = nullptr;
+      // }
+      // m_addresslist_offset = 0;
       // end mod
     }
   }
@@ -1765,6 +1789,7 @@ void GuiCheats::onInput(u32 kdown)
           m_selectedEntry = 0;
           break;
         case SEARCH_NONE:
+        case SEARCH_POINTER:
           break;
         case SEARCH_editRAM: // need UP
           if (m_selectedEntry > 4)
@@ -1795,6 +1820,7 @@ void GuiCheats::onInput(u32 kdown)
             m_selectedEntry = 1;
           break;
         case SEARCH_NONE:
+        case SEARCH_POINTER:
           break;
         case SEARCH_editRAM: // need DOWN
           if (m_selectedEntry < 35)
@@ -1823,6 +1849,7 @@ void GuiCheats::onInput(u32 kdown)
             m_searchValueIndex--;
           break;
         case SEARCH_NONE:
+        case SEARCH_POINTER:
           break;
         case SEARCH_editRAM: // need LEFT
           if (m_selectedEntry % 5 > 1)
@@ -1846,6 +1873,7 @@ void GuiCheats::onInput(u32 kdown)
             m_searchValueIndex++;
           break;
         case SEARCH_NONE:
+        case SEARCH_POINTER:
           break;
         case SEARCH_editRAM: // need RIGHT
           if (m_selectedEntry % 5 < 4)
@@ -2475,14 +2503,13 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
             newdataDump->addData((u8 *)&realValue, sizeof(u64));
             helperinfo.count++;
             // printf("%lx,%lx\n",address,realValue);
-            std::stringstream ss; // replace the printf
-            ss.str("");
-            ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
-            ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
-            char st[27];
-            // st[28] = 13;
-            snprintf(st, 27, "%s\n", ss.str().c_str());    //
-            newstringDump->addData((u8 *)&st, sizeof(st)); //
+            // std::stringstream ss; // replace the printf
+            // ss.str("");
+            // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
+            // ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
+            // char st[27];
+            // snprintf(st, 27, "%s\n", ss.str().c_str());    //
+            // newstringDump->addData((u8 *)&st, sizeof(st)); //
           }
           break;
         }
@@ -2603,7 +2630,7 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
         debugger->readMemory(ram_buffer, helperinfo.size, helperinfo.address);
       }
       searchValue_t value = {0};
-      searchValue_t testing = {0}; // temp
+      // searchValue_t testing = {0}; // temp
       u64 address = 0;
 
       address = *reinterpret_cast<u64 *>(&buffer[i]); //(*displayDump)->getData(i * sizeof(u64), &address, sizeof(u64));
@@ -2802,8 +2829,8 @@ void GuiCheats::searchMemoryValuesPrimary(Debugger *debugger, searchType_t searc
 {
   bool ledOn = false;
 
-  searchValue_t zeroValue;
-  zeroValue._u64 = 0;
+  // searchValue_t zeroValue;
+  // zeroValue._u64 = 0;
   // printf("%s\n", "searchMemoryValuesPrimary");
   // printf("%s\n", titleNameStr.c_str());
   // printf("%s\n", tidStr.c_str());
@@ -3699,7 +3726,7 @@ void GuiCheats::rebasepointer(searchValue_t value) //struct bookmark_t bookmark)
 //   // printf("memory scan completed offset is %lx at depth %lx\n\n", minimum, pointerchain.depth);
 //   // pointerchain.offset[pointerchain.depth] = minimum;
 //   pointerchain.depth++;
-// 
+//
 //   printf("**Found %ld sources for address %lx at depth %ld\n", sources.size(), targetaddress, pointerchain.depth);
 //   for (sourceinfo_t sourceinfo : sources)
 //   {
@@ -3708,7 +3735,7 @@ void GuiCheats::rebasepointer(searchValue_t value) //struct bookmark_t bookmark)
 //     //m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
 //     u64 newtargetaddress;
 //     m_memoryDump1->getData(sourceinfo.foffset, &newtargetaddress, sizeof(u64)); // fileoffset is in byte
-// 
+//
 //     // u64 checkaddress;                                             // debug use
 //     // m_dataDump->getData(foffset, &checkaddress, sizeof(u64));     //double check it for debug purpose
 //     // printf("fileoffset = %lx thefileoffset =%lx new target address is %lx old target was %lx\n", sourceinfo.foffset, thefileoffset, newtargetaddress, targetaddress);
@@ -3729,11 +3756,11 @@ void GuiCheats::rebasepointer(searchValue_t value) //struct bookmark_t bookmark)
 //       pointersearch(newtargetaddress, pointerchain);
 //     }
 //   }
-// 
+//
 //   return;
-// 
+//
 //   // (*displayDump)->getData(pointerchain.fileoffset[pointerchain.depth] * sizeof(u64), &address, sizeof(u64));
-// 
+//
 //   // printf("depth is %d new address is %lx offset is %lx code offset is %lx \n", pointerchain.depth, address, pointerchain.fileoffset[pointerchain.depth], pointerchain.offset[pointerchain.depth]);
 //   // if (address < m_mainBaseAddr + m_mainSize)
 //   // {
@@ -3784,7 +3811,7 @@ void GuiCheats::resumepointersearch2()
 
 void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **displayDump, MemoryDump **dataDump,
 {
-  // printf("targetaddress %lx PS_depth %ld PS_index %ld PS_num_sources %ld\n",targetaddress, PS_depth, PS_index, PS_num_sources);
+  // printf("targetaddress %lx PS_depth %ld PS_index %ld PS_num_sources %ld\n", targetaddress, PS_depth, PS_index, PS_num_sources);
   if ((m_mainBaseAddr <= targetaddress) && (targetaddress <= (m_mainend)))
   {
 

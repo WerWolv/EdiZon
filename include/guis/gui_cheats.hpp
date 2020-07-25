@@ -81,6 +81,7 @@ private:
   u64 m_high_main_heap_addr = 0x10000000000;
   u64 m_pointer_found = 0;
   bool m_abort = false;
+  bool m_showpointermenu = false;
 
   std::map<u64, u64> m_frozenAddresses;
 

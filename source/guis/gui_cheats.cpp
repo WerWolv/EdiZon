@@ -532,11 +532,50 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 290, 130, COLOR_BLACK, pidStr.c_str(), ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 290, 150, COLOR_BLACK, buildIDStr.c_str(), ALIGNED_LEFT);
 
-  if ((Account::g_activeUser.uid[0] != 0) && (Account::g_activeUser.uid[1] != 0))
+  // if ((Account::g_activeUser.uid[0] != 0) && (Account::g_activeUser.uid[1] != 0))
+  // {
+  //   ss.str("");
+  //   ss << Account::g_accounts[Account::g_activeUser]->getUserName() << " [ " << std::hex << (Account::g_activeUser.uid[1]) << " " << (Account::g_activeUser.uid[0]) << " ]";
+  //   Gui::drawTextAligned(font20, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
+  // }
+  //draw pointer chain if availabe on bookmark
+  // status bar
+  if (m_memoryDump1 != nullptr && m_menuLocation == CANDIDATES)
   {
-    ss.str("");
-    ss << Account::g_accounts[Account::g_activeUser]->getUserName() << " [ " << std::hex << (Account::g_activeUser.uid[1]) << " " << (Account::g_activeUser.uid[0]) << " ]";
-    Gui::drawTextAligned(font20, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
+    bookmark_t bookmark;
+    m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+    if (bookmark.pointer.depth > 0)
+    {
+      ss.str("");
+      int i = 0;
+      ss << "z=" << bookmark.pointer.depth << " main"; //[0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << m_mainBaseAddr << "]";
+      u64 nextaddress = m_mainBaseAddr;
+      for (int z = bookmark.pointer.depth; z >= 0; z--)
+      {
+        ss << "+" << std::uppercase << std::hex << bookmark.pointer.offset[z];
+        // ss << " z= " << z << " ";
+        // printf("+%lx z=%d ", pointer_chain.offset[z], z);
+        nextaddress += bookmark.pointer.offset[z];
+        // ss << "[0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << nextaddress << "]";
+        // printf("[%lx]", nextaddress);
+        MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
+        if (meminfo.perm == Perm_Rw)
+          m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+        else
+        {
+          ss << "(*access denied*)";
+          // printf("*access denied*");
+          break;
+        }
+        ss << "(" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << nextaddress << ")";
+        i++;
+        if ((i == 4) || (i == 8))
+          ss << "\n";
+        // printf("(%lx)", nextaddress);
+      }
+      ss << " " << dataTypes[bookmark.type];
+      Gui::drawTextAligned(font14, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
+    }
   }
 
   if (m_cheatCnt > 0)
@@ -637,7 +676,7 @@ void GuiCheats::draw()
         Gui::drawRectangle(Gui::g_framebuffer_width - 550, 300 + line * 40, 496, 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
         Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 530, 305 + line * 40, (m_selectedEntry == line && m_menuLocation == CANDIDATES) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
       }
-    else // Book mark screen
+    else // Bookmark screen
       for (u8 line = 0; line < 8; line++)
       {
         if ((line + m_addresslist_offset) >= (m_memoryDump->size() / sizeof(u64)))
@@ -651,14 +690,47 @@ void GuiCheats::draw()
           u64 address = 0;
           m_memoryDump->getData((line + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));
           m_AttributeDumpBookmark->getData((line + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+          if (bookmark.pointer.depth > 0) // check if pointer chain point to valid address update address if necessary
+          {
+            bool updateaddress = true;
+            u64 nextaddress = m_mainBaseAddr;
+            for (int z = bookmark.pointer.depth; z >= 0; z--)
+            {
+              nextaddress += bookmark.pointer.offset[z];
+              MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
+              if (meminfo.perm == Perm_Rw)
+                if (z == 0)
+                {
+                  if (address == nextaddress)
+                    updateaddress = false;
+                  else
+                  {
+                    address = nextaddress;
+                  }
+                }
+                else
+                  m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+              else
+              {
+                updateaddress = false;
+                break;
+              }
+            }
+            if (updateaddress)
+            {
+              m_memoryDump->putData((line + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));
+              m_memoryDump->flushBuffer();
+            }
+          }
           // bookmark display
-
           ss << "[0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address) << "]"; //<< std::left << std::setfill(' ') << std::setw(18) << bookmark.label <<
 
           ss << "  ( " << _getAddressDisplayString(address, m_debugger, (searchType_t)bookmark.type) << " )";
 
           if (m_frozenAddresses.find(address) != m_frozenAddresses.end())
             ss << " \uE130";
+          if (bookmark.pointer.depth > 1) // have pointer
+            ss << " *";
         }
         else
           ss << "And " << std::dec << ((m_memoryDump->size() / sizeof(u64)) - 8) << " others...";
@@ -1044,7 +1116,7 @@ void GuiCheats::onInput(u32 kdown)
       // (new Snackbar("Starting pointer search"))->show();
       // m_searchMenuLocation = SEARCH_NONE;
       printf("starting pointer search from plus %lx \n", m_EditorBaseAddr);
-      m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
+      // m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
       m_abort = false;
       m_Time1 = time(NULL);
       startpointersearch2(m_EditorBaseAddr); // need help here; don't know what always crash when startpointersearch2 is called from here
@@ -1686,6 +1758,7 @@ void GuiCheats::onInput(u32 kdown)
         if (m_memoryDump1 != nullptr)
         { // in bookmark mode
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
+          m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
           m_searchMenuLocation = SEARCH_POINTER;
           // m_showpointermenu = true;
         }

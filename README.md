@@ -5,7 +5,7 @@ This fork is based on the solid foundation of EdiZon. The changes made are on th
 I have added bookmark functionality, completed the range search feature and enhanced the speed to enable search for small value which generates lots of hits.
 Bookmark automatically adjust relative to main and heap so static location relative to main and heap will continue to work for different game run. You can also extract the memory location pointed by cheat code to bookmark to explore/edit the ram around there. Able to rebase first offset of cheat code for game version change that only affects the first offset. Pointer search result is added back into bookmark. Bookmark with pointer chain attached will dynamically adjust the address on the bookmark list.
 
-Work in progress : Pointer search so more location can preserve over different game run and stage change in game.
+Work in progress : Faster pointer search, pause/resume of search, examination of intermidiate result, change search parameters mid search. 
 
 PS: In app help on button currently don't show hint what right stick down and left stick down do. Right stick down relates to memory edit and Left stick down relates to pointer search. Just try it to figure it out. New key combo ZL+Y to get into pointer search setup.
 

@@ -119,7 +119,7 @@ private:
 #define MAX_POINTER_TARGET 3
   struct PointerSearch_state
   {
-    // u64 depth = 0;                                                       // depth and index[depth] is where the search is at, pointersearch2 will increment depth and call itself with nexttarget
+    u64 depth = 0;                                                       // depth and index[depth] is where the search is at, pointersearch2 will increment depth and call itself with nexttarget
     u64 index[MAX_POINTER_DEPTH + 1] = {0};                              // when there is a hit retrieve the offsets with indexs and sources[index].offset
     u64 num_offsets[MAX_POINTER_DEPTH + 1] = {0};                        // for analysis
     u64 num_sources[MAX_POINTER_DEPTH + 1] = {0};                        // this is how we will go down the column
@@ -129,7 +129,9 @@ private:
   void startpointersearch2(u64 targetaddress);
   void pointersearch2(u64 targetaddress, u64 depth);
   void resumepointersearch2();
-  bool m_pointersearch_done = false;
+  bool m_pointersearch_canresume = false;
+  bool m_PS_resume = false;
+  bool m_PS_pause = false;
 #define PS_depth depth
 #define PS_index m_PointerSearch->index[PS_depth]
 // #define PS_indexP m_PointerSearch->index[PS_depth-1]
@@ -137,6 +139,13 @@ private:
 #define PS_num_sources m_PointerSearch->num_sources[PS_depth]
 // #define PS_num_sourcesP m_PointerSearch->num_sources[PS_depth-1]
 #define PS_sources m_PointerSearch->sources[PS_depth]
+#define PS_lastdepth m_PointerSearch->depth
+#define REPLACEFILE(file1,file2) remove(file2);\
+    while (access(file2, F_OK) == 0)\
+    { printf("waiting for delete %s\n",file2); } \
+    rename(file1,file2);\
+    while (access(file2, F_OK) != 0)\
+    { printf("waiting for rename %s\n",file1); }
 
   bool m_forwardonly = false;
   bool m_forwarddump = false; // reduce from 138 to 26

@@ -866,8 +866,8 @@ void GuiCheats::drawSearchPointerMenu()
 
 void GuiCheats::drawEditRAMMenu()
 {
-  static u32 cursorBlinkCnt = 0;
-  u32 strWidth = 0;
+  // static u32 cursorBlinkCnt = 0;
+  // u32 strWidth = 0;
   std::stringstream ss;
 
   if (m_searchMenuLocation != SEARCH_editRAM) // need
@@ -1077,6 +1077,7 @@ void GuiCheats::drawSearchRAMMenu()
 
 void GuiCheats::onInput(u32 kdown)
 {
+  u32 kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
   if (kdown & KEY_B)
   {
 
@@ -1138,7 +1139,7 @@ void GuiCheats::onInput(u32 kdown)
       m_Time1 = time(NULL);
       startpointersearch2(m_EditorBaseAddr);
       char st[100];
-      snprintf(st, 100, "Done pointer search found %ld pointer in %d seconds", m_pointer_found, time(NULL) - m_Time1);
+      snprintf(st, 100, "Done pointer search found %ld pointer in %ld seconds", m_pointer_found, time(NULL) - m_Time1);
       printf("done pointer search \n");
       printf("Time taken =%ld\n", time(NULL) - m_Time1);
       (new Snackbar(st))->show();
@@ -1793,8 +1794,6 @@ void GuiCheats::onInput(u32 kdown)
         m_selectedEntry = 0;
     }
 
-    u32 kheld = hidKeysHeld(CONTROLLER_P1_AUTO);
-
     if ((kdown & KEY_ZR) && !(kheld & KEY_ZL))
     {
       m_addresslist_offset += 8;
@@ -1907,8 +1906,10 @@ void GuiCheats::onInput(u32 kdown)
         switch (m_searchMenuLocation)
         {
         case SEARCH_TYPE:
-          [[fallthrough]] case SEARCH_MODE : if (m_selectedEntry % 2 == 1)
-                                                 m_selectedEntry--;
+        // [[fallthrough]]
+        case SEARCH_MODE:
+          if (m_selectedEntry % 2 == 1)
+            m_selectedEntry--;
           break;
         case SEARCH_REGION:
           if (m_selectedEntry > 0)
@@ -1937,8 +1938,10 @@ void GuiCheats::onInput(u32 kdown)
         switch (m_searchMenuLocation)
         {
         case SEARCH_TYPE:
-          [[fallthrough]] case SEARCH_MODE : if ((m_selectedEntry + 1) < 12 && m_selectedEntry % 2 == 0)
-                                                 m_selectedEntry++;
+        // [[fallthrough]]
+        case SEARCH_MODE:
+          if ((m_selectedEntry + 1) < 12 && m_selectedEntry % 2 == 0)
+            m_selectedEntry++;
           break;
         case SEARCH_REGION:
           if (m_selectedEntry < 3)
@@ -1968,8 +1971,10 @@ void GuiCheats::onInput(u32 kdown)
         switch (m_searchMenuLocation)
         {
         case SEARCH_TYPE:
-          [[fallthrough]] case SEARCH_MODE : if (m_selectedEntry >= 2)
-                                                 m_selectedEntry -= 2;
+        // [[fallthrough]]
+        case SEARCH_MODE:
+          if (m_selectedEntry >= 2)
+            m_selectedEntry -= 2;
           break;
         case SEARCH_REGION:
           break;
@@ -1992,8 +1997,10 @@ void GuiCheats::onInput(u32 kdown)
         switch (m_searchMenuLocation)
         {
         case SEARCH_TYPE:
-          [[fallthrough]] case SEARCH_MODE : if (m_selectedEntry <= 9)
-                                                 m_selectedEntry += 2;
+        // [[fallthrough]]
+        case SEARCH_MODE:
+          if (m_selectedEntry <= 9)
+            m_selectedEntry += 2;
           break;
         case SEARCH_REGION:
           break;
@@ -2652,6 +2659,13 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
             // newstringDump->addData((u8 *)&st, sizeof(st)); //
           }
           break;
+        case SEARCH_MODE_NONE:
+        case SEARCH_MODE_SAME:
+        case SEARCH_MODE_DIFF:
+        case SEARCH_MODE_INC:
+        case SEARCH_MODE_DEC:
+          printf("search mode non !");
+          break;
         }
       }
 
@@ -3201,6 +3215,23 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
             }
           }
           break;
+        case SEARCH_MODE_POINTER:
+          if (((newValue._u64 >= m_mainBaseAddr) && (newValue._u64 <= (m_mainend))) || ((newValue._u64 >= m_heapBaseAddr) && (newValue._u64 <= (m_heapEnd))))
+          {
+            addrDump->addData((u8 *)&addr, sizeof(u64));
+            newMemDump->addData((u8 *)&newValue, sizeof(u64));
+            helperinfo.count++;
+          }
+          printf("error 321\n");
+          break;
+        case SEARCH_MODE_RANGE:
+        case SEARCH_MODE_NONE:
+        case SEARCH_MODE_NEQ:
+        case SEARCH_MODE_EQ:
+        case SEARCH_MODE_GT:
+        case SEARCH_MODE_LT:
+          printf("error 123\n");
+          break;
         }
         addr += dataTypeSizes[searchType];
       }
@@ -3505,6 +3536,12 @@ void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchValue_t sea
         }
         break;
       case SEARCH_MODE_NONE:
+      case SEARCH_MODE_POINTER:
+      case SEARCH_MODE_RANGE:
+      case SEARCH_MODE_NEQ:
+      case SEARCH_MODE_EQ:
+      case SEARCH_MODE_GT:
+      case SEARCH_MODE_LT:
         break;
       }
     }

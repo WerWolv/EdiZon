@@ -3,11 +3,20 @@
 This fork is based on the solid foundation of EdiZon. The changes made are on the game memory hack aspect. 
 
 I have added bookmark functionality, completed the range search feature and enhanced the speed to enable search for small value which generates lots of hits.
-Bookmark automatically adjust relative to main and heap so static location relative to main and heap will continue to work for different game run. You can also extract the memory location pointed by cheat code to bookmark to explore/edit the ram around there. Able to rebase first offset of cheat code for game version change that only affects the first offset. 
+Bookmark automatically adjust relative to main and heap so static location relative to main and heap will continue to work for different game run. You can also extract the memory location pointed by cheat code to bookmark to explore/edit the ram around there. Able to rebase first offset of cheat code for game version change that only affects the first offset. Pointer search result is added back into bookmark. Bookmark with pointer chain attached will dynamically adjust the address on the bookmark list.
 
-Work in progress : Pointer search so more location can preserve over different game run and stage change in game.
+Work in progress : Faster pointer search, pause/resume of search, examination of intermidiate result, change search parameters mid search. 
 
-PS: In app help on button currently don't show hint what right stick down and left stick down do. Right stick down relates to memory edit and Left stick down relates to pointer search. Just try it to figure it out.
+PS: In app help on button currently don't show hint what right stick down and left stick down do. Right stick down relates to memory edit and Left stick down relates to pointer search. Just try it to figure it out. New key combo ZL+Y to get into pointer search setup.
+
+Here are the steps to do pointer search. 
+1. Clear previous search result if any.
+2. Perform a search of type pointer when the game is in the state you want. (Press Lstick down will quickly setup the search).
+3. Select the bookmark with address you want to find the pointer chain that targets it. 
+4. Press Lstick down will start the search with default configuration. 
+5. Or press LZ+Y to go setting page for the search parameters. Move the cursor to the position you want to modify and press L or R to increment or decrement the value. Some value cannot be modified at the moment. Press + to start the search.
+6. Result is added to the bookmark. Test it and if a good pointer chain is found add it to the cheat code file.
+
 
 
 

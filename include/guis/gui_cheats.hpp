@@ -142,10 +142,10 @@ private:
   bool m_forwarddump = false; // reduce from 138 to 26
   struct pointer_chain_t
   {
-    u64 depth;
-    u64 offset[MAX_POINTER_DEPTH + 1]; // offset to address pointed by pointer
+    u64 depth = 0;
+    u64 offset[MAX_POINTER_DEPTH + 1] = {0}; // offset to address pointed by pointer
     // below is for debugging can consider removing;
-    u64 fileoffset[MAX_POINTER_DEPTH + 1]; // offset to the file that has the address where the pointer was stored in this instance for debugging
+    u64 fileoffset[MAX_POINTER_DEPTH + 1] = {0}; // offset to the file that has the address where the pointer was stored in this instance for debugging
   };
   struct bookmark_t
   {
@@ -157,7 +157,7 @@ private:
     bool deleted = false;
   };
   bookmark_t m_bookmark;      //global for use in pointer search , target address to be updated dynamically by display routine TBD
-  bookmark_t bookmark;        //maybe not used
+  bookmark_t bookmark;        //used in add book mark
   pointer_chain_t m_hitcount; // maybe not used
 
   void rebasepointer(searchValue_t value); //struct bookmark_t bookmark);
@@ -172,6 +172,7 @@ private:
   bool valuematch(searchValue_t value, u64 nextaddress);
   bool getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue);
   bool addcodetofile(u64 index);
+  bool addstaticcodetofile(u64 index);
   u64 m_heapSize = 0;
   u64 m_mainSize = 0;
   u64 m_heapEnd = 0;

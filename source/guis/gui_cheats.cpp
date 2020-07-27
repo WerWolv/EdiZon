@@ -540,6 +540,7 @@ void GuiCheats::draw()
   // }
   //draw pointer chain if availabe on bookmark
   // status bar
+  // if (false)
   if (m_memoryDump1 != nullptr && m_menuLocation == CANDIDATES)
   {
     bookmark_t bookmark;
@@ -573,6 +574,21 @@ void GuiCheats::draw()
           ss << "\n";
         // printf("(%lx)", nextaddress);
       }
+      ss << " " << dataTypes[bookmark.type];
+      Gui::drawTextAligned(font14, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
+    }
+    else
+    {
+      ss.str("");
+      if (bookmark.heap == true)
+      {
+        ss << "Heap + ";
+      }
+      else
+      {
+        ss << "Main + ";
+      }
+      ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.offset;
       ss << " " << dataTypes[bookmark.type];
       Gui::drawTextAligned(font14, 768, 205, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
     }
@@ -690,6 +706,7 @@ void GuiCheats::draw()
           u64 address = 0;
           m_memoryDump->getData((line + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));
           m_AttributeDumpBookmark->getData((line + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+          // if (false)
           if (bookmark.pointer.depth > 0) // check if pointer chain point to valid address update address if necessary
           {
             bool updateaddress = true;
@@ -1119,7 +1136,7 @@ void GuiCheats::onInput(u32 kdown)
       // m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
       m_abort = false;
       m_Time1 = time(NULL);
-      startpointersearch2(m_EditorBaseAddr); // need help here; don't know what always crash when startpointersearch2 is called from here
+      startpointersearch2(m_EditorBaseAddr);
       char st[100];
       snprintf(st, 100, "Done pointer search found %ld pointer in %d seconds", m_pointer_found, time(NULL) - m_Time1);
       printf("done pointer search \n");
@@ -1228,6 +1245,7 @@ void GuiCheats::onInput(u32 kdown)
       //bookmark_t bookmark;
       memcpy(&bookmark.label, &cheat.readable_name, sizeof(bookmark.label));
       bookmark.pointer.depth = 0;
+      bookmark.deleted = false;
       bool success = false;
       u64 offset[MAX_POINTER_DEPTH + 1] = {0};
       u64 depth = 0;
@@ -1240,6 +1258,7 @@ void GuiCheats::onInput(u32 kdown)
         u8 Register = (cheat.opcodes[i] >> 16) & 0xF;
         u8 FSA = (cheat.opcodes[i] >> 12) & 0xF;
         u8 T = (cheat.opcodes[i] >> 24) & 0xF;
+        u8 M = (cheat.opcodes[i] >> 20) & 0xF;
 
         printf("code %x opcode %d register %d FSA %d %x \n", cheat.opcodes[i], opcode, Register, FSA, cheat.opcodes[i + 1]);
 
@@ -1250,6 +1269,49 @@ void GuiCheats::onInput(u32 kdown)
           break;
         }
 
+        if (opcode == 0)
+        { //static case
+          i++;
+          bookmark.offset = cheat.opcodes[i];
+          switch (T)
+          {
+          case 1:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_8BIT;
+            i++;
+            break;
+          case 2:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_16BIT;
+            i++;
+            break;
+          case 4:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_32BIT;
+            i++;
+            break;
+          case 8:
+            bookmark.type = SEARCH_TYPE_UNSIGNED_64BIT;
+            i += 2;
+            break;
+          default:
+            printf("cheat code processing error, wrong width value\n");
+            bookmark.type = SEARCH_TYPE_UNSIGNED_32BIT;
+            i++;
+            break;
+          };
+          if (M == 1)
+          {
+            bookmark.heap = true;
+            address = m_heapBaseAddr + bookmark.offset;
+          }
+          else
+          {
+            bookmark.heap = false;
+            address = m_mainBaseAddr + bookmark.offset;
+          }
+
+          m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+          m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+          continue;
+        }
         if (depth == 0)
         {
           if (opcode == 5 && FSA == 0)
@@ -1297,6 +1359,7 @@ void GuiCheats::onInput(u32 kdown)
             bookmark.type = SEARCH_TYPE_UNSIGNED_64BIT;
             break;
           default:
+            printf("cheat code processing error, wrong width value\n");
             bookmark.type = SEARCH_TYPE_UNSIGNED_32BIT;
             break;
           }
@@ -1783,20 +1846,13 @@ void GuiCheats::onInput(u32 kdown)
             if (bookmark.pointer.depth > 1)
             {
               addcodetofile(m_selectedEntry + m_addresslist_offset);
-              m_searchMenuLocation = SEARCH_NONE;
-              // dmntchtForceOpenCheatProcess();
-              (new Snackbar("Coded added to cheat file, reload to take effect"))->show();
-              // (new MessageBox("Add current pointer chain to cheat file?", MessageBox::YES_NO))
-              //     ->setSelectionAction([&](u8 selection) {
-              //       if (selection)
-              //       {
-              //         addcodetofile(index); // index also does not preserve; need to figure out why this won't work
-              //         m_searchMenuLocation = SEARCH_NONE;
-              //       }
-              //       Gui::g_currMessageBox->hide();
-              //     })
-              //     ->show();
             }
+            else
+            {
+              addstaticcodetofile(m_selectedEntry + m_addresslist_offset);
+            }
+            m_searchMenuLocation = SEARCH_NONE;
+            (new Snackbar("Coded added to cheat file, reload to take effect"))->show();
           }
           // pointercheck();
           // (new Snackbar("Searching pointer "))->show();
@@ -1962,6 +2018,17 @@ void GuiCheats::onInput(u32 kdown)
           u64 address = m_EditorBaseAddr - (m_EditorBaseAddr % 16) - 0x20 + (m_selectedEntry - 1 - (m_selectedEntry / 5)) * 4 + m_addressmod;
 
           bookmark_t bookmark;
+          if (address >= m_memoryDump->getDumpInfo().heapBaseAddress && address < (m_memoryDump->getDumpInfo().heapBaseAddress + m_memoryDump->getDumpInfo().heapSize))
+          {
+            bookmark.offset = address - m_memoryDump->getDumpInfo().heapBaseAddress;
+            bookmark.heap = true;
+          }
+          else if (address >= m_memoryDump->getDumpInfo().mainBaseAddress && address < (m_memoryDump->getDumpInfo().mainBaseAddress + m_memoryDump->getDumpInfo().mainSize))
+          {
+            bookmark.offset = address - m_memoryDump->getDumpInfo().mainBaseAddress;
+            bookmark.heap = false;
+          }
+
           bookmark.type = m_searchType;
           Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", "", SwkbdType_QWERTY, bookmark.label, 18);
           m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
@@ -4348,6 +4415,67 @@ bool GuiCheats::addcodetofile(u64 index)
     //std::cout << "\n" << std::flush; "\r\n"
     // char st[1000];
     // snprintf(st, 1000, "%s\n", ss.str().c_str());
+    fputs(ss.str().c_str(), pfile);
+    fclose(pfile);
+  }
+  else
+    printf("failed writing to cheat file on Edizon dir \n");
+
+  pfile = fopen(realCheatPath.str().c_str(), "a");
+  if (pfile != NULL)
+  {
+    fputs(ss.str().c_str(), pfile);
+    fclose(pfile);
+  }
+  else
+    printf("failed writing to cheat file on contents dir \n");
+
+  return true;
+}
+
+bool GuiCheats::addstaticcodetofile(u64 index)
+{
+  std::stringstream buildIDStr;
+  std::stringstream filebuildIDStr;
+  {
+    for (u8 i = 0; i < 8; i++)
+      buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+    // buildIDStr.str("attdumpbookmark");
+    filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".txt";
+  }
+
+  std::stringstream realCheatPath;
+  {
+    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << "/cheats/";
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << buildIDStr.str() << ".txt";
+  }
+
+  bookmark_t bookmark;
+  u64 address;
+  m_AttributeDumpBookmark->getData(index * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+  m_memoryDump->getData(index * sizeof(u64), &address, sizeof(u64));
+  searchValue_t realvalue;
+  realvalue._u64 = 0;
+  m_debugger->readMemory(&realvalue, dataTypeSizes[bookmark.type], address);
+
+  FILE *pfile;
+  pfile = fopen(filebuildIDStr.str().c_str(), "a");
+  std::stringstream ss;
+  if (pfile != NULL)
+  {
+    // printf("going to write to file\n");
+    ss.str("");
+    ss << "[" << bookmark.label << "]"
+       << "\n";
+    ss << "0" << dataTypeSizes[bookmark.type] + 0 << (bookmark.heap ? 1 : 0) << "00000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.offset << " "
+       << std::uppercase << std::hex << std::setfill('0') << ((dataTypeSizes[bookmark.type] == 8) ? std::setw(16) : std::setw(8))
+       << ((dataTypeSizes[bookmark.type] == 8) ? realvalue._u64 : realvalue._u32) << "\n";
+    printf("index = %ld depth = %ld offset = %ld offset = %ld offset = %ld offset = %ld\n", index, bookmark.pointer.depth, bookmark.pointer.offset[3], bookmark.pointer.offset[2], bookmark.pointer.offset[1], bookmark.pointer.offset[0]);
+    printf("address = %lx value = %lx \n", address, realvalue._u64);
+    printf("dataTypeSizes[bookmark.type] %d\n", dataTypeSizes[bookmark.type]);
     fputs(ss.str().c_str(), pfile);
     fclose(pfile);
   }

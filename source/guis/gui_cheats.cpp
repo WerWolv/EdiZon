@@ -285,7 +285,7 @@ GuiCheats::GuiCheats() : Gui()
     // {
     //   printf("waiting for rename\n");
     // }
-    REPLACEFILE(filebuildIDStr.str().c_str(), EDIZON_DIR "/tempbookmark.dat");
+    REPLACEFILE(EDIZON_DIR "/tempbookmark.dat", filebuildIDStr.str().c_str());
 
     m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, false);
     // m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, true);
@@ -2252,27 +2252,33 @@ void GuiCheats::onInput(u32 kdown)
                 printf("%s%lx\n", "Dump Size = ", m_memoryDump->size());
                 GuiCheats::searchMemoryValuesSecondary(m_debugger, m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
                 delete m_memoryDump;
-                remove(EDIZON_DIR "/memdump1.dat");
-                rename(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
-                printf("%s\n", "renaming");
+                // remove(EDIZON_DIR "/memdump1.dat");
+                // rename(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
+                // printf("%s\n", "renaming");
+                REPLACEFILE(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat")
                 m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::ADDR, false);
               }
               else if (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR)
               {
                 GuiCheats::searchMemoryValuesTertiary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
                 delete m_memoryDump;
-                remove(EDIZON_DIR "/memdump1.dat");
-                remove(EDIZON_DIR "/memdump1a.dat");
-                rename(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
-                rename(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
+                // remove(EDIZON_DIR "/memdump1.dat");
+                // remove(EDIZON_DIR "/memdump1a.dat");
+                // rename(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
+                // rename(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
+                REPLACEFILE(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
+                REPLACEFILE(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
                 m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::ADDR, false);
-                remove(EDIZON_DIR "/datadump2.dat");
-                rename(EDIZON_DIR "/datadump4.dat", EDIZON_DIR "/datadump2.dat");
-                // rename B to A
-                remove(EDIZON_DIR "/datadumpA.dat");
-                rename(EDIZON_DIR "/datadumpAa.dat", EDIZON_DIR "/datadumpA.dat");
-                remove(EDIZON_DIR "/datadumpB.dat");
-                rename(EDIZON_DIR "/datadumpBa.dat", EDIZON_DIR "/datadumpB.dat");
+                // remove(EDIZON_DIR "/datadump2.dat");
+                // rename(EDIZON_DIR "/datadump4.dat", EDIZON_DIR "/datadump2.dat");
+                REPLACEFILE(EDIZON_DIR "/datadump4.dat", EDIZON_DIR "/datadump2.dat");
+                // // rename B to A
+                // remove(EDIZON_DIR "/datadumpA.dat");
+                // rename(EDIZON_DIR "/datadumpAa.dat", EDIZON_DIR "/datadumpA.dat");
+                REPLACEFILE(EDIZON_DIR "/datadumpAa.dat", EDIZON_DIR "/datadumpA.dat")
+                // remove(EDIZON_DIR "/datadumpB.dat");
+                // rename(EDIZON_DIR "/datadumpBa.dat", EDIZON_DIR "/datadumpB.dat");
+                REPLACEFILE(EDIZON_DIR "/datadumpBa.dat", EDIZON_DIR "/datadumpB.dat");
               }
             }
             else
@@ -2288,8 +2294,9 @@ void GuiCheats::onInput(u32 kdown)
                 GuiCheats::searchMemoryAddressesSecondary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, &m_memoryDump);
                 if (m_nothingchanged == false)
                 {
-                  remove(EDIZON_DIR "/memdump1a.dat");                              // remove old helper
-                  rename(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat"); // rename new helper to current helper
+                  // remove(EDIZON_DIR "/memdump1a.dat");                              // remove old helper
+                  // rename(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat"); // rename new helper to current helper
+                  REPLACEFILE(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
                 }
               }
             }
@@ -4367,8 +4374,8 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID)
 
     realCheatPath << buildIDStr.str() << ".txt";
 
-    rename(lonelyCheatPath.str().c_str(), realCheatPath.str().c_str());
-
+    // rename(lonelyCheatPath.str().c_str(), realCheatPath.str().c_str());
+    REPLACEFILE(lonelyCheatPath.str().c_str(), realCheatPath.str().c_str());
     (new MessageBox("A new cheat has been added for this title. \n Please restart the game to start using it.", MessageBox::OKAY))->show();
   }
 }

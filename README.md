@@ -15,10 +15,10 @@ Here are the steps to do pointer search.
 3. Select the bookmark with address you want to find the pointer chain that targets it. 
 4. Press Lstick down will start the search with default configuration. 
 5. Or press LZ+Y to go setting page for the search parameters. Move the cursor to the position you want to modify and press L or R to increment or decrement the value. Some value cannot be modified at the moment. Press + to start the search.
-6. Result is added to the bookmark. Test it and if a good pointer chain is found add it to the cheat code file.
+6. Results are appended to the bookmark list. Test them to see the validity of the chain when the game state change, especially after relaunching the game. When satisfied that a good bookmark entry is found press Y while highlighting the bookmark to add it to the cheat code file.
 7. Pointer search can be paused by holddown ZL+B. Normal functionality of the app is all available while pointer search is pause. 
 8. Start pointer search again to resume (step 4 or 5). Very important to ensure memory search results is valid before continuing the pointer chain search, repeat step 2 if necessary. To abort the search and start from scratch press ZL+"+". 
-9. Results are appended to the bookmark list. Test them to see the validity of the chain when the game state change, especially after relaunching the game. When satisfied that a good bookmark entry is found Y while highlighting the bookmark to add it to the code list.
+
 
 Original functinality of Edizon on game save is available when launched without a game running. 
 

@@ -11,7 +11,7 @@ PS: In app help on button currently don't show hint what right stick down and le
 
 Here are the steps to do pointer search. 
 1. Clear previous search result if any.
-2. Perform a search of type pointer when the game is in the state you want. (Press Lstick down will quickly setup the search).
+2. Perform a search of type pointer when the game is in the state you want. (Press Lstick down will quickly setup the search). The result of this search is used for pointer subsequent pointer search. Very important to get it right to find the pointer chains.
 3. Select the bookmark with address you want to find the pointer chain that targets it. 
 4. Press Lstick down will start the search with default configuration. 
 5. Or press LZ+Y to go setting page for the search parameters. Move the cursor to the position you want to modify and press L or R to increment or decrement the value. Some value cannot be modified at the moment. Press + to start the search.

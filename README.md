@@ -20,6 +20,7 @@ Here are the steps to do pointer chain search.
 8. Start pointer search again to resume (step 4 or 5), in resume case the currently search parameters are used for future iteration of the loop, intermediate targets that are queued up for processing is preserved. Very important to ensure memory search results is valid before continuing the pointer chain search, repeat step 2 if necessary. To abort the search and start from scratch press ZL+"+". 
 
 Interpreting the pointer chain search status display.
+
 F=(pointer chain found) Z=(depth from target) (index to intermediate target being processed currently at this depth)/(total number of of intermediate targets at this depth)   
 
 

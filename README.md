@@ -17,7 +17,7 @@ Here are the steps to do pointer search.
 5. Or press LZ+Y to go setting page for the search parameters. Move the cursor to the position you want to modify and press L or R to increment or decrement the value. Some value cannot be modified at the moment. Press + to start the search.
 6. Results are appended to the bookmark list. Test them to see the validity of the chain when the game state change, especially after relaunching the game. When satisfied that a good bookmark entry is found press Y while highlighting the bookmark to add it to the cheat code file.
 7. Pointer search can be paused by holddown ZL+B. Normal functionality of the app is all available while pointer search is pause. 
-8. Start pointer search again to resume (step 4 or 5), in resume case the currently search parameters are used for future iteration of the loop intermediate target lists are preserved. Very important to ensure memory search results is valid before continuing the pointer chain search, repeat step 2 if necessary. To abort the search and start from scratch press ZL+"+". 
+8. Start pointer search again to resume (step 4 or 5), in resume case the currently search parameters are used for future iteration of the loop, intermediate targets that are queued up for processing is preserved. Very important to ensure memory search results is valid before continuing the pointer chain search, repeat step 2 if necessary. To abort the search and start from scratch press ZL+"+". 
 
 
 Original functinality of Edizon on game save is available when launched without a game running. 

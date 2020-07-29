@@ -17,9 +17,7 @@ Here are the steps to do pointer search.
 5. Or press LZ+Y to go setting page for the search parameters. Move the cursor to the position you want to modify and press L or R to increment or decrement the value. Some value cannot be modified at the moment. Press + to start the search.
 6. Result is added to the bookmark. Test it and if a good pointer chain is found add it to the cheat code file.
 
-
-
-
+Original functinality of Edizon on game save is available when launched without a game running. 
 
   <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/icon.jpg"><br />
       <a href="https://github.com/WerWolv/EdiZon/releases/latest"><img src="https://img.shields.io/github/downloads/WerWolv/EdiZon/total.svg" alt="Latest Release" /></a>

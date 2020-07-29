@@ -21,7 +21,7 @@ Here are the steps to do pointer chain search.
 
 Interpreting the pointer chain search status display.
 
-  F=(pointer chain found) Z=(depth from target) (index to intermediate target being processed currently at this depth)/(total number of of intermediate targets at this depth)   
+  F=(pointer chain found) Z=(depth from target) (index to intermediate target being processed currently at this depth)/(total number of intermediate targets at this depth)   
 
 
 Original functinality of Edizon on game save is available when launched without a game running. 

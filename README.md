@@ -9,7 +9,7 @@ Work in progress : Faster pointer search, pause/resume of search, examination of
 
 PS: In app help on button currently don't show hint what right stick down and left stick down do. Right stick down relates to memory edit and Left stick down relates to pointer search. Just try it to figure it out. New key combo ZL+Y to get into pointer search setup.
 
-Here are the steps to do pointer search. 
+Here are the steps to do pointer chain search. 
 1. Clear previous search result if any.
 2. Perform a search of type pointer when the game is in the state you want. (Press Lstick down will quickly setup the search). The result of this search is used for subsequent pointer search. Very important to get it right to find the pointer chains.
 3. Select the bookmark with address you want to find the pointer chain that targets it. 
@@ -18,6 +18,9 @@ Here are the steps to do pointer search.
 6. Results are appended to the bookmark list. Test them to see the validity of the chain when the game state change, especially after relaunching the game. When satisfied that a good bookmark entry is found press Y while highlighting the bookmark to add it to the cheat code file.
 7. Pointer search can be paused by holddown ZL+B. Normal functionality of the app is all available while pointer search is pause. 
 8. Start pointer search again to resume (step 4 or 5), in resume case the currently search parameters are used for future iteration of the loop, intermediate targets that are queued up for processing is preserved. Very important to ensure memory search results is valid before continuing the pointer chain search, repeat step 2 if necessary. To abort the search and start from scratch press ZL+"+". 
+
+Interpreting the pointer chain search status display.
+F=(pointer chain found) Z=(depth from target) (index to intermediate target being processed currently at this depth)/(total number of of intermediate targets at this depth)   
 
 
 Original functinality of Edizon on game save is available when launched without a game running. 

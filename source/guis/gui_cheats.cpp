@@ -801,48 +801,58 @@ void GuiCheats::drawSearchPointerMenu()
   //   ss << _getValueDisplayString(m_searchValue[0], m_searchType);
   // else if (m_searchValueFormat == FORMAT_HEX)
 
-  Gui::drawText(font20, 310, 165, currTheme.textColor, "Max Depth");
+  Gui::drawText(font20, 310, 160, currTheme.textColor, "Max Depth");
   ss.str("");
   ss << std::uppercase << std::dec << m_max_depth;
   Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 165, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 620, 160, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 0)
-    Gui::drawRectangled(622 + strWidth, 165, 3, 35, currTheme.highlightColor);
+    Gui::drawRectangled(622 + strWidth, 160, 3, 35, currTheme.highlightColor);
 
-  Gui::drawText(font20, 310, 225, currTheme.textColor, "Max Range");
+  Gui::drawText(font20, 310, 200, currTheme.textColor, "Max Range");
   ss.str("");
   ss << "0x" << std::uppercase << std::hex << m_max_range;
   Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 225, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 620, 200, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 1)
-    Gui::drawRectangled(622 + strWidth, 225, 3, 35, currTheme.highlightColor);
+    Gui::drawRectangled(622 + strWidth, 200, 3, 35, currTheme.highlightColor);
 
-  Gui::drawText(font20, 310, 285, currTheme.textColor, "Max Source");
+  Gui::drawText(font20, 310, 240, currTheme.textColor, "Max Source");
   ss.str("");
   ss << std::uppercase << std::dec << m_max_source;
   Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 285, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 620, 240, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 2)
-    Gui::drawRectangled(622 + strWidth, 285, 3, 35, currTheme.highlightColor);
+    Gui::drawRectangled(622 + strWidth, 240, 3, 35, currTheme.highlightColor);
 
-  Gui::drawText(font20, 310, 345, currTheme.textColor, "Target Address");
+  Gui::drawText(font20, 310, 280, currTheme.textColor, "Target Address");
   ss.str("");
   ss << "0x" << std::uppercase << std::hex << m_EditorBaseAddr;
+  if (m_pointersearch_canresume)
+    ss << " Resumable";
   Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 345, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 620, 280, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 3)
-    Gui::drawRectangled(622 + strWidth, 345, 3, 35, currTheme.highlightColor);
+    Gui::drawRectangled(622 + strWidth, 280, 3, 35, currTheme.highlightColor);
 
-  Gui::drawText(font20, 310, 405, currTheme.textColor, "Dump Forward only");
+  Gui::drawText(font20, 310, 320, currTheme.textColor, "Dump Forward only");
   ss.str("");
   if (m_forwarddump)
     ss << "YES";
   else
     ss << "NO";
   Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
-  Gui::drawTextAligned(font20, 620, 405, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font20, 620, 320, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 4)
-    Gui::drawRectangled(622 + strWidth, 405, 3, 35, currTheme.highlightColor);
+    Gui::drawRectangled(622 + strWidth, 320, 3, 35, currTheme.highlightColor);
+
+  Gui::drawText(font20, 310, 360, currTheme.textColor, "Max num of Offsets");
+  ss.str("");
+  ss << "0x" << std::uppercase << std::hex << m_numoffset;
+  Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
+  Gui::drawTextAligned(font20, 620, 360, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 5)
+    Gui::drawRectangled(622 + strWidth, 360, 3, 35, currTheme.highlightColor);
 
   Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0EF Start Search     \uE0E1 Abort     \uE0E0 Edit", ALIGNED_RIGHT);
 
@@ -1085,6 +1095,7 @@ void GuiCheats::onInput(u32 kdown)
     if (m_searchMenuLocation == SEARCH_NONE)
     {
       // Gui::g_nextGui = GUI_MAIN;
+      PSsaveSTATE();
       Gui::g_requestExit = true;
       return;
     }
@@ -1162,7 +1173,7 @@ void GuiCheats::onInput(u32 kdown)
     }
     if (kdown & KEY_DOWN)
     {
-      if (m_selectedEntry < 4)
+      if (m_selectedEntry < 5)
         m_selectedEntry++;
     }
     if (kdown & KEY_R)
@@ -1182,6 +1193,10 @@ void GuiCheats::onInput(u32 kdown)
       else if (m_selectedEntry == 4)
       {
         m_forwarddump = !m_forwarddump;
+      }
+      else if (m_selectedEntry == 5 && m_numoffset < MAX_NUM_POINTER_OFFSET)
+      {
+        m_numoffset++;
       };
     }
     if (kdown & KEY_L)
@@ -1194,9 +1209,13 @@ void GuiCheats::onInput(u32 kdown)
       {
         m_max_range -= 0x100;
       }
-      else if (m_selectedEntry == 2 && m_max_source > 20)
+      else if (m_selectedEntry == 2 && m_max_source > 10)
       {
         m_max_source -= 10;
+      }
+      else if (m_selectedEntry == 5 && m_numoffset > 1)
+      {
+        m_numoffset--;
       };
     }
   }
@@ -1836,6 +1855,7 @@ void GuiCheats::onInput(u32 kdown)
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
           m_searchMenuLocation = SEARCH_POINTER;
+          PSresumeSTATE();
           // m_showpointermenu = true;
         }
       }
@@ -4063,8 +4083,8 @@ void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **disp
     u8 *buffer = new u8[bufferSize];
     u64 distance;
     u64 minimum = m_max_range; // a large number to start
-    // std::vector<sourceinfo_t> sources; // potential sources that points at target with a offset, we will search for the nearest address being pointed by pointer/pointers
     sourceinfo_t sourceinfo;
+    std::vector<std::vector<sourceinfo_t>> sources = {{}};
     // printf("PS_num_sources %d ", PS_num_sources);
     PS_num_sources = 0;
     while (offset < m_dataDump->size())
@@ -4081,31 +4101,61 @@ void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **disp
         if (targetaddress >= pointedaddress)
         {
           distance = targetaddress - pointedaddress;
-          if (distance < minimum)
+          if (distance <= minimum)
           {
             sourceinfo.foffset = offset + i;
             sourceinfo.offset = distance;
-            PS_sources[PS_num_sources] = sourceinfo;
-            PS_num_sources++;
-            // sources.push_back(sourceinfo);
-            // thefileoffset = offset + i; //for debug only
+            // PS_sources[PS_num_sources] = sourceinfo;
+            // PS_num_sources++;
+            for (u32 j = 0; j < sources.size(); j++)
+            {
+
+              if (sources[j].size() == 0 || sources[j][0].offset == distance)
+              {
+                sources[j].push_back(sourceinfo);
+                break;
+              }
+              else if (sources[j][0].offset > distance)
+              {
+                sources.insert(sources.begin() + j, {sourceinfo});
+                break;
+              }
+              else if (j == sources.size() - 1)
+              {
+                sources.push_back({sourceinfo});
+              }
+            }
           }
-          else if (distance == minimum)
-          {
-            sourceinfo.foffset = offset + i;
-            sourceinfo.offset = distance;
-            PS_sources[PS_num_sources] = sourceinfo;
-            PS_num_sources++;
-            // sources.push_back(sourceinfo);
-            // thefileoffset = offset + i; //for deubg only
-          }
+          // else if (distance == minimum)
+          // {
+          //   sourceinfo.foffset = offset + i;
+          //   sourceinfo.offset = distance;
+          //   PS_sources[PS_num_sources] = sourceinfo;
+          //   PS_num_sources++;
+          // }
         }
+        // if (PS_num_sources > m_max_source)
+        //   break;
+      }
+      // if (PS_num_sources > m_max_source)
+      //   break;
+      offset += bufferSize;
+    }
+
+    PS_num_sources = 0;
+    for (u32 j = 0; j < sources.size(); j++)
+    {
+      if (j > m_numoffset)
+        break;
+      for (u32 k = 0; k < sources[j].size(); k++)
+      {
+        PS_sources[PS_num_sources] = sources[j][k];
+        PS_num_sources++;
         if (PS_num_sources > m_max_source)
           break;
       }
       if (PS_num_sources > m_max_source)
         break;
-      offset += bufferSize;
     }
 
     delete[] buffer; // release memory use for the search of sources
@@ -4135,13 +4185,17 @@ void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **disp
     SS.str("");
     SS << "F=" << std::setw(2) << m_pointer_found;
     for (u64 i = 0; i < m_max_depth; i++)
+    {
       SS << " Z=" << i << ":" << std::setfill('0') << std::setw(2) << m_PointerSearch->index[i]
          << "/" << std::setfill('0') << std::setw(2) << m_PointerSearch->num_sources[i] << " ";
+      if (i == 5 || i == 11)
+        SS << "\n";
+    }
     // SS << "\n";
     // printf(SS.str().c_str());
     Gui::beginDraw();
-    Gui::drawRectangle(70, 465, 1150, 40, currTheme.backgroundColor);
-    Gui::drawText(font20, 70, 465, currTheme.textColor, SS.str().c_str());
+    Gui::drawRectangle(70, 420, 1150, 65, currTheme.backgroundColor);
+    Gui::drawTextAligned(font20, 70, 420, currTheme.textColor, SS.str().c_str(), ALIGNED_LEFT);
     Gui::endDraw();
 
     u64 newtargetaddress;
@@ -4537,6 +4591,61 @@ bool GuiCheats::addcodetofile(u64 index)
     printf("failed writing to cheat file on contents dir \n");
 
   return true;
+}
+
+void GuiCheats::PSsaveSTATE()
+{
+  PSsetup_t save;
+  save.m_numoffset = m_numoffset;
+  save.m_max_source = m_max_source;
+  save.m_max_depth = m_max_depth;
+  save.m_max_range = m_max_range;
+  save.m_EditorBaseAddr = m_EditorBaseAddr;
+  save.m_mainBaseAddr = m_mainBaseAddr;
+  save.m_mainend = m_mainend;
+  save.m_pointersearch_canresume = m_pointersearch_canresume;
+  save.m_PS_resume = m_PS_resume;
+  save.m_PS_pause = m_PS_pause;
+  MemoryDump *PSdump;
+  PSdump = new MemoryDump(EDIZON_DIR "/PSstatedump.dat", DumpType::UNDEFINED, true);
+  PSdump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+  PSdump->addData((u8 *)&save, sizeof(PSsetup_t));
+  if (m_PointerSearch != nullptr)
+    PSdump->addData((u8 *)m_PointerSearch, sizeof(PointerSearch_state));
+  PSdump->flushBuffer();
+  delete PSdump;
+  printf("done saving PSstate\n");
+  // PointerSearch_state *m_PointerSearch = nullptr;
+  //if (PSdump->size() > 0)
+}
+
+void GuiCheats::PSresumeSTATE()
+{
+  PSsetup_t save;
+  MemoryDump *PSdump;
+  PSdump = new MemoryDump(EDIZON_DIR "/PSstatedump.dat", DumpType::UNDEFINED, false);
+  if (PSdump->size() > 0 && PSdump->getDumpInfo().heapBaseAddress == m_heapBaseAddr)
+  {
+    PSdump->getData(0, &save, sizeof(PSsetup_t));
+    if (PSdump->size() == sizeof(PSsetup_t) + sizeof(PointerSearch_state))
+    {
+      if (m_PointerSearch = nullptr)
+        m_PointerSearch = new PointerSearch_state;
+      PSdump->getData(sizeof(PSsetup_t), m_PointerSearch, sizeof(PointerSearch_state));
+    }
+    delete PSdump;
+    m_numoffset = save.m_numoffset;
+    m_max_source = save.m_max_source;
+    m_max_depth = save.m_max_depth;
+    m_max_range = save.m_max_range;
+    m_mainBaseAddr = save.m_mainBaseAddr;
+    m_mainend = save.m_mainend;
+    m_pointersearch_canresume = save.m_pointersearch_canresume;
+    m_PS_resume = save.m_PS_resume;
+    m_PS_pause = save.m_PS_pause;
+    if (m_pointersearch_canresume)
+      m_EditorBaseAddr = save.m_EditorBaseAddr;
+  }
 }
 
 bool GuiCheats::addstaticcodetofile(u64 index)

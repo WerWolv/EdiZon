@@ -72,6 +72,20 @@ private:
   MemoryDump *m_AttributeDumpBookmark;
   MemoryDump *m_pointeroffsetDump;
   MemoryDump *m_dataDump;
+  struct PSsetup_t
+  {
+    u64 m_numoffset = 3;
+    u64 m_max_source = 200;
+    u64 m_max_depth = 2;
+    u64 m_max_range = 0x300;
+    u64 m_EditorBaseAddr = 0;
+    u64 m_mainBaseAddr;
+    u64 m_mainend;
+    bool m_pointersearch_canresume = false;
+    bool m_PS_resume = false;
+    bool m_PS_pause = false;
+    // PointerSearch_state *m_PointerSearch = nullptr;
+  };
   u64 m_target = 0;
   u64 m_numoffset = 3;
   u64 m_max_source = 200;
@@ -114,9 +128,9 @@ private:
 #define IS_FINAL 0x780F0000
 
 #define MAX_NUM_SOURCE_POINTER 200 // bound check for debugging;
-#define MAX_POINTER_DEPTH 6        // up to 4 seems OK with forward only search took 94s. 215s for big dump
+#define MAX_POINTER_DEPTH 12       // up to 4 seems OK with forward only search took 94s. 215s for big dump
 #define MAX_POINTER_RANGE 0x2000
-#define MAX_POINTER_TARGET 3
+#define MAX_NUM_POINTER_OFFSET 30
   struct PointerSearch_state
   {
     u64 depth = 0;                                                       // depth and index[depth] is where the search is at, pointersearch2 will increment depth and call itself with nexttarget
@@ -140,12 +154,17 @@ private:
 // #define PS_num_sourcesP m_PointerSearch->num_sources[PS_depth-1]
 #define PS_sources m_PointerSearch->sources[PS_depth]
 #define PS_lastdepth m_PointerSearch->depth
-#define REPLACEFILE(file1,file2) remove(file2);\
-    while (access(file2, F_OK) == 0)\
-    { printf("waiting for delete %s\n",file2); } \
-    rename(file1,file2);\
-    while (access(file2, F_OK) != 0)\
-    { printf("waiting for rename %s\n",file1); }
+#define REPLACEFILE(file1, file2)             \
+  remove(file2);                              \
+  while (access(file2, F_OK) == 0)            \
+  {                                           \
+    printf("waiting for delete %s\n", file2); \
+  }                                           \
+  rename(file1, file2);                       \
+  while (access(file2, F_OK) != 0)            \
+  {                                           \
+    printf("waiting for rename %s\n", file1); \
+  }
 
   bool m_forwardonly = false;
   bool m_forwarddump = false; // reduce from 138 to 26
@@ -182,6 +201,9 @@ private:
   bool getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue);
   bool addcodetofile(u64 index);
   bool addstaticcodetofile(u64 index);
+  void PSsaveSTATE();
+  void PSresumeSTATE();
+
   u64 m_heapSize = 0;
   u64 m_mainSize = 0;
   u64 m_heapEnd = 0;

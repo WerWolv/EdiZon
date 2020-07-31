@@ -188,6 +188,8 @@ private:
   bookmark_t bookmark;        //used in add book mark
   pointer_chain_t m_hitcount; // maybe not used
 
+  std::stringstream m_PCDump_filename;
+  void PCdump();
   void rebasepointer(searchValue_t value); //struct bookmark_t bookmark);
   // bool check_chain(bookmark_t *bookmark, u64 *address);
   // void startpointersearch(u64 address, u64 depth, u64 range, u64 num, MemoryDump **displayDump);
@@ -218,6 +220,11 @@ private:
   void drawEditRAMMenu();
   void drawSearchPointerMenu();
   void searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1,
+                                    searchValue_t searchValue2, searchType_t searchType,
+                                    searchMode_t searchMode, searchRegion_t searchRegion,
+                                    MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
+
+  void searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t searchValue1,
                                     searchValue_t searchValue2, searchType_t searchType,
                                     searchMode_t searchMode, searchRegion_t searchRegion,
                                     MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);

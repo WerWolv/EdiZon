@@ -227,6 +227,7 @@ GuiCheats::GuiCheats() : Gui()
       buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
     // buildIDStr.str("attdumpbookmark");
     filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".dat";
+    m_PCDump_filename << EDIZON_DIR "/" << buildIDStr.str() << ".dmp1";
   }
 
   m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, false);
@@ -1140,6 +1141,15 @@ void GuiCheats::onInput(u32 kdown)
   // BM2
   if (m_searchMenuLocation == SEARCH_POINTER)
   {
+    if (kdown & KEY_Y)
+    {
+      printf("starting PC dump\n");
+      m_searchType = SEARCH_TYPE_UNSIGNED_64BIT;
+      m_searchRegion = SEARCH_REGION_HEAP_AND_MAIN;
+      GuiCheats::searchMemoryAddressesPrimary2(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+      // PCdump();
+    }
+
     if ((kdown & KEY_PLUS) && !(kheld & KEY_ZL))
     {
       m_abort = false;
@@ -4629,7 +4639,7 @@ void GuiCheats::PSresumeSTATE()
     PSdump->getData(0, &save, sizeof(PSsetup_t));
     if (PSdump->size() == sizeof(PSsetup_t) + sizeof(PointerSearch_state))
     {
-      if (m_PointerSearch = nullptr)
+      if (m_PointerSearch == nullptr)
         m_PointerSearch = new PointerSearch_state;
       PSdump->getData(sizeof(PSsetup_t), m_PointerSearch, sizeof(PointerSearch_state));
     }
@@ -4708,3 +4718,151 @@ bool GuiCheats::addstaticcodetofile(u64 index)
 
   return true;
 }
+void GuiCheats::PCdump()
+{
+  bool ledOn = true;
+  u8 j = 1;
+  while (access(m_PCDump_filename.str().c_str(), F_OK) == 0)
+  {
+    m_PCDump_filename.seekp(-1, std::ios_base::end);
+    m_PCDump_filename << (0 + j++);
+    printf("%s\n", m_PCDump_filename.str().c_str());
+  }
+  MemoryDump *PCDump;
+  PCDump = new MemoryDump(m_PCDump_filename.str().c_str(), DumpType::DATA, true);
+  PCDump->addData((u8 *)&m_EditorBaseAddr, sizeof(u64)); // first entry is the target address
+  PCDump->addData((u8 *)&m_mainBaseAddr, sizeof(u64));
+  PCDump->addData((u8 *)&m_mainend, sizeof(u64));
+  for (MemoryInfo meminfo : m_memoryInfo)
+  {
+    if (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable)
+      continue;
+    setLedState(ledOn);
+    ledOn = !ledOn;
+    u64 offset = 0;
+    u64 bufferSize = MAX_BUFFER_SIZE; // consider to increase from 10k to 1M (not a big problem)
+    u8 *buffer = new u8[bufferSize];
+    while (offset < meminfo.size)
+    {
+      if (meminfo.size - offset < bufferSize)
+        bufferSize = meminfo.size - offset;
+      m_debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+      searchValue_t realValue = {0};
+      for (u32 i = 0; i < bufferSize; i += sizeof(u64))
+      {
+        u64 address = meminfo.addr + offset + i;
+        memset(&realValue, 0, 8);
+        memcpy(&realValue, buffer + i, sizeof(u64));
+        if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+        {
+          PCDump->addData((u8 *)&address, sizeof(u64));
+          PCDump->addData((u8 *)&realValue, sizeof(u64));
+        }
+      }
+    }
+    offset += bufferSize;
+  }
+  PCDump->flushBuffer();
+  delete PCDump;
+  setLedState(false);
+}
+
+void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos)
+{
+  u8 j = 1;
+  while (access(m_PCDump_filename.str().c_str(), F_OK) == 0)
+  {
+    m_PCDump_filename.seekp(-1, std::ios_base::end);
+    m_PCDump_filename << (0 + j++);
+    printf("%s\n", m_PCDump_filename.str().c_str());
+  }
+  MemoryDump *PCDump;
+  PCDump = new MemoryDump(m_PCDump_filename.str().c_str(), DumpType::DATA, true);
+  PCDump->addData((u8 *)&m_EditorBaseAddr, sizeof(u64)); // first entry is the target address
+  PCDump->addData((u8 *)&m_mainBaseAddr, sizeof(u64));
+  PCDump->addData((u8 *)&m_mainend, sizeof(u64));
+
+  bool ledOn = false;
+
+  time_t unixTime1 = time(NULL);
+  printf("%s%lx\n", "Start Time primary search", unixTime1);
+  // printf("main %lx main end %lx heap %lx heap end %lx \n",m_mainBaseAddr, m_mainBaseAddr+m_mainSize, m_heapBaseAddr, m_heapBaseAddr+m_heapSize);
+  for (MemoryInfo meminfo : memInfos)
+  {
+
+    // printf("%s%p", "meminfo.addr, ", meminfo.addr);
+    // printf("%s%p", ", meminfo.end, ", meminfo.addr + meminfo.size);
+    // printf("%s%p", ", meminfo.size, ", meminfo.size);
+    // printf("%s%lx", ", meminfo.type, ", meminfo.type);
+    // printf("%s%lx", ", meminfo.attr, ", meminfo.attr);
+    // printf("%s%lx", ", meminfo.perm, ", meminfo.perm);
+    // printf("%s%lx", ", meminfo.device_refcount, ", meminfo.device_refcount);
+    // printf("%s%lx\n", ", meminfo.ipc_refcount, ", meminfo.ipc_refcount);
+
+    if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
+      continue;
+    else if (searchRegion == SEARCH_REGION_MAIN &&
+             (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+      continue;
+    else if (searchRegion == SEARCH_REGION_HEAP_AND_MAIN &&
+             (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+      continue;
+    else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
+      continue;
+
+    setLedState(ledOn);
+    ledOn = !ledOn;
+
+    u64 offset = 0;
+    u64 bufferSize = MAX_BUFFER_SIZE; // consider to increase from 10k to 1M (not a big problem)
+    u8 *buffer = new u8[bufferSize];
+    while (offset < meminfo.size)
+    {
+
+      if (meminfo.size - offset < bufferSize)
+        bufferSize = meminfo.size - offset;
+
+      debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+
+      searchValue_t realValue = {0};
+      for (u32 i = 0; i < bufferSize; i += dataTypeSizes[searchType])
+      {
+        u64 address = meminfo.addr + offset + i;
+        memset(&realValue, 0, 8);
+        memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
+
+        if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+        {
+          if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
+            break;
+          // (*displayDump)->addData((u8 *)&address, sizeof(u64));
+          // newdataDump->addData((u8 *)&realValue, sizeof(u64));
+          // helperinfo.count++;
+          PCDump->addData((u8 *)&address, sizeof(u64));
+          PCDump->addData((u8 *)&realValue, sizeof(u64));
+          // printf("%lx,%lx\n",address,realValue);
+          // std::stringstream ss; // replace the printf
+          // ss.str("");
+          // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
+          // ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
+          // char st[27];
+          // snprintf(st, 27, "%s\n", ss.str().c_str());    //
+          // newstringDump->addData((u8 *)&st, sizeof(st)); //
+        }
+      }
+
+      offset += bufferSize;
+    }
+
+    delete[] buffer;
+  }
+
+  setLedState(false);
+
+  time_t unixTime2 = time(NULL);
+  printf("%s%lx\n", "Stop Time ", unixTime2);
+  printf("%s%ld\n", "Stop Time ", unixTime2 - unixTime1);
+  PCDump->flushBuffer();
+  delete PCDump;
+}
+//

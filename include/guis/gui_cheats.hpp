@@ -190,6 +190,11 @@ private:
 
   std::stringstream m_PCDump_filename;
   void PCdump();
+  enum MemoryType
+  {
+    MAIN,
+    HEAP
+  };
   void rebasepointer(searchValue_t value); //struct bookmark_t bookmark);
   // bool check_chain(bookmark_t *bookmark, u64 *address);
   // void startpointersearch(u64 address, u64 depth, u64 range, u64 num, MemoryDump **displayDump);

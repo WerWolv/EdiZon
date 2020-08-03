@@ -2697,7 +2697,8 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
           }
           break;
         case SEARCH_MODE_POINTER: //m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize
-          if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+          // if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+          if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= m_heapEnd))
           {
             if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
               break;
@@ -4776,11 +4777,22 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
     m_PCDump_filename << (0 + j++);
     printf("%s\n", m_PCDump_filename.str().c_str());
   }
+  if (j == 1)
+    j++;
+  std::stringstream m_PCAttr_filename;
+  m_PCAttr_filename << m_PCDump_filename.str().c_str();
+  m_PCAttr_filename.seekp(-4, std::ios_base::end);
+  m_PCAttr_filename << "att" << (j - 1);
+
   MemoryDump *PCDump;
   PCDump = new MemoryDump(m_PCDump_filename.str().c_str(), DumpType::DATA, true);
-  PCDump->addData((u8 *)&m_EditorBaseAddr, sizeof(u64)); // first entry is the target address
+  MemoryDump *PCAttr;
+  PCAttr = new MemoryDump(m_PCAttr_filename.str().c_str(), DumpType::DATA, true);
   PCDump->addData((u8 *)&m_mainBaseAddr, sizeof(u64));
   PCDump->addData((u8 *)&m_mainend, sizeof(u64));
+  PCDump->addData((u8 *)&m_heapBaseAddr, sizeof(u64));
+  PCDump->addData((u8 *)&m_heapEnd, sizeof(u64));
+  PCDump->addData((u8 *)&m_EditorBaseAddr, sizeof(u64)); // first entry is the target address
 
   bool ledOn = false;
 
@@ -4812,7 +4824,9 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
 
     setLedState(ledOn);
     ledOn = !ledOn;
-
+    printf("meminfo.addr,%lx,meminfo.size,%lx,meminfo.type,%d,", meminfo.addr, meminfo.size, meminfo.type);
+    PCAttr->addData((u8 *)&meminfo, sizeof(MemoryInfo));
+    u64 counting_pointers = 0;
     u64 offset = 0;
     u64 bufferSize = MAX_BUFFER_SIZE; // consider to increase from 10k to 1M (not a big problem)
     u8 *buffer = new u8[bufferSize];
@@ -4831,15 +4845,32 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
         memset(&realValue, 0, 8);
         memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
 
-        if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+        // if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+        if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= m_heapEnd))
         {
           if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
             break;
           // (*displayDump)->addData((u8 *)&address, sizeof(u64));
           // newdataDump->addData((u8 *)&realValue, sizeof(u64));
           // helperinfo.count++;
+
+          // realValue._u64 = realValue._u64 - m_heapBaseAddr;
+          // MemoryType fromtype;
+          // if (meminfo.type == MemType_Heap)
+          // {
+          //   address = address - m_heapBaseAddr;
+          //   fromtype = HEAP;
+          // }
+          // else
+          // {
+          //   address = address - m_mainBaseAddr;
+          //   fromtype = MAIN;
+          // }
+          // PCDump->addData((u8 *)&fromtype, sizeof(fromtype));
+
           PCDump->addData((u8 *)&address, sizeof(u64));
           PCDump->addData((u8 *)&realValue, sizeof(u64));
+          counting_pointers++;
           // printf("%lx,%lx\n",address,realValue);
           // std::stringstream ss; // replace the printf
           // ss.str("");
@@ -4853,7 +4884,8 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
 
       offset += bufferSize;
     }
-
+    printf("count,%lx\n", counting_pointers);
+    PCAttr->addData((u8 *)&counting_pointers, sizeof(counting_pointers));
     delete[] buffer;
   }
 
@@ -4864,5 +4896,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   printf("%s%ld\n", "Stop Time ", unixTime2 - unixTime1);
   PCDump->flushBuffer();
   delete PCDump;
+  PCAttr->flushBuffer();
+  delete PCAttr;
 }
 //

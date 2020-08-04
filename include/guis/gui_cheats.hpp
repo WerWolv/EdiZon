@@ -173,11 +173,11 @@ private:
     u64 depth = 0;
     u64 offset[MAX_POINTER_DEPTH + 1] = {0}; // offset to address pointed by pointer
     // below is for debugging can consider removing;
-    u64 fileoffset[MAX_POINTER_DEPTH + 1] = {0}; // offset to the file that has the address where the pointer was stored in this instance for debugging
+    // u64 fileoffset[MAX_POINTER_DEPTH + 1] = {0}; // offset to the file that has the address where the pointer was stored in this instance for debugging
   };
   struct bookmark_t
   {
-    char label[18];
+    char label[18] = {0};
     searchType_t type;
     pointer_chain_t pointer;
     bool heap = true;
@@ -210,7 +210,9 @@ private:
   bool addstaticcodetofile(u64 index);
   void PSsaveSTATE();
   void PSresumeSTATE();
-
+  void updatebookmark(bool clearunresolved, bool importbookmark);
+  bool unresolved(pointer_chain_t pointer);
+  bool unresolved2(pointer_chain_t *pointer);
   u64 m_heapSize = 0;
   u64 m_mainSize = 0;
   u64 m_heapEnd = 0;
@@ -230,9 +232,9 @@ private:
                                     MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
 
   void searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t searchValue1,
-                                    searchValue_t searchValue2, searchType_t searchType,
-                                    searchMode_t searchMode, searchRegion_t searchRegion,
-                                    MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
+                                     searchValue_t searchValue2, searchType_t searchType,
+                                     searchMode_t searchMode, searchRegion_t searchRegion,
+                                     MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
 
   void searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t searchValue1,
                                       searchValue_t searchValue2, searchType_t searchType,

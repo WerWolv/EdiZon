@@ -267,6 +267,11 @@ GuiCheats::GuiCheats() : Gui()
           m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
           tempdump->addData((u8 *)&bookmark, sizeof(bookmark_t));
         }
+        else
+        {
+          m_memoryDumpBookmark->addData((u8 *)&m_heapBaseAddr, sizeof(u64));
+          tempdump->addData((u8 *)&bookmark, sizeof(bookmark_t));
+        }
       }
     }
     tempdump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
@@ -1541,7 +1546,21 @@ void GuiCheats::onInput(u32 kdown)
           }
         }
         // add bookmark
-        if (kdown & KEY_PLUS && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR)
+        if ((kdown & KEY_PLUS) && (kheld & KEY_ZL))
+        {
+          if (m_memoryDump1 != nullptr)
+          {
+            m_memoryDump = m_memoryDump1;
+            m_memoryDump1 = nullptr;
+
+            updatebookmark(true, true);
+
+            m_memoryDump1 = m_memoryDump;
+            m_memoryDump = m_memoryDumpBookmark;
+          }
+        }
+
+        if (kdown & KEY_PLUS && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR && !(kheld & KEY_ZL))
         {
           if (m_memoryDump1 != nullptr)
           { //Bookmark case
@@ -1729,7 +1748,21 @@ void GuiCheats::onInput(u32 kdown)
       }
     }
 
-    if (kdown & KEY_MINUS)
+    if ((kdown & KEY_MINUS) && (kheld & KEY_ZL))
+    {
+      if (m_memoryDump1 != nullptr)
+      {
+        m_memoryDump = m_memoryDump1;
+        m_memoryDump1 = nullptr;
+
+        updatebookmark(true, false);
+
+        m_memoryDump1 = m_memoryDump;
+        m_memoryDump = m_memoryDumpBookmark;
+      }
+    }
+
+    if ((kdown & KEY_MINUS) && !(kheld & KEY_ZL))
     {
       //make sure not using bookmark m_searchType
       if (m_memoryDump1 != nullptr)
@@ -4771,17 +4804,22 @@ void GuiCheats::PCdump()
 void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos)
 {
   u8 j = 1;
+  int k = -1;
   while (access(m_PCDump_filename.str().c_str(), F_OK) == 0)
   {
-    m_PCDump_filename.seekp(-1, std::ios_base::end);
+    m_PCDump_filename.seekp(k, std::ios_base::end);
     m_PCDump_filename << (0 + j++);
     printf("%s\n", m_PCDump_filename.str().c_str());
+    if (j > 10)
+      k = -2;
+    if (j > 100)
+      k = -3;
   }
   if (j == 1)
     j++;
   std::stringstream m_PCAttr_filename;
   m_PCAttr_filename << m_PCDump_filename.str().c_str();
-  m_PCAttr_filename.seekp(-4, std::ios_base::end);
+  m_PCAttr_filename.seekp(k - 3, std::ios_base::end);
   m_PCAttr_filename << "att" << (j - 1);
 
   MemoryDump *PCDump;
@@ -4900,3 +4938,136 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   delete PCAttr;
 }
 //
+void GuiCheats::updatebookmark(bool clearunresolved, bool importbookmark)
+{
+  std::stringstream filebuildIDStr;
+  std::stringstream buildIDStr;
+  for (u8 i = 0; i < 8; i++)
+    buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+  filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".dat";
+
+  MemoryDump *tempdump;
+  tempdump = new MemoryDump(EDIZON_DIR "/tempbookmark.dat", DumpType::ADDR, true);
+  m_memoryDumpBookmark->clear();
+  delete m_memoryDumpBookmark;
+  m_memoryDumpBookmark = new MemoryDump(EDIZON_DIR "/memdumpbookmark.dat", DumpType::ADDR, true);
+  if (m_AttributeDumpBookmark->size() > 0)
+  {
+    bookmark_t bookmark;
+    u64 address;
+    for (u64 i = 0; i < m_AttributeDumpBookmark->size(); i += sizeof(bookmark_t))
+    {
+      m_AttributeDumpBookmark->getData(i, (u8 *)&bookmark, sizeof(bookmark_t));
+      if (bookmark.deleted)
+        continue; // don't add deleted bookmark
+      if (clearunresolved)
+      {
+        if (unresolved(bookmark.pointer))
+          continue;
+      }
+      if (bookmark.heap)
+      {
+        address = bookmark.offset + m_heapBaseAddr;
+      }
+      else
+      {
+        address = bookmark.offset + m_mainBaseAddr;
+      }
+      MemoryInfo meminfo;
+      meminfo = m_debugger->queryMemory(address);
+      if (meminfo.perm != Perm_Rw)
+        continue;
+      m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+      tempdump->addData((u8 *)&bookmark, sizeof(bookmark_t));
+    }
+    if (importbookmark)
+    {
+      bookmark_t bookmark;
+      bookmark.type = m_searchType;
+      if (Gui::requestKeyboardInput("Import Bookmark", "Enter Label for bookmark to be imported from file.", bookmark.label, SwkbdType_QWERTY, bookmark.label, 18))
+      {
+        std::stringstream filebuildIDStr;
+        filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".bmk";
+        MemoryDump *bmkdump;
+        bmkdump = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, false);
+        if (bmkdump->size() > 0)
+        {
+          printf(" file exist %s \n", filebuildIDStr.str().c_str());
+          u64 bufferSize = bmkdump->size();
+          printf(" file size is %ld with %ld pointer chains\n", bufferSize, bufferSize / sizeof(pointer_chain_t));
+          u8 *buffer = new u8[bufferSize];
+          bmkdump->getData(0, buffer, bufferSize);
+          u32 goodcount = 0;
+          for (u64 i = 0; i < bufferSize; i += sizeof(pointer_chain_t))
+          {
+            memcpy(&(bookmark.pointer), buffer + i, sizeof(pointer_chain_t));
+            if (unresolved(bookmark.pointer))
+              continue;
+            goodcount++;
+            m_memoryDumpBookmark->addData((u8 *)&m_heapBaseAddr, sizeof(u64));
+            tempdump->addData((u8 *)&bookmark, sizeof(bookmark_t));
+          }
+          printf("found %d good ones\n", goodcount);
+        }
+        else
+        {
+          printf("bookmark file %s missing \n", filebuildIDStr.str().c_str());
+          (new Snackbar("Bookmark file to import from is missing"))->show();
+        }
+      };
+    }
+    tempdump->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+    tempdump->flushBuffer();
+    delete tempdump;
+    m_AttributeDumpBookmark->clear();
+    delete m_AttributeDumpBookmark;
+    REPLACEFILE(EDIZON_DIR "/tempbookmark.dat", filebuildIDStr.str().c_str());
+    m_AttributeDumpBookmark = new MemoryDump(filebuildIDStr.str().c_str(), DumpType::ADDR, false);
+    m_memoryDumpBookmark->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+    m_AttributeDumpBookmark->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+  }
+};
+bool GuiCheats::unresolved2(pointer_chain_t *pointer)
+{
+  printf("source= %lx", pointer->depth);
+  for (int z = pointer->depth; z >= 0; z--)
+    printf("+ %lx ", pointer->offset[z]);
+  printf("\n");
+  return true;
+}
+
+bool GuiCheats::unresolved(pointer_chain_t pointer)
+{
+  printf("z=%lx ", pointer.depth);
+  if (pointer.depth != 0)
+  {
+    printf("[main");
+    u64 nextaddress = m_mainBaseAddr;
+    for (int z = pointer.depth; z >= 0; z--)
+    {
+      printf("+%lx]", pointer.offset[z]);
+      nextaddress += pointer.offset[z];
+      MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
+      if (meminfo.perm == Perm_Rw)
+        if (z == 0)
+        {
+          printf("(%lx)\n", nextaddress); // nextaddress = the target
+          return false;
+        }
+        else
+        {
+          m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+          printf("[(%lx)", nextaddress);
+        }
+      else
+      {
+        printf(" * access denied *\n");
+        return true;
+      }
+    }
+    printf("\n");
+    return false;
+  }
+  else
+    return false;
+}

@@ -467,7 +467,12 @@ void GuiCheats::draw()
   }
 
   if (m_menuLocation == CHEATS)
-    Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+  {
+    if (m_memoryDump1 == nullptr)
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+    else
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+  }
   else if (m_memoryDump1 == nullptr)
   {
     if (m_memoryDump->size() == 0)
@@ -1283,7 +1288,7 @@ void GuiCheats::onInput(u32 kdown)
       m_searchValue[1]._u64 = 0x8000000000;
     }
 
-    if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS && (m_cheatCnt > 0))
+    if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS && (m_cheatCnt > 0) && (m_memoryDump1 != nullptr))
     {
       // printf("start adding cheat to bookmark\n");
       // m_cheatCnt
@@ -4937,7 +4942,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   delete PCDump;
   PCAttr->flushBuffer();
   delete PCAttr;
-  delete newstringDump;
+  // delete newstringDump;
 }
 //
 void GuiCheats::updatebookmark(bool clearunresolved, bool importbookmark)

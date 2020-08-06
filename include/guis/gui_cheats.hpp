@@ -131,7 +131,7 @@ private:
 #define MAX_POINTER_DEPTH 12       // up to 4 seems OK with forward only search took 94s. 215s for big dump
 #define MAX_POINTER_RANGE 0x2000
 #define MAX_NUM_POINTER_OFFSET 30
-#define HAVESAVE false
+#define HAVESAVE true
   struct PointerSearch_state
   {
     u64 depth = 0;                                                       // depth and index[depth] is where the search is at, pointersearch2 will increment depth and call itself with nexttarget

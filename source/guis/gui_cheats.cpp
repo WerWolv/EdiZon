@@ -355,7 +355,7 @@ GuiCheats::GuiCheats() : Gui()
 
   // check this
   printf("%s\n", "before part");
-  if (m_debugger->getRunningApplicationTID() != 0)
+  if ((m_debugger->getRunningApplicationTID() != 0) && HAVESAVE)
   {
     if (Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName().length() < 24)
       ss << Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleName();
@@ -502,7 +502,7 @@ void GuiCheats::draw()
   Gui::drawRectangle(256, 50, Gui::g_framebuffer_width - 256, 206, currTheme.separatorColor);
 
   // Don't draw icon
-  if (m_debugger->getRunningApplicationTID() != 0)
+  if ((m_debugger->getRunningApplicationTID() != 0) && HAVESAVE)
     Gui::drawImage(0, 0, 256, 256, Title::g_titles[m_debugger->getRunningApplicationTID()]->getTitleIcon(), IMAGE_MODE_RGB24);
   else
     Gui::drawRectangle(0, 0, 256, 256, Gui::makeColor(0x00, 0x00, 0xFF, 0xFF));
@@ -4822,6 +4822,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   m_PCAttr_filename.seekp(k - 3, std::ios_base::end);
   m_PCAttr_filename << "att" << (j - 1);
 
+  //MemoryDump *newstringDump = new MemoryDump(EDIZON_DIR "/stringdump.csv", DumpType::DATA, true);
   MemoryDump *PCDump;
   PCDump = new MemoryDump(m_PCDump_filename.str().c_str(), DumpType::DATA, true);
   MemoryDump *PCAttr;
@@ -4909,7 +4910,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
           PCDump->addData((u8 *)&address, sizeof(u64));
           PCDump->addData((u8 *)&realValue, sizeof(u64));
           counting_pointers++;
-          // printf("%lx,%lx\n",address,realValue);
+          // printf("0x%lx,0x%lx\n",address,realValue);
           // std::stringstream ss; // replace the printf
           // ss.str("");
           // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
@@ -4936,6 +4937,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   delete PCDump;
   PCAttr->flushBuffer();
   delete PCAttr;
+  delete newstringDump;
 }
 //
 void GuiCheats::updatebookmark(bool clearunresolved, bool importbookmark)

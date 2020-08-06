@@ -1,27 +1,22 @@
 # EdiZon SE
 
-This fork is based on the solid foundation of EdiZon. The changes made are on the game memory hack aspect. 
+This fork is based on the foundation of EdiZon 3.1 nightly. The changes made are on the game memory hack aspect. 
 
-I have added bookmark functionality, completed the range search feature and enhanced the speed to enable search for small value which generates lots of hits.
-Bookmark automatically adjust relative to main and heap so static location relative to main and heap will continue to work for different game run. You can also extract the memory location pointed by cheat code to bookmark to explore/edit the ram around there. Able to rebase first offset of cheat code for game version change that only affects the first offset. Pointer search result is added back into bookmark. Bookmark with pointer chain attached will dynamically adjust the address on the bookmark list.
+Here are the added features: 
+1. Range search.
+2. Compare with previous value search. 
+3. Bookmark memory location found. 
+4. Speed enhancement to make small integer value in first search practicle.
+5. Bookmark adjust to changing main and heap start address on subsequent launch of the game. Bookmark with pointer chain attached updates memory address dynamically when the chain is able to resolve into a valid memory address.
+6. Extract memory address from dmnt cheat code and add it to bookmark for exploration of the memory location. 
+7. Rebase feature to extract potential pointer chain form dmnt cheat code made for previous version of the game. 
+8. In app pointer chain search for address on bookmark. 
+9. Export dump to PC app (forked from pointersearcher 0.4) for more powerful pointer chain search. 
+10. Import PC app search result for validation and testing. 
+11. Create dmnt cheat code from pointer chain found.
 
-Work in progress : Faster pointer search, pause/resume of search, examination of intermidiate result, change search parameters mid search. 
+PS: In app help on button combo currently don't show enough hints. Please refer to https://github.com/tomvita/EdiZon-SE/wiki for instructions on how to use the app. 
 
-PS: In app help on button currently don't show hint what right stick down and left stick down do. Right stick down relates to memory edit and Left stick down relates to pointer search. Just try it to figure it out. New key combo ZL+Y to get into pointer search setup.
-
-Here are the steps to do pointer chain search. 
-1. Clear previous search result if any.
-2. Perform a search of type pointer when the game is in the state you want. (Press Lstick down will quickly setup the search). The result of this search is used for subsequent pointer search. Very important to get it right to find the pointer chains.
-3. Select the bookmark with address you want to find the pointer chain that targets it. 
-4. Press Lstick down will start the search with default configuration. 
-5. Or press LZ+Y to go setting page for the search parameters. Move the cursor to the position you want to modify and press L or R to increment or decrement the value. Some value cannot be modified at the moment. Press + to start the search.
-6. Results are appended to the bookmark list. Test them to see the validity of the chain when the game state change, especially after relaunching the game. When satisfied that a good bookmark entry is found press Y while highlighting the bookmark to add it to the cheat code file.
-7. Pointer search can be paused by holddown ZL+B. Normal functionality of the app is all available while pointer search is pause. 
-8. Start pointer search again to resume (step 4 or 5), in resume case the currently search parameters are used for future iteration of the loop, intermediate targets that are queued up for processing is preserved. Very important to ensure memory search results is valid before continuing the pointer chain search, repeat step 2 if necessary. To abort the search and start from scratch press ZL+"+". 
-
-Interpreting the pointer chain search status display.
-
-  F=(pointer chain found) Z=(depth from target):(index to intermediate target being processed currently at this depth)/(total number of intermediate targets at this depth)   
 
 
 Original functinality of Edizon on game save is available when launched without a game running. 

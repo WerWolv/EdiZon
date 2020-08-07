@@ -241,6 +241,10 @@ private:
                                       searchValue_t searchValue2, searchType_t searchType,
                                       searchMode_t searchMode, MemoryDump **displayDump);
 
+  void searchMemoryAddressesSecondary2(Debugger *debugger, searchValue_t searchValue1,
+                                      searchValue_t searchValue2, searchType_t searchType,
+                                      searchMode_t searchMode, MemoryDump **displayDump);
+
   void searchMemoryValuesPrimary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode,
                                  searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);
 

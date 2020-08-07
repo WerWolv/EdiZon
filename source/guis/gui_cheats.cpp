@@ -2328,25 +2328,39 @@ void GuiCheats::onInput(u32 kdown)
               }
               else if (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR)
               {
-                GuiCheats::searchMemoryValuesTertiary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
-                delete m_memoryDump;
-                // remove(EDIZON_DIR "/memdump1.dat");
-                // remove(EDIZON_DIR "/memdump1a.dat");
-                // rename(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
-                // rename(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
-                REPLACEFILE(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
-                REPLACEFILE(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
-                m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::ADDR, false);
-                // remove(EDIZON_DIR "/datadump2.dat");
-                // rename(EDIZON_DIR "/datadump4.dat", EDIZON_DIR "/datadump2.dat");
-                REPLACEFILE(EDIZON_DIR "/datadump4.dat", EDIZON_DIR "/datadump2.dat");
-                // // rename B to A
-                // remove(EDIZON_DIR "/datadumpA.dat");
-                // rename(EDIZON_DIR "/datadumpAa.dat", EDIZON_DIR "/datadumpA.dat");
-                REPLACEFILE(EDIZON_DIR "/datadumpAa.dat", EDIZON_DIR "/datadumpA.dat")
-                // remove(EDIZON_DIR "/datadumpB.dat");
-                // rename(EDIZON_DIR "/datadumpBa.dat", EDIZON_DIR "/datadumpB.dat");
-                REPLACEFILE(EDIZON_DIR "/datadumpBa.dat", EDIZON_DIR "/datadumpB.dat");
+                if (m_searchMode == SEARCH_MODE_DIFFA || m_searchMode == SEARCH_MODE_SAMEA)
+                {
+                  GuiCheats::searchMemoryValuesTertiary(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+                  delete m_memoryDump;
+                  // remove(EDIZON_DIR "/memdump1.dat");
+                  // remove(EDIZON_DIR "/memdump1a.dat");
+                  // rename(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
+                  // rename(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
+                  REPLACEFILE(EDIZON_DIR "/memdump3.dat", EDIZON_DIR "/memdump1.dat");
+                  REPLACEFILE(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
+                  m_memoryDump = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::ADDR, false);
+                  // remove(EDIZON_DIR "/datadump2.dat");
+                  // rename(EDIZON_DIR "/datadump4.dat", EDIZON_DIR "/datadump2.dat");
+                  REPLACEFILE(EDIZON_DIR "/datadump4.dat", EDIZON_DIR "/datadump2.dat");
+                  // // rename B to A
+                  // remove(EDIZON_DIR "/datadumpA.dat");
+                  // rename(EDIZON_DIR "/datadumpAa.dat", EDIZON_DIR "/datadumpA.dat");
+                  REPLACEFILE(EDIZON_DIR "/datadumpAa.dat", EDIZON_DIR "/datadumpA.dat")
+                  // remove(EDIZON_DIR "/datadumpB.dat");
+                  // rename(EDIZON_DIR "/datadumpBa.dat", EDIZON_DIR "/datadumpB.dat");
+                  REPLACEFILE(EDIZON_DIR "/datadumpBa.dat", EDIZON_DIR "/datadumpB.dat");
+                }
+                else
+                {
+                  m_nothingchanged = false;
+                  GuiCheats::searchMemoryAddressesSecondary2(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, &m_memoryDump);
+                  if (m_nothingchanged == false)
+                  {
+                    // remove(EDIZON_DIR "/memdump1a.dat");                              // remove old helper
+                    // rename(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat"); // rename new helper to current helper
+                    REPLACEFILE(EDIZON_DIR "/memdump3a.dat", EDIZON_DIR "/memdump1a.dat");
+                  }
+                }
               }
             }
             else
@@ -3063,6 +3077,293 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
   delete debugdump1;
   delete newdataDump;
   delete[] buffer;
+  delete[] ram_buffer;
+
+  remove(EDIZON_DIR "/memdump2.dat");
+  time_t unixTime2 = time(NULL);
+  printf("%s%lx\n", "Stop Time secondary search ", unixTime2);
+  printf("%s%ld\n", "Stop Time ", unixTime2 - unixTime1);
+}
+
+void GuiCheats::searchMemoryAddressesSecondary2(Debugger *debugger, searchValue_t searchValue1, searchValue_t searchValue2, searchType_t searchType, searchMode_t searchMode, MemoryDump **displayDump)
+{
+  MemoryDump *newDump = new MemoryDump(EDIZON_DIR "/memdump2.dat", DumpType::ADDR, true);
+  bool ledOn = false;
+  //begin
+  time_t unixTime1 = time(NULL);
+  printf("%s%lx\n", "Start Time Secondary search", unixTime1);
+
+  u64 offset = 0;
+  u64 bufferSize = MAX_BUFFER_SIZE; // this is for file access going for 1M
+  u8 *buffer = new u8[bufferSize];
+  u8 *predatabuffer = new u8[bufferSize];
+  searchValue_t prevalue = {0};
+  // helper init
+  MemoryDump *helperDump = new MemoryDump(EDIZON_DIR "/memdump1a.dat", DumpType::HELPER, false);   // has address, size, count for fetching buffer from memory
+  MemoryDump *newhelperDump = new MemoryDump(EDIZON_DIR "/memdump3a.dat", DumpType::HELPER, true); // has address, size, count for fetching buffer from memory
+  REPLACEFILE(EDIZON_DIR "/datadump2.dat", EDIZON_DIR "/predatadump2.dat");
+  MemoryDump *predataDump = new MemoryDump(EDIZON_DIR "/predatadump2.dat", DumpType::DATA, false);
+  MemoryDump *newdataDump = new MemoryDump(EDIZON_DIR "/datadump2.dat", DumpType::DATA, true);
+  // MemoryDump *debugdump1 = new MemoryDump(EDIZON_DIR "/debugdump1.dat", DumpType::HELPER, true);
+  if (helperDump->size() == 0)
+  {
+    (new Snackbar("Helper file not found !"))->show();
+    return;
+  }
+  else
+  {
+    // helper integrity check
+    printf("start helper integrity check address secondary \n");
+    u32 helpercount = 0;
+    helperinfo_t helperinfo;
+    for (u64 i = 0; i < helperDump->size(); i += sizeof(helperinfo))
+    {
+      helperDump->getData(i, &helperinfo, sizeof(helperinfo));
+      helpercount += helperinfo.count;
+    }
+    if (helpercount != (*displayDump)->size() / sizeof(u64))
+    {
+      printf("Integrity problem with helper file helpercount = %d  memdumpsize = %ld \n", helpercount, (*displayDump)->size() / sizeof(u64));
+      (new Snackbar("Helper integrity check failed !"))->show();
+      return;
+    }
+    printf("end helper integrity check address secondary \n");
+    // end helper integrity check
+
+    std::stringstream Message;
+    Message << "Traversing title memory.\n \nThis may take a while... secondary search\nTime " << (unixTime1 - time(NULL)) << "    total " << (*displayDump)->size();
+    (new MessageBox(Message.str(), MessageBox::NONE))->show();
+    requestDraw();
+  }
+
+  u8 *ram_buffer = new u8[bufferSize];
+  u64 helper_offset = 0;
+  helperinfo_t helperinfo;
+  helperinfo_t newhelperinfo;
+  newhelperinfo.count = 0;
+
+  helperDump->getData(helper_offset, &helperinfo, sizeof(helperinfo)); // helper_offset+=sizeof(helperinfo)
+  debugger->readMemory(ram_buffer, helperinfo.size, helperinfo.address);
+  // helper init end
+  while (offset < (*displayDump)->size())
+  {
+    if ((*displayDump)->size() - offset < bufferSize)
+      bufferSize = (*displayDump)->size() - offset;
+    (*displayDump)->getData(offset, buffer, bufferSize); // BM4
+    predataDump->getData(offset, predatabuffer, bufferSize);
+
+    for (u64 i = 0; i < bufferSize; i += sizeof(u64)) // for (size_t i = 0; i < (bufferSize / sizeof(u64)); i++)
+    {
+      if (helperinfo.count == 0)
+      {
+        if (newhelperinfo.count != 0)
+        {
+          newhelperinfo.address = helperinfo.address;
+          newhelperinfo.size = helperinfo.size;
+          newhelperDump->addData((u8 *)&newhelperinfo, sizeof(newhelperinfo));
+          // printf("%s%lx\n", "newhelperinfo.address ", newhelperinfo.address);
+          // printf("%s%lx\n", "newhelperinfo.size ", newhelperinfo.size);
+          // printf("%s%lx\n", "newhelperinfo.count ", newhelperinfo.count);
+          newhelperinfo.count = 0;
+        }
+        helper_offset += sizeof(helperinfo);
+        helperDump->getData(helper_offset, &helperinfo, sizeof(helperinfo));
+        debugger->readMemory(ram_buffer, helperinfo.size, helperinfo.address);
+      }
+      searchValue_t value = {0};
+      // searchValue_t testing = {0}; // temp
+      u64 address = 0;
+
+      address = *reinterpret_cast<u64 *>(&buffer[i]); //(*displayDump)->getData(i * sizeof(u64), &address, sizeof(u64));
+      prevalue._u64 = *reinterpret_cast<u64 *>(&predatabuffer[i]);
+
+      memcpy(&value, ram_buffer + address - helperinfo.address, dataTypeSizes[searchType]); // extrat from buffer instead of making call
+      helperinfo.count--;                                                                   // each fetch dec
+      // testing = value;                                                                      // temp
+      // debugger->readMemory(&value, dataTypeSizes[searchType], address);
+      // if (testing._u64 != value._u64)
+      // {
+      //   printf("%s%lx\n", "helperinfo.address ", helperinfo.address);
+      //   printf("%s%lx\n", "helperinfo.size ", helperinfo.size);
+      //   printf("%s%lx\n", "helperinfo.count ", helperinfo.count);
+      //   printf("%s%lx\n", "address ", address);
+      //   printf("%s%lx\n", "testing._u64 ", testing._u64);
+      //   printf("%s%lx\n", "value ", value);
+      //   printf("%s%lx\n", " address - helperinfo.address ", address - helperinfo.address);
+      //   printf("%s%lx\n", " * (ram_buffer + address - helperinfo.address) ", *(ram_buffer + address - helperinfo.address));
+      //   printf("%s%lx\n", " * (&ram_buffer[ address - helperinfo.address]) ", *(&ram_buffer[address - helperinfo.address]));
+      //   printf("%s%lx\n", "  (ram_buffer + address - helperinfo.address) ", (ram_buffer + address - helperinfo.address));
+      //   printf("%s%lx\n", "  (&ram_buffer[ address - helperinfo.address]) ", (&ram_buffer[address - helperinfo.address]));
+      //   printf("%s%lx\n", "  helperinfo.size - address + helperinfo.address ", helperinfo.size - address + helperinfo.address);
+      //   // debugdump1->addData((u8 *)&ram_buffer, helperinfo.size);
+      //   // debugger->readMemory(ram_buffer, 0x50, address);
+      //   // debugdump2->addData((u8 *)&ram_buffer, 0x50);
+      //   //
+      //   // delete debugdump2;
+      // }
+
+      if (i % 50000 == 0)
+      {
+        setLedState(ledOn);
+        ledOn = !ledOn;
+      }
+
+      switch (searchMode)
+      {
+      case SEARCH_MODE_EQ:
+        if (value._s64 == searchValue1._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_NEQ:
+        if (value._s64 != searchValue1._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_GT:
+        if (value._s64 > searchValue1._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_DIFFA: //need to rewrite
+        if (value._s64 != prevalue._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_LT:
+        if (value._s64 < searchValue1._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_SAMEA: // need to rewrite
+        if (value._s64 == prevalue._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_RANGE:
+        if (value._s64 >= searchValue1._s64 && value._s64 <= searchValue2._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64)); // add here
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_POINTER: //m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize
+        if ((value._u64 >= m_mainBaseAddr && value._u64 <= (m_mainend)) || (value._u64 >= m_heapBaseAddr && value._u64 <= (m_heapEnd)))
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_SAME:
+        if (value._s64 == prevalue._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_DIFF:
+        if (value._s64 != prevalue._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_INC:
+        if (value._s64 > prevalue._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_DEC:
+        if (value._s64 < prevalue._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newdataDump->addData((u8 *)&value, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
+      case SEARCH_MODE_NONE:
+        break;
+      }
+    }
+    printf("%ld of %ld done \n", offset, (*displayDump)->size()); // maybe consider message box this info
+    offset += bufferSize;
+  }
+
+  if (newhelperinfo.count != 0) // take care of the last one
+  {
+    newhelperinfo.address = helperinfo.address;
+    newhelperinfo.size = helperinfo.size;
+    newhelperDump->addData((u8 *)&newhelperinfo, sizeof(newhelperinfo));
+    // printf("%s%lx\n", "newhelperinfo.address ", newhelperinfo.address);
+    // printf("%s%lx\n", "newhelperinfo.size ", newhelperinfo.size);
+    // printf("%s%lx\n", "newhelperinfo.count ", newhelperinfo.count);
+    newhelperinfo.count = 0;
+  }
+  //end
+  newDump->flushBuffer();
+  newhelperDump->flushBuffer();
+  newdataDump->flushBuffer();
+
+  if (newDump->size() > 0)
+  {
+    // delete m_memoryDump;
+    // remove(EDIZON_DIR "/memdump1.dat");
+    // rename(EDIZON_DIR "/memdump2.dat", EDIZON_DIR "/memdump2.dat");
+    (*displayDump)->clear();
+    (*displayDump)->setSearchParams(searchType, searchMode, (*displayDump)->getDumpInfo().searchRegion, searchValue1, searchValue2);
+    (*displayDump)->setDumpType(DumpType::ADDR);
+
+    // begin copy
+    offset = 0;
+    bufferSize = MAX_BUFFER_SIZE;                 //0x1000000; // match what was created before
+    printf("%s%lx\n", "bufferSize ", bufferSize); // printf
+    while (offset < newDump->size())
+    {
+      if (newDump->size() - offset < bufferSize)
+        bufferSize = newDump->size() - offset;
+      newDump->getData(offset, buffer, bufferSize);
+      (*displayDump)->addData(buffer, bufferSize);
+      offset += bufferSize;
+    }
+    // end copy
+
+    (*displayDump)->flushBuffer();
+  }
+  else
+  {
+    (new Snackbar("None of values changed to the entered one!"))->show();
+    m_nothingchanged = true;
+  }
+
+  setLedState(false);
+  delete newDump;
+  delete newhelperDump;
+  delete helperDump;
+  // delete debugdump1;
+  delete newdataDump;
+  delete[] buffer;
+  delete[] predatabuffer;
   delete[] ram_buffer;
 
   remove(EDIZON_DIR "/memdump2.dat");

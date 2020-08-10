@@ -210,6 +210,7 @@ private:
   bool addcodetofile(u64 index);
   bool dumpcodetofile();
   void reloadcheats(); 
+  bool reloadcheatsfromfile(u8 *buildID, u64 titleID);
   bool addstaticcodetofile(u64 index);
   void PSsaveSTATE();
   void PSresumeSTATE();

@@ -93,6 +93,7 @@ GuiCheats::GuiCheats() : Gui()
   memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
 
   _moveLonelyCheats(m_buildID, m_debugger->getRunningApplicationTID());
+  // reloadcheatsfromfile(m_buildID, m_debugger->getRunningApplicationTID());
   dumpcodetofile(); 
 
   dmntchtGetCheatCount(&m_cheatCnt);
@@ -4955,6 +4956,165 @@ bool GuiCheats::addcodetofile(u64 index)
   return true;
 }
 
+bool GuiCheats::reloadcheatsfromfile(u8 *buildID, u64 titleID)
+{
+  std::stringstream realCheatPath;
+  std::stringstream buildIDStr;
+  for (u8 i = 0; i < 8; i++)
+    buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)buildID[i];
+  realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
+  realCheatPath << "/cheats/";
+  realCheatPath << buildIDStr.str() << ".txt";
+  if (access(realCheatPath.str().c_str(), F_OK) == 0)
+  {
+    reloadcheats();     // reloaded from dmnt
+    if (m_cheatCnt > 0) // clear the cheats
+    {
+      for (u32 i = 0; i < m_cheatCnt; i++)
+      {
+        dmntchtRemoveCheat(m_cheats[i].cheat_id);
+      }
+    }
+    // read cheat file into buffer
+    FILE *pfile;
+    pfile = fopen(realCheatPath.str().c_str(), "r+b");
+    fseek(pfile, 0, SEEK_END);
+    u64 bufferSize = ftell(pfile);
+    u8 *s = new u8[bufferSize + 1];
+    /* Read cheats into buffer. */
+    fseek(pfile, 0, SEEK_SET);
+    fread(s, sizeof(bufferSize), 1, pfile);
+    s[bufferSize] = '\x00';
+    /* Parse cheat buffer. */
+    // return this->ParseCheats(cht_txt, std::strlen(cht_txt));
+    //bool CheatProcessManager::ParseCheats(const char *s, size_t len)
+    {
+      DmntCheatEntry cheat;
+      /* Parse the input string. */
+      size_t i = 0;
+      cheat.definition.num_opcodes = 0;
+      // CheatEntry *cur_entry = nullptr;
+      while (i < bufferSize)
+      {
+        if (std::isspace(static_cast<unsigned char>(s[i])))
+        {
+          /* Just ignore whitespace. */
+          i++;
+        }
+        else if (s[i] == '[')
+        {
+          if (cheat.definition.num_opcodes > 0)
+          {
+            if (dmntchtAddCheat(&(cheat.definition), false, &(cheat.cheat_id)))
+            {
+              cheat.definition.num_opcodes = 0;
+            }
+            else
+            {
+              printf("error adding cheat code\n");
+              return false;
+            }
+          }
+          /* Parse a readable cheat name. */
+          // cur_entry = this->GetFreeCheatEntry();
+          // if (cur_entry == nullptr)
+          // {
+          //   return false;
+          // }
+          /* Extract name bounds. */
+          size_t j = i + 1;
+          while (s[j] != ']')
+          {
+            j++;
+            if (j >= bufferSize)
+            {
+              return false;
+            }
+          }
+          /* s[i+1:j] is cheat name. */
+          const size_t cheat_name_len = std::min(j - i - 1, sizeof(cheat.definition.readable_name));
+          std::memcpy(cheat.definition.readable_name, &s[i + 1], cheat_name_len);
+          cheat.definition.readable_name[cheat_name_len] = 0;
+          /* Skip onwards. */
+          i = j + 1;
+        }
+        else if (s[i] == '{')
+        {
+          /* We're parsing a master cheat. */
+          // cur_entry = &this->cheat_entries[0];
+          /* There can only be one master cheat. */
+          // if (cur_entry->definition.num_opcodes > 0)
+          // {
+          //   return false;
+          // }
+          /* Extract name bounds */
+          size_t j = i + 1;
+          while (s[j] != '}')
+          {
+            j++;
+            if (j >= bufferSize)
+            {
+              return false;
+            }
+          }
+          /* s[i+1:j] is cheat name. */
+          const size_t cheat_name_len = std::min(j - i - 1, sizeof(cheat.definition.readable_name));
+          memcpy(cheat.definition.readable_name, &s[i + 1], cheat_name_len);
+          cheat.definition.readable_name[cheat_name_len] = 0;
+          /* Skip onwards. */
+          i = j + 1;
+        }
+        else if (std::isxdigit(static_cast<unsigned char>(s[i])))
+        {
+          /* Make sure that we have a cheat open. */
+          // if (cur_entry == nullptr)
+          // {
+          //   return false;
+          // }
+          /* Bounds check the opcode count. */
+          // if (cur_entry->definition.num_opcodes >= util::size(cur_entry->definition.opcodes))
+          // {
+          //   return false;
+          // }
+          /* We're parsing an instruction, so validate it's 8 hex digits. */
+          for (size_t j = 1; j < 8; j++)
+          {
+            /* Validate 8 hex chars. */
+            if (i + j >= bufferSize || !std::isxdigit(static_cast<unsigned char>(s[i + j])))
+            {
+              return false;
+            }
+          }
+          /* Parse the new opcode. */
+          char hex_str[9] = {0};
+          std::memcpy(hex_str, &s[i], 8);
+          cheat.definition.opcodes[cheat.definition.num_opcodes++] = std::strtoul(hex_str, NULL, 16);
+          /* Skip onwards. */
+          i += 8;
+        }
+        else
+        {
+          /* Unexpected character encountered. */
+          return false;
+        }
+      }
+      if (cheat.definition.num_opcodes > 0)
+      {
+        if (dmntchtAddCheat(&(cheat.definition), false, &(cheat.cheat_id)))
+        {
+          cheat.definition.num_opcodes = 0;
+        }
+        else
+        {
+          printf("error adding cheat code\n");
+          return false;
+        }
+      }
+    }
+    //
+    reloadcheats();
+  }
+}
 void GuiCheats::reloadcheats()
 {
   if (m_cheats != nullptr)

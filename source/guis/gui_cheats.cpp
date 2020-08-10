@@ -93,6 +93,7 @@ GuiCheats::GuiCheats() : Gui()
   memcpy(m_buildID, metadata.main_nso_build_id, 0x20);
 
   _moveLonelyCheats(m_buildID, m_debugger->getRunningApplicationTID());
+  dumpcodetofile(); 
 
   dmntchtGetCheatCount(&m_cheatCnt);
 
@@ -4760,6 +4761,7 @@ void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **disp
 static void _moveLonelyCheats(u8 *buildID, u64 titleID)
 {
   std::stringstream lonelyCheatPath;
+  // std::stringstream EdizonCheatPath;
   std::stringstream realCheatPath;
 
   std::stringstream buildIDStr;
@@ -4768,6 +4770,7 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID)
     buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)buildID[i];
 
   lonelyCheatPath << EDIZON_DIR "/cheats/" << buildIDStr.str() << ".txt";
+  // EdizonCheatPath << EDIZON_DIR "/" << buildIDStr.str() << ".txt";
 
   if (access(lonelyCheatPath.str().c_str(), F_OK) == 0)
   {
@@ -4778,10 +4781,19 @@ static void _moveLonelyCheats(u8 *buildID, u64 titleID)
 
     realCheatPath << buildIDStr.str() << ".txt";
 
-    // rename(lonelyCheatPath.str().c_str(), realCheatPath.str().c_str());
     REPLACEFILE(lonelyCheatPath.str().c_str(), realCheatPath.str().c_str());
     (new MessageBox("A new cheat has been added for this title. \n Please restart the game to start using it.", MessageBox::OKAY))->show();
   }
+  // else
+  // {
+  //   realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << titleID;
+  //   realCheatPath << "/cheats/";
+  //   realCheatPath << buildIDStr.str() << ".txt";
+  // }
+  // if (access(realCheatPath.str().c_str(), F_OK) == 0)
+  // {
+  //   REPLACEFILE(realCheatPath.str().c_str(), EdizonCheatPath.str().c_str());
+  // }
 }
 
 static bool _wrongCheatsPresent(u8 *buildID, u64 titleID)
@@ -4940,6 +4952,149 @@ bool GuiCheats::addcodetofile(u64 index)
   else
     printf("failed writing to cheat file on contents dir \n");
 
+  return true;
+}
+
+void GuiCheats::reloadcheats()
+{
+  if (m_cheats != nullptr)
+    delete m_cheats;
+  dmntchtGetCheatCount(&m_cheatCnt);
+  if (m_cheatCnt > 0)
+  {
+    m_cheats = new DmntCheatEntry[m_cheatCnt];
+    dmntchtGetCheats(m_cheats, m_cheatCnt, 0, &m_cheatCnt);
+  }
+}
+bool GuiCheats::dumpcodetofile()
+{
+  std::stringstream buildIDStr;
+  std::stringstream filebuildIDStr;
+  {
+    for (u8 i = 0; i < 8; i++)
+      buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+    filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".txt";
+  }
+  std::stringstream realCheatPath;
+  {
+    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << "/cheats/";
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << buildIDStr.str() << ".txt";
+  }
+  FILE *pfile;
+  pfile = fopen(filebuildIDStr.str().c_str(), "w");
+  std::stringstream SS;
+  std::stringstream ss;
+  if (pfile != NULL)
+  {
+    GuiCheats::reloadcheats();
+    SS.str("");
+    for (u32 i = 0; i < m_cheatCnt; i++)
+    {
+      SS << "[" << m_cheats[i].definition.readable_name << "]\n";
+      ss.str("");
+      for (u32 j = 0; j < m_cheats[i].definition.num_opcodes; j++)
+      {
+        u16 opcode = (m_cheats[i].definition.opcodes[j] >> 28) & 0xF;
+        u8 T = (m_cheats[i].definition.opcodes[j] >> 24) & 0xF;
+        if ((opcode == 9) && (((m_cheats[i].definition.opcodes[j] >> 8) & 0xF) == 0))
+        {
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j] << "\n";
+          continue;
+        }
+        if (opcode == 0xC)
+        {
+          opcode = (m_cheats[i].definition.opcodes[j] >> 24) & 0xFF;
+          T = (m_cheats[i].definition.opcodes[j] >> 20) & 0xF;
+          u8 X = (m_cheats[i].definition.opcodes[j] >> 8) & 0xF;
+          if (opcode == 0xC0)
+          { 
+            opcode = opcode * 16 + X;
+          }
+        }
+        switch (opcode)
+        {
+        case 0:
+        case 1:
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j++] << " ";
+          // 3+1
+        case 9:
+        case 0xC04:
+          // 2+1
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j++] << " ";
+        case 3:
+          // 1+1
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j++] << " ";
+          if (T == 8 || (T == 1 && opcode == 3))
+          {
+            ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j] << " ";
+          }
+          break;
+        case 4:
+        case 6:
+          // 3
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j++] << " ";
+        case 5:
+        case 7:
+        case 0xC00:
+        case 0xC02:
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j++] << " ";
+          // 2
+        case 2:
+        case 8:
+        case 0xC1:
+        case 0xC2:
+        case 0xC3:
+        case 0xC01:
+        case 0xC03:
+        case 0xC05:
+        default:
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j] << " ";
+          // 1
+          break;
+        }
+        if (j >= (m_cheats[i].definition.num_opcodes)) // better to be ugly than to corrupt
+        {
+          printf("error encountered in addcodetofile \n ");
+          ss.str("");
+          for (u32 k = 0; k < m_cheats[i].definition.num_opcodes; k++)
+          {
+            ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[k++] << " ";
+          }
+          ss << "\n";
+          break;
+        }
+        ss << "\n";
+      }
+      SS << ss.str().c_str() << "\n";
+    }
+    // DmntCheatDefinition cheat = m_cheats[m_selectedEntry].definition;
+    // memcpy(&bookmark.label, &cheat.readable_name, sizeof(bookmark.label));
+    //    << "\n";
+    // ss << "580F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[bookmark.pointer.depth] << "\n";
+    // for (int z = bookmark.pointer.depth - 1; z > 0; z--)
+    // {
+    //   ss << "580F1000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[z] << "\n";
+    // }
+    // ss << "780F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[0] << "\n";
+    // ss << "6" << dataTypeSizes[bookmark.type] + 0 << "0F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << realvalue._u64 << "\n";
+
+    fputs(SS.str().c_str(), pfile);
+    fclose(pfile);
+  }
+  else
+    printf("failed writing to cheat file on Edizon dir \n");
+
+  // pfile = fopen(realCheatPath.str().c_str(), "w");
+  // if (pfile != NULL)
+  // {
+  //   fputs(ss.str().c_str(), pfile);
+  //   fclose(pfile);
+  // }
+  // else
+  //   printf("failed writing to cheat file on contents dir \n");
   return true;
 }
 

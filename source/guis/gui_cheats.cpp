@@ -1049,7 +1049,24 @@ void GuiCheats::drawSearchRAMMenu()
     if (m_searchValueFormat == FORMAT_DEC)
       ss << _getValueDisplayString(m_searchValue[0], m_searchType);
     else if (m_searchValueFormat == FORMAT_HEX)
-      ss << "0x" << std::uppercase << std::hex << m_searchValue[0]._u64;
+    {
+      switch (dataTypeSizes[m_searchType])
+      {
+      case 1:
+        ss << "0x" << std::uppercase << std::hex << m_searchValue[0]._u8;
+        break;
+      case 2:
+        ss << "0x" << std::uppercase << std::hex << m_searchValue[0]._u16;
+        break;
+      default:
+      case 4:
+        ss << "0x" << std::uppercase << std::hex << m_searchValue[0]._u32;
+        break;
+      case 8:
+        ss << "0x" << std::uppercase << std::hex << m_searchValue[0]._u64;
+        break;
+      }
+    }
 
     Gui::getTextDimensions(font20, ss.str().c_str(), &strWidth, nullptr);
     Gui::drawTextAligned(font20, 310, 285, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -1843,7 +1860,37 @@ void GuiCheats::onInput(u32 kdown)
     // Gui::g_nextGui = GUI_MAIN;
     // return;
     // }
-    if (kdown & KEY_R)
+    if ((kdown & KEY_R) && (kheld & KEY_ZL))
+    {
+      if (m_menuLocation == CANDIDATES && m_memoryDump1 != nullptr)
+      {
+        m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
+        if (m_bookmark.type < SEARCH_TYPE_FLOAT_64BIT)
+        {
+          u8 i = static_cast<u8>(m_bookmark.type) + 1;
+          m_bookmark.type = static_cast<searchType_t>(i);
+        }
+        m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
+        m_AttributeDumpBookmark->flushBuffer();
+      };
+    };
+
+    if ((kdown & KEY_L) && (kheld & KEY_ZL))
+    {
+      if (m_menuLocation == CANDIDATES && m_memoryDump1 != nullptr)
+      {
+        m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
+        if (m_bookmark.type > SEARCH_TYPE_UNSIGNED_8BIT)
+        {
+          u8 i = static_cast<u8>(m_bookmark.type) - 1;
+          m_bookmark.type = static_cast<searchType_t>(i);
+        }
+        m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
+        m_AttributeDumpBookmark->flushBuffer();
+      };
+    };
+
+    if ((kdown & KEY_R) && !(kheld & KEY_ZL))
     {
       if (m_searchValueFormat == FORMAT_HEX)
         m_searchValueFormat = FORMAT_DEC;
@@ -1853,7 +1900,7 @@ void GuiCheats::onInput(u32 kdown)
         printf("%s\n", "HEX");
       printf("%s\n", "R key pressed");
     }
-    if (kdown & KEY_L) //toggle bookmark view bookmark : (m_memoryDump1 != nullptr)
+    if ((kdown & KEY_L) && !(kheld & KEY_ZL)) //toggle bookmark view bookmark : (m_memoryDump1 != nullptr)
     {
       if (m_memoryDump1 == nullptr)
       {
@@ -2490,7 +2537,24 @@ static std::string _getAddressDisplayString(u64 address, Debugger *debugger, sea
   searchValue._u64 = debugger->peekMemory(address);
   // start mod for address content display
   if (m_searchValueFormat == FORMAT_HEX)
-    ss << "0x" << std::uppercase << std::hex << searchValue._u64;
+  {
+    switch (dataTypeSizes[searchType])
+    {
+    case 1:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u8;
+      break;
+    case 2:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u16;
+      break;
+    default:
+    case 4:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u32;
+      break;
+    case 8:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u64;
+      break;
+    }
+  }
   else
   {
 
@@ -2544,7 +2608,22 @@ static std::string _getValueDisplayString(searchValue_t searchValue, searchType_
 
   if (m_searchValueFormat == FORMAT_HEX)
   {
-    ss << "0x" << std::uppercase << std::hex << searchValue._u64;
+    switch (dataTypeSizes[searchType])
+    {
+    case 1:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u8;
+      break;
+    case 2:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u16;
+      break;
+    default:
+    case 4:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u32;
+      break;
+    case 8:
+      ss << "0x" << std::uppercase << std::hex << searchValue._u64;
+      break;
+    }
   }
   else
   {

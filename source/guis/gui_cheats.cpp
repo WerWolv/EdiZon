@@ -94,7 +94,8 @@ GuiCheats::GuiCheats() : Gui()
 
   _moveLonelyCheats(m_buildID, m_debugger->getRunningApplicationTID());
   // reloadcheatsfromfile(m_buildID, m_debugger->getRunningApplicationTID());
-  dumpcodetofile(); 
+  dumpcodetofile();
+  iconloadcheck();
 
   dmntchtGetCheatCount(&m_cheatCnt);
 
@@ -5126,6 +5127,15 @@ void GuiCheats::reloadcheats()
     dmntchtGetCheats(m_cheats, m_cheatCnt, 0, &m_cheatCnt);
   }
 }
+void GuiCheats::iconloadcheck()
+{
+  std::stringstream filenoiconStr;
+  filenoiconStr << EDIZON_DIR "/noicon.txt";
+  if (access(filenoiconStr.str().c_str(), F_OK) == 0)
+  {
+    m_havesave = false;
+  }
+}
 bool GuiCheats::dumpcodetofile()
 {
   std::stringstream buildIDStr;
@@ -5170,7 +5180,7 @@ bool GuiCheats::dumpcodetofile()
           T = (m_cheats[i].definition.opcodes[j] >> 20) & 0xF;
           u8 X = (m_cheats[i].definition.opcodes[j] >> 8) & 0xF;
           if (opcode == 0xC0)
-          { 
+          {
             opcode = opcode * 16 + X;
           }
         }

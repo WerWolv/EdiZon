@@ -131,7 +131,9 @@ private:
 #define MAX_POINTER_DEPTH 12       // up to 4 seems OK with forward only search took 94s. 215s for big dump
 #define MAX_POINTER_RANGE 0x2000
 #define MAX_NUM_POINTER_OFFSET 30
-#define HAVESAVE true
+#define HAVESAVE m_havesave
+  bool m_havesave = true;
+  void iconloadcheck();
   struct PointerSearch_state
   {
     u64 depth = 0;                                                       // depth and index[depth] is where the search is at, pointersearch2 will increment depth and call itself with nexttarget
@@ -209,7 +211,7 @@ private:
   bool getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue);
   bool addcodetofile(u64 index);
   bool dumpcodetofile();
-  void reloadcheats(); 
+  void reloadcheats();
   bool reloadcheatsfromfile(u8 *buildID, u64 titleID);
   bool addstaticcodetofile(u64 index);
   void PSsaveSTATE();
@@ -245,8 +247,8 @@ private:
                                       searchMode_t searchMode, MemoryDump **displayDump);
 
   void searchMemoryAddressesSecondary2(Debugger *debugger, searchValue_t searchValue1,
-                                      searchValue_t searchValue2, searchType_t searchType,
-                                      searchMode_t searchMode, MemoryDump **displayDump);
+                                       searchValue_t searchValue2, searchType_t searchType,
+                                       searchMode_t searchMode, MemoryDump **displayDump);
 
   void searchMemoryValuesPrimary(Debugger *debugger, searchType_t searchType, searchMode_t searchMode,
                                  searchRegion_t searchRegion, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos);

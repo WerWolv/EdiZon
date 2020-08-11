@@ -5263,6 +5263,14 @@ bool GuiCheats::dumpcodetofile()
             opcode = opcode * 16 + X;
           }
         }
+        if (opcode == 10)
+        {
+          u8 O = (m_cheats[i].definition.opcodes[j] >> 8) & 0xF;
+          if (O == 2 || O == 4 || O == 5)
+            T = 8;
+          else
+            T = 4;
+        }
         switch (opcode)
         {
         case 0:
@@ -5274,10 +5282,12 @@ bool GuiCheats::dumpcodetofile()
           // 2+1
           ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j++] << " ";
         case 3:
+        case 10:
           // 1+1
-          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j++] << " ";
-          if (T == 8 || (T == 1 && opcode == 3))
+          ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j] << " ";
+          if (T == 8 || (T == 0 && opcode == 3))
           {
+            j++;
             ss << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << m_cheats[i].definition.opcodes[j] << " ";
           }
           break;

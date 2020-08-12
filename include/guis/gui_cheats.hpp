@@ -109,6 +109,7 @@ private:
   u64 m_heapBaseAddr = 0x00;
   u64 m_mainBaseAddr = 0x00;
   u64 m_EditorBaseAddr = 0x00;
+  u64 m_BookmarkAddr = 0;
   u8 m_addressmod = 0;
   time_t m_Time1;
   struct helperinfo_t

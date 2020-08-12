@@ -2702,8 +2702,20 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
   time_t unixTime1 = time(NULL);
   printf("%s%lx\n", "Start Time primary search", unixTime1);
   // printf("main %lx main end %lx heap %lx heap end %lx \n",m_mainBaseAddr, m_mainBaseAddr+m_mainSize, m_heapBaseAddr, m_heapBaseAddr+m_heapSize);
+  printf("value1=%lx value2=%lx typesize=%d\n", searchValue1._u64, searchValue2._u64, dataTypeSizes[searchType]);
   for (MemoryInfo meminfo : memInfos)
   {
+
+    if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
+      continue;
+    else if (searchRegion == SEARCH_REGION_MAIN &&
+             (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable && meminfo.type != MemType_CodeStatic))
+      continue;
+    else if (searchRegion == SEARCH_REGION_HEAP_AND_MAIN &&
+             (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+      continue;
+    else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
+      continue;
 
     // printf("%s%p", "meminfo.addr, ", meminfo.addr);
     // printf("%s%p", ", meminfo.end, ", meminfo.addr + meminfo.size);
@@ -2713,18 +2725,6 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
     // printf("%s%lx", ", meminfo.perm, ", meminfo.perm);
     // printf("%s%lx", ", meminfo.device_refcount, ", meminfo.device_refcount);
     // printf("%s%lx\n", ", meminfo.ipc_refcount, ", meminfo.ipc_refcount);
-
-    if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
-      continue;
-    else if (searchRegion == SEARCH_REGION_MAIN &&
-             (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
-      continue;
-    else if (searchRegion == SEARCH_REGION_HEAP_AND_MAIN &&
-             (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
-      continue;
-    else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
-      continue;
-
     setLedState(ledOn);
     ledOn = !ledOn;
 

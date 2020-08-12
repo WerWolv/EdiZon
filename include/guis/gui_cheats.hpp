@@ -77,7 +77,7 @@ private:
     u64 m_numoffset = 3;
     u64 m_max_source = 200;
     u64 m_max_depth = 2;
-    u64 m_max_range = 0x300;
+    u64 m_max_range = 0x800;
     u64 m_EditorBaseAddr = 0;
     u64 m_mainBaseAddr;
     u64 m_mainend;
@@ -90,7 +90,7 @@ private:
   u64 m_numoffset = 3;
   u64 m_max_source = 200;
   u64 m_max_depth = 2;
-  u64 m_max_range = 0x300;
+  u64 m_max_range = 0x800;
   u64 m_low_main_heap_addr = 0x100000000;
   u64 m_high_main_heap_addr = 0x10000000000;
   u64 m_pointer_found = 0;

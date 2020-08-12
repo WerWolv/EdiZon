@@ -1630,6 +1630,7 @@ void GuiCheats::onInput(u32 kdown)
         if (kdown & KEY_RSTICK && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR)
         {
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
+          m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
           m_searchMenuLocation = SEARCH_editRAM;
           m_selectedEntry = (m_EditorBaseAddr % 16) / 4 + 11;
         }
@@ -2175,11 +2176,22 @@ void GuiCheats::onInput(u32 kdown)
           bookmark.type = m_searchType;
           Gui::requestKeyboardInput("Enter Label", "Enter Label to add to bookmark .", "", SwkbdType_QWERTY, bookmark.label, 18);
           m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+          m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+          if (m_bookmark.pointer.depth > 0)
+          {
+            s64 offset = address - m_EditorBaseAddr + m_bookmark.pointer.offset[0];
+            if (offset >= 0 && offset < (s64)m_max_range)
+            {
+              memcpy(&(bookmark.pointer), &(m_bookmark.pointer), (m_bookmark.pointer.depth + 2) * 8);
+              bookmark.pointer.offset[0] = (u64)offset;
+              m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
+              m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+            }
+          }
           m_AttributeDumpBookmark->flushBuffer();
+          m_memoryDumpBookmark->flushBuffer();
 
           (new Snackbar("Address added to bookmark!"))->show();
-          m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
-          m_memoryDumpBookmark->flushBuffer();
           printf("%s\n", "PLUS key pressed");
         }
         if (kdown & KEY_ZR)
@@ -5194,6 +5206,7 @@ bool GuiCheats::reloadcheatsfromfile(u8 *buildID, u64 titleID)
     //
     reloadcheats();
   }
+  return true;
 }
 void GuiCheats::reloadcheats()
 {

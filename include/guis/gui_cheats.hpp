@@ -135,6 +135,7 @@ private:
 #define HAVESAVE m_havesave
   bool m_havesave = true;
   void iconloadcheck();
+  void autoattachcheck();
   struct PointerSearch_state
   {
     u64 depth = 0;                                                       // depth and index[depth] is where the search is at, pointersearch2 will increment depth and call itself with nexttarget

@@ -65,7 +65,8 @@ GuiCheats::GuiCheats() : Gui()
     return;
 
   dmntchtInitialize();
-  dmntchtForceOpenCheatProcess();
+  // dmntchtForceOpenCheatProcess();
+  autoattachcheck();
   // dmntchtPauseCheatProcess();
 
   DmntCheatProcessMetadata metadata;
@@ -640,6 +641,8 @@ void GuiCheats::draw()
       }
     }
   }
+  else if (m_mainBaseAddr == 0)
+    Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 50, currTheme.textColor, "Dmnt detached from game process, press ZL+B to reattach,\n \n relaunch EdiZon SE to access this game", ALIGNED_CENTER);
   else if (m_cheatsPresent && m_memoryDump->size() == 0)
     Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 50, currTheme.textColor, "Cheats for this game present but title version or region doesn't match!", ALIGNED_CENTER);
 
@@ -1133,8 +1136,11 @@ void GuiCheats::onInput(u32 kdown)
       // Gui::g_nextGui = GUI_MAIN;
       if (kheld & KEY_ZL)
       {
-        printf("dmnt force close cheat process test\n");
-        dmntchtForceCloseCheatProcess();
+        if (m_mainBaseAddr == 0)
+          dmntchtForceOpenCheatProcess();
+        else
+          dmntchtForceCloseCheatProcess();
+        printf("dmnt toggled \n");
       };
       PSsaveSTATE();
       Gui::g_requestExit = true;
@@ -5238,6 +5244,15 @@ void GuiCheats::iconloadcheck()
   if (access(filenoiconStr.str().c_str(), F_OK) == 0)
   {
     m_havesave = false;
+  }
+}
+void GuiCheats::autoattachcheck()
+{
+  std::stringstream filenoiconStr;
+  filenoiconStr << EDIZON_DIR "/autoattach.txt";
+  if (access(filenoiconStr.str().c_str(), F_OK) == 0)
+  {
+    dmntchtForceOpenCheatProcess();
   }
 }
 bool GuiCheats::dumpcodetofile()

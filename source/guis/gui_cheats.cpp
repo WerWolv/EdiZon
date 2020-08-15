@@ -528,17 +528,20 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
+  ss << "EdiZon SE : 3.6.6"; 
+  Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  ss.str("");
   ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr; //metadata.address_space_extents.size
   ss << " - 0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr + m_addressSpaceSize;
-  Gui::drawTextAligned(font14, 900, 75, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 92, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "HEAP  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_heapBaseAddr;
   ss << " - 0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_heapEnd;
-  Gui::drawTextAligned(font14, 900, 105, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 122, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "MAIN  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_mainBaseAddr;
   ss << " - 0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_mainend;
-  Gui::drawTextAligned(font14, 900, 135, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 900, 152, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
 
   Gui::drawRectangle(256, 50, 394, 137, COLOR_WHITE);
 
@@ -689,10 +692,10 @@ void GuiCheats::draw()
           u64 address = 0;
           m_memoryDump->getData((line + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));
           // candidate display
-          if (address >= m_memoryDump->getDumpInfo().heapBaseAddress && address < (m_memoryDump->getDumpInfo().heapBaseAddress + m_memoryDump->getDumpInfo().heapSize))
-            ss << "[ HEAP + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_memoryDump->getDumpInfo().heapBaseAddress) << " ]";
-          else if (address >= m_memoryDump->getDumpInfo().mainBaseAddress && address < (m_memoryDump->getDumpInfo().mainBaseAddress + m_memoryDump->getDumpInfo().mainSize))
-            ss << "[ MAIN + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_memoryDump->getDumpInfo().mainBaseAddress) << " ]";
+          if (address >= m_heapBaseAddr && address < m_heapEnd)
+            ss << "[ HEAP + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_heapBaseAddr) << " ]";
+          else if (address >= m_mainBaseAddr && address < m_mainend)
+            ss << "[ MAIN + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_mainBaseAddr) << " ]";
           else
             ss << "[ BASE + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address - m_memoryDump->getDumpInfo().addrSpaceBaseAddress) << " ]";
 

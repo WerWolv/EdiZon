@@ -66,6 +66,7 @@ GuiCheats::GuiCheats() : Gui()
 
   dmntchtInitialize();
   dmntchtForceOpenCheatProcess();
+  // dmntchtPauseCheatProcess();
 
   DmntCheatProcessMetadata metadata;
   dmntchtGetCheatProcessMetadata(&metadata);
@@ -395,6 +396,7 @@ GuiCheats::GuiCheats() : Gui()
 GuiCheats::~GuiCheats()
 {
 
+  // dmntchtResumeCheatProcess();
   if (m_debugger != nullptr)
   {
     delete m_debugger;
@@ -528,7 +530,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.6.6"; 
+  ss << "EdiZon SE : 3.6.6";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr; //metadata.address_space_extents.size
@@ -1129,6 +1131,11 @@ void GuiCheats::onInput(u32 kdown)
     if (m_searchMenuLocation == SEARCH_NONE)
     {
       // Gui::g_nextGui = GUI_MAIN;
+      if (kheld & KEY_ZL)
+      {
+        printf("dmnt force close cheat process test\n");
+        dmntchtForceCloseCheatProcess();
+      };
       PSsaveSTATE();
       Gui::g_requestExit = true;
       return;

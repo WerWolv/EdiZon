@@ -386,10 +386,10 @@ GuiCheats::GuiCheats() : Gui()
 
   buildIDStr = ss.str();
 
-  if (m_cheatCnt == 0)
-    m_menuLocation = CANDIDATES;
   if (m_memoryDump->size() == 0)
     m_menuLocation = CHEATS;
+  if (m_cheatCnt == 0)
+    m_menuLocation = CANDIDATES;
 
   appletSetMediaPlaybackState(true);
 }
@@ -475,9 +475,9 @@ void GuiCheats::draw()
   if (m_menuLocation == CHEATS)
   {
     if (m_memoryDump1 == nullptr)
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
     else
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
   }
   else if (m_memoryDump1 == nullptr)
   {
@@ -494,7 +494,8 @@ void GuiCheats::draw()
     {
       if (m_memoryDump->size() > 0)
       {
-        Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle \uE0EF BM add \uE0F0 Reset search \uE0E3 Search again \uE0E2 Freeze value  \uE0E0 Edit value   \uE0E1 Quit", ALIGNED_RIGHT);
+        Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE0E6+\uE0E1 Detach debugger  \uE0E4 BM toggle \uE0E5 Hex Mode  \uE0EF BM add \uE0F0 Reset search \uE0E3 Search again \uE0E2 Freeze value  \uE0E0 Edit value   \uE0E1 Quit", ALIGNED_RIGHT);
+        Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E7 Page Up  \uE0E7 Page Down  \uE105 Memory Editor", ALIGNED_RIGHT);
       }
       else
         Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E1 Quit", ALIGNED_RIGHT);
@@ -504,7 +505,9 @@ void GuiCheats::draw()
   {
     if (m_memoryDumpBookmark->size() > 0)
     {
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle   \uE0EF BM label  \uE0E3 Add Cheat \uE0F0 Delete BM   \uE0E2 Freeze value  \uE0E0 Edit value \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0E5 Hex Mode  \uE0EF BM label  \uE0E3 Add Cheat  \uE0F0 Delete BM   \uE0E2 Freeze value  \uE0E7 Page Down  \uE0E0 Edit value  \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E4 \uE0E6+\uE0E5 Change Type  \uE0E6+\uE0F0 Refresh Bookmark  \uE0E6+\uE0EF Import Bookmark  \uE0E6+\uE0E3 Pointer Search  \uE0E6+\uE0E7 Page Up  \uE105 Memory Editor", ALIGNED_RIGHT);
+      //
     }
     else
       Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 BM toggle \uE0E1 Quit", ALIGNED_RIGHT);
@@ -531,7 +534,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.6.6";
+  ss << "EdiZon SE : 3.6.7";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr; //metadata.address_space_extents.size
@@ -642,7 +645,7 @@ void GuiCheats::draw()
     }
   }
   else if (m_mainBaseAddr == 0)
-    Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 50, currTheme.textColor, "Dmnt detached from game process, press ZL+B to reattach,\n \n relaunch EdiZon SE to access this game", ALIGNED_CENTER);
+    Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 50, currTheme.textColor, "Dmnt detached from game process, press ZL+B to attach,\n \n relaunch EdiZon SE to access this game", ALIGNED_CENTER);
   else if (m_cheatsPresent && m_memoryDump->size() == 0)
     Gui::drawTextAligned(font24, Gui::g_framebuffer_width / 2, Gui::g_framebuffer_height / 2 + 50, currTheme.textColor, "Cheats for this game present but title version or region doesn't match!", ALIGNED_CENTER);
 
@@ -876,7 +879,7 @@ void GuiCheats::drawSearchPointerMenu()
   if (cursorBlinkCnt++ % 60 > 10 && m_selectedEntry == 5)
     Gui::drawRectangled(622 + strWidth, 360, 3, 35, currTheme.highlightColor);
 
-  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0EF Start Search     \uE0E1 Abort     \uE0E0 Edit", ALIGNED_RIGHT);
+  Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 100, Gui::g_framebuffer_height - 100, currTheme.textColor, "\uE0E6+\uE0E3 Make Dump for pointersearcher SE    \uE0EF Start Search   \uE0E1 Abort     \uE0E4 \uE0E5 Edit Value", ALIGNED_RIGHT);
 
   // if (m_selectedEntry == 3)
   //   Gui::drawRectangled(Gui::g_framebuffer_width / 2 - 155, 345, 310, 90, currTheme.highlightColor);
@@ -1192,7 +1195,12 @@ void GuiCheats::onInput(u32 kdown)
       printf("starting PC dump\n");
       m_searchType = SEARCH_TYPE_UNSIGNED_64BIT;
       m_searchRegion = SEARCH_REGION_HEAP_AND_MAIN;
+      Gui::beginDraw();
+      Gui::drawRectangle(70, 420, 1150, 65, currTheme.backgroundColor);
+      Gui::drawTextAligned(font20, 70, 420, currTheme.textColor, "Making Dump for pointersearcher SE", ALIGNED_LEFT);
+      Gui::endDraw();
       GuiCheats::searchMemoryAddressesPrimary2(m_debugger, m_searchValue[0], m_searchValue[1], m_searchType, m_searchMode, m_searchRegion, &m_memoryDump, m_memoryInfo);
+      (new Snackbar("Dump for pointersearcher SE completed"))->show();
       // PCdump();
     }
 
@@ -1324,7 +1332,7 @@ void GuiCheats::onInput(u32 kdown)
       m_searchValue[1]._u64 = 0x8000000000;
     }
 
-    if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS && (m_cheatCnt > 0) && (m_memoryDump1 != nullptr))
+    if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS && (m_cheatCnt > 0) && (m_memoryDump1 != nullptr) && !(kheld & KEY_ZL))
     {
       // printf("start adding cheat to bookmark\n");
       // m_cheatCnt
@@ -5264,14 +5272,14 @@ bool GuiCheats::dumpcodetofile()
       buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
     filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".txt";
   }
-  std::stringstream realCheatPath;
-  {
-    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
-    mkdir(realCheatPath.str().c_str(), 0777);
-    realCheatPath << "/cheats/";
-    mkdir(realCheatPath.str().c_str(), 0777);
-    realCheatPath << buildIDStr.str() << ".txt";
-  }
+  // std::stringstream realCheatPath;
+  // {
+  //   realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
+  //   mkdir(realCheatPath.str().c_str(), 0777);
+  //   realCheatPath << "/cheats/";
+  //   mkdir(realCheatPath.str().c_str(), 0777);
+  //   realCheatPath << buildIDStr.str() << ".txt";
+  // }
   FILE *pfile;
   pfile = fopen(filebuildIDStr.str().c_str(), "w");
   std::stringstream SS;

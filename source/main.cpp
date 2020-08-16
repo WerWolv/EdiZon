@@ -207,17 +207,12 @@ int main(int argc, char **argv)
     Gui::g_splashDisplayed = true;
     Gui::g_nextGui = GUI_CHEATS;
   }
-  else
-    Gui::g_nextGui = GUI_MAIN;
-    
-#if SPLASH_ENABLED
+
   if (!Gui::g_splashDisplayed)
   {
-    static Gui *currGui = nullptr;
     currGui = new GuiMain();
     currGui->draw();
   }
-#endif
 
   initTitles();
 

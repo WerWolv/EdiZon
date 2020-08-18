@@ -504,7 +504,7 @@ void GuiCheats::draw()
       if (m_memoryDump->size() > 0)
       {
         Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE0E6+\uE0E1 Detach debugger  \uE0E4 BM toggle \uE0E5 Hex Mode  \uE0EF BM add \uE0F0 Reset search \uE0E3 Search again \uE0E2 Freeze value  \uE0E0 Edit value   \uE0E1 Quit", ALIGNED_RIGHT);
-        Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E7 Page Up  \uE0E7 Page Down  \uE105 Memory Editor", ALIGNED_RIGHT);
+        Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E2 Preparation for pointer Search  \uE0E6+\uE0E7 Page Up  \uE0E7 Page Down  \uE105 Memory Editor", ALIGNED_RIGHT);
       }
       else
         Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0F0 Reset search     \uE0E1 Quit", ALIGNED_RIGHT);

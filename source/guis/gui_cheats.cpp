@@ -1158,6 +1158,7 @@ void GuiCheats::onInput(u32 kdown)
     }
     else if (m_searchMenuLocation == SEARCH_editRAM)
     {
+      m_selectedEntry = m_selectedEntrySave;
       m_searchMenuLocation = SEARCH_NONE;
     }
     else if (m_searchMenuLocation == SEARCH_TYPE)
@@ -1405,7 +1406,7 @@ void GuiCheats::onInput(u32 kdown)
 
           m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
           m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
-          continue;
+          break;
         }
         if (depth == 0)
         {
@@ -1501,7 +1502,7 @@ void GuiCheats::onInput(u32 kdown)
       {
         m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
         m_AttributeDumpBookmark->addData((u8 *)&bookmark, sizeof(bookmark_t));
-        (new Snackbar("Adding address from cheat to bookmark"))->show();
+        (new Snackbar("Adding pointer chain from cheat to bookmark"))->show();
       }
       else
       {
@@ -1523,7 +1524,7 @@ void GuiCheats::onInput(u32 kdown)
               ->show();
         }
         else
-          (new Snackbar("Not able to extract address from cheat"))->show();
+          (new Snackbar("Not able to extract pointer chain from cheat"))->show();
       }
 
       // pointercheck(); //disable for now;
@@ -1536,15 +1537,27 @@ void GuiCheats::onInput(u32 kdown)
         if (m_cheatCnt > 0)
         {
           m_menuLocation = CHEATS;
-          m_selectedEntry = 0;
-          cheatListOffset = 0;
+          if (m_memoryDump1 == nullptr)
+            m_selectedEntrySaveSR = m_selectedEntry;
+          else
+            m_selectedEntrySaveBM = m_selectedEntry;
+
+          m_selectedEntry = m_selectedEntrySaveCL;
+          // cheatListOffset = 0;
         }
 
       if (kdown & KEY_RIGHT)
       {
+        m_selectedEntrySaveCL = m_selectedEntry;
         m_menuLocation = CANDIDATES;
-        m_selectedEntry = 0;
-        cheatListOffset = 0;
+        if (m_memoryDump1 == nullptr)
+          m_selectedEntry = m_selectedEntrySaveSR;
+        else
+          m_selectedEntry = m_selectedEntrySaveBM;
+
+
+        // m_selectedEntry = 0;
+        // cheatListOffset = 0;
       }
     }
 
@@ -1606,6 +1619,17 @@ void GuiCheats::onInput(u32 kdown)
 
             m_memoryDump1 = m_memoryDump;
             m_memoryDump = m_memoryDumpBookmark;
+
+            if (m_memoryDump->size() > 0)
+            {
+              if (m_memoryDump->size() / sizeof(u64) - 1 < m_selectedEntry)
+                m_selectedEntry = m_memoryDump->size() / sizeof(u64) - 1;
+            }
+            else
+            {
+              m_menuLocation = CHEATS;
+              m_selectedEntry = 0;
+            };
           }
         }
 
@@ -1657,6 +1681,7 @@ void GuiCheats::onInput(u32 kdown)
           m_BookmarkAddr = m_EditorBaseAddr;
           m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &m_bookmark, sizeof(bookmark_t));
           m_searchMenuLocation = SEARCH_editRAM;
+          m_selectedEntrySave = m_selectedEntry;
           m_selectedEntry = (m_EditorBaseAddr % 16) / 4 + 11;
         }
         if ((kdown & KEY_LSTICK) && (m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR) && (m_memoryDump1 != nullptr))
@@ -1810,6 +1835,22 @@ void GuiCheats::onInput(u32 kdown)
 
         m_memoryDump1 = m_memoryDump;
         m_memoryDump = m_memoryDumpBookmark;
+
+        if (m_memoryDump->size() > 0)
+        {
+          if (m_memoryDump->size() / sizeof(u64) - 1 < m_selectedEntry)
+            m_selectedEntry = m_memoryDump->size() / sizeof(u64) - 1;
+        }
+        else
+        {
+          // m_selectedEntrySave = 0;
+          m_selectedEntrySaveBM = 0;
+          if (m_menuLocation != CHEATS)
+          {
+            m_menuLocation = CHEATS;
+            m_selectedEntry = m_selectedEntrySaveCL;
+          }
+        };
       }
     }
 
@@ -1930,25 +1971,57 @@ void GuiCheats::onInput(u32 kdown)
     {
       if (m_memoryDump1 == nullptr)
       {
-        m_memoryDump1 = m_memoryDump;
-        m_memoryDump = m_memoryDumpBookmark;
-        m_addresslist_offset = 0;
-        //consider to remove later
-        if (m_searchType == SEARCH_TYPE_NONE)
-          m_searchType = SEARCH_TYPE_UNSIGNED_32BIT; // to make sure not blank
-        // end
-        // (new Snackbar("Switch to bookmark List!"))->show();
-        printf("%s\n", "Bookmark");
+        // WIP
+        // switch to bookmark
+        // if (m_memoryDumpBookmark->size() == 0)
+        // {
+        //   updatebookmark(true, false);
+        // }
+        if (m_memoryDumpBookmark->size() == 0)
+          m_menuLocation = CHEATS;
+
+        {
+          m_memoryDump1 = m_memoryDump;
+          m_memoryDump = m_memoryDumpBookmark;
+
+          if (m_menuLocation == CANDIDATES)
+          {
+            m_selectedEntrySaveSR = m_selectedEntry;
+            m_addresslist_offsetSaveSR = m_addresslist_offset;
+            m_selectedEntry = m_selectedEntrySaveBM;
+            m_addresslist_offset = m_addresslist_offsetSaveBM;
+          }
+
+          if (m_memoryDump->size() == 0 && m_cheatCnt > 0)
+          {
+            m_menuLocation = CHEATS;
+          };
+          //consider to remove later
+          if (m_searchType == SEARCH_TYPE_NONE)
+            m_searchType = SEARCH_TYPE_UNSIGNED_32BIT; // to make sure not blank
+          // end
+          // (new Snackbar("Switch to bookmark List!"))->show();
+          printf("%s\n", "Bookmark");
+        }
       }
       else
       {
         m_memoryDump = m_memoryDump1;
         m_memoryDump1 = nullptr;
+
+        if (m_menuLocation == CANDIDATES)
+        {
+          m_selectedEntrySaveBM = m_selectedEntry;
+          m_addresslist_offsetSaveBM = m_addresslist_offset;
+          m_selectedEntry = m_selectedEntrySaveSR;
+          m_addresslist_offset = m_addresslist_offsetSaveSR;
+        }
+
         // (new Snackbar("Switch to Normal List!"))->show();
       }
       printf("%s\n", "L key pressed");
-      if (m_menuLocation == CANDIDATES)
-        m_selectedEntry = 0;
+      // if (m_menuLocation == CANDIDATES)
+      //   m_selectedEntry = 0;
     }
 
     if ((kdown & KEY_ZR) && !(kheld & KEY_ZL))
@@ -1998,7 +2071,7 @@ void GuiCheats::onInput(u32 kdown)
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &m_EditorBaseAddr, sizeof(u64));
           // m_searchMenuLocation = SEARCH_POINTER;
           // m_showpointermenu = true;
-          if (m_menuLocation == CANDIDATES)
+          if (m_menuLocation == CANDIDATES && m_memoryDumpBookmark->size() != 0)
           {
             bookmark_t bookmark;
             m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
@@ -2021,6 +2094,7 @@ void GuiCheats::onInput(u32 kdown)
         else if (m_searchMode == SEARCH_MODE_NONE)
         {
           m_searchMenuLocation = SEARCH_MODE;
+          m_selectedEntry = 0;
           // m_selectedEntry = m_searchType == SEARCH_TYPE_NONE ? 0 : m_searchType;
         }
         else
@@ -2036,10 +2110,10 @@ void GuiCheats::onInput(u32 kdown)
           m_searchMode = SEARCH_MODE_DIFFA;
           m_selectedEntry = 1;
         }
-        else
-          m_selectedEntry = 0;
+        // else
+        //   m_selectedEntry = 0;
 
-        cheatListOffset = 0;
+        // cheatListOffset = 0;
       }
       printf("%s\n", "Y key pressed");
       printf("%s\n", titleNameStr.c_str());

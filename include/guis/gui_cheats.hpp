@@ -38,8 +38,15 @@ private:
   color_t m_memory[1024] = {0};
 
   u8 m_selectedEntry = 0;
+  u8 m_selectedEntrySave = 0;
+  u8 m_selectedEntrySaveCL = 0;
+  u8 m_selectedEntrySaveBM = 0;
+  u8 m_selectedEntrySaveSR = 0;
+
   u8 m_searchValueIndex = 0;
   u32 m_addresslist_offset = 0;
+  u32 m_addresslist_offsetSaveBM = 0;
+  u32 m_addresslist_offsetSaveSR = 0;
 
   searchValue_t m_searchValue[2];
 

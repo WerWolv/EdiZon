@@ -219,6 +219,7 @@ private:
   bool valuematch(searchValue_t value, u64 nextaddress);
   bool getinput(std::string headerText, std::string subHeaderText, std::string initialText, searchValue_t *searchValue);
   bool addcodetofile(u64 index);
+  bool editcodefile();
   bool dumpcodetofile();
   void reloadcheats();
   bool reloadcheatsfromfile(u8 *buildID, u64 titleID);
@@ -236,6 +237,7 @@ private:
 
   DmntCheatEntry *m_cheats;
   u64 m_cheatCnt;
+  bool *m_cheatDelete;
 
   void drawSearchRAMMenu();
 

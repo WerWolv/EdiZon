@@ -96,7 +96,7 @@ GuiCheats::GuiCheats() : Gui()
 
   _moveLonelyCheats(m_buildID, m_debugger->getRunningApplicationTID());
   // reloadcheatsfromfile(m_buildID, m_debugger->getRunningApplicationTID());
-  dumpcodetofile();
+  // dumpcodetofile();
   iconloadcheck();
 
   dmntchtGetCheatCount(&m_cheatCnt);
@@ -104,6 +104,9 @@ GuiCheats::GuiCheats() : Gui()
   if (m_cheatCnt > 0)
   {
     m_cheats = new DmntCheatEntry[m_cheatCnt];
+    m_cheatDelete = new bool[m_cheatCnt];
+    for (u64 i = 0; i < m_cheatCnt; i++)
+      m_cheatDelete[i] = false;
     dmntchtGetCheats(m_cheats, m_cheatCnt, 0, &m_cheatCnt);
   }
   else if (_wrongCheatsPresent(m_buildID, m_debugger->getRunningApplicationTID()))
@@ -475,9 +478,15 @@ void GuiCheats::draw()
   if (m_menuLocation == CHEATS)
   {
     if (m_memoryDump1 == nullptr)
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+    {
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE104 Modify  \uE0F2 Delete  \uE0E6+\uE104 Write to File  \uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
+    }
     else
-      Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+    {
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE104 Modify  \uE0F2 Delete  \uE0E6+\uE104 Write to File  \uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
+    }
   }
   else if (m_memoryDump1 == nullptr)
   {
@@ -534,7 +543,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.6.7";
+  ss << "EdiZon SE : 3.6.8";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr; //metadata.address_space_extents.size
@@ -628,9 +637,9 @@ void GuiCheats::draw()
     {
       if (line >= m_cheatCnt)
         break;
-
+      // WIP
       ss.str("");
-      ss << "\uE070   " << m_cheats[line].definition.readable_name;
+      ss << "\uE070   " << (m_cheatDelete[line] ? " Press \uE104 to delete" : (m_cheats[line].definition.readable_name));
 
       Gui::drawRectangle(52, 300 + (line - cheatListOffset) * 40, 646, 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
       Gui::drawTextAligned(font14, 70, 305 + (line - cheatListOffset) * 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -1314,16 +1323,30 @@ void GuiCheats::onInput(u32 kdown)
       }
     }
     // start mod
-    if ((kdown & KEY_LSTICK) && m_menuLocation == CHEATS)
+    if ((kdown & KEY_LSTICK) && m_menuLocation == CHEATS && !(kheld & KEY_ZL))
     {
-      // m_searchMenuLocation = SEARCH_editRAM;
-      // printf("L Stick pressed, start pointer search  *************\n");
-      // startpointersearch(m_heapBaseAddr + 80, 10, 0x800, 3);
-      // printf("done pointer search ********************************\n");
-      // printf("making a dump for pointers");
-      // GuiCheats::searchMemoryAddressesPrimary(m_debugger, m_searchValue[0], m_searchValue[1], SEARCH_TYPE_UNSIGNED_64BIT, SEARCH_MODE_RANGE, SEARCH_REGION_HEAP_AND_MAIN, &m_memoryDump, m_memoryInfo);
+      // Edit cheats
+      // WIP
+      for (u64 i = 0; i < m_cheatCnt; i++)
+        if (m_cheatDelete[i])
+        {
+          m_cheatDelete[i] = false;
+          dmntchtRemoveCheat(m_cheats[i].cheat_id);
+        }
+      reloadcheats();
 
       // m_menuLocation = CANDIDATES;
+      // m_searchType = SEARCH_TYPE_UNSIGNED_64BIT;
+      // m_searchMode = SEARCH_MODE_POINTER;
+      // m_searchRegion = SEARCH_REGION_HEAP_AND_MAIN;
+      // m_searchMenuLocation = SEARCH_VALUE;
+      // m_selectedEntry = 1;
+      // m_searchValue[0]._u64 = 0x1000000000;
+      // m_searchValue[1]._u64 = 0x8000000000;
+    }
+    if ((kdown & KEY_X) && m_menuLocation == CHEATS && !(kheld & KEY_ZL))
+    {
+      m_menuLocation = CANDIDATES;
       m_searchType = SEARCH_TYPE_UNSIGNED_64BIT;
       m_searchMode = SEARCH_MODE_POINTER;
       m_searchRegion = SEARCH_REGION_HEAP_AND_MAIN;
@@ -1331,6 +1354,11 @@ void GuiCheats::onInput(u32 kdown)
       m_selectedEntry = 1;
       m_searchValue[0]._u64 = 0x1000000000;
       m_searchValue[1]._u64 = 0x8000000000;
+    }
+    if ((kdown & KEY_LSTICK) && m_menuLocation == CHEATS && (kheld & KEY_ZL))
+    {
+      dumpcodetofile();
+      (new Snackbar("Writing change to file"))->show();
     }
 
     if ((kdown & KEY_PLUS) && m_menuLocation == CHEATS && (m_cheatCnt > 0) && (m_memoryDump1 != nullptr) && !(kheld & KEY_ZL))
@@ -1538,9 +1566,15 @@ void GuiCheats::onInput(u32 kdown)
         {
           m_menuLocation = CHEATS;
           if (m_memoryDump1 == nullptr)
+          {
             m_selectedEntrySaveSR = m_selectedEntry;
+            m_addresslist_offsetSaveSR = m_addresslist_offset;
+          }
           else
+          {
             m_selectedEntrySaveBM = m_selectedEntry;
+            m_addresslist_offsetSaveBM = m_addresslist_offset;
+          }
 
           m_selectedEntry = m_selectedEntrySaveCL;
           // cheatListOffset = 0;
@@ -1551,10 +1585,15 @@ void GuiCheats::onInput(u32 kdown)
         m_selectedEntrySaveCL = m_selectedEntry;
         m_menuLocation = CANDIDATES;
         if (m_memoryDump1 == nullptr)
+        {
           m_selectedEntry = m_selectedEntrySaveSR;
+          m_addresslist_offset = m_addresslist_offsetSaveSR;
+        }
         else
+        {
           m_selectedEntry = m_selectedEntrySaveBM;
-
+          m_addresslist_offset = m_addresslist_offsetSaveBM;
+        }
 
         // m_selectedEntry = 0;
         // cheatListOffset = 0;
@@ -1857,65 +1896,75 @@ void GuiCheats::onInput(u32 kdown)
     if ((kdown & KEY_MINUS) && !(kheld & KEY_ZL))
     {
       //make sure not using bookmark m_searchType
-      if (m_memoryDump1 != nullptr)
-      { //Bookmark case
-        bookmark_t bookmark;
-        m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
-        bookmark.deleted = !bookmark.deleted;
-        m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
-        // m_memoryDumpBookmark->flushBuffer();
-        // m_memoryDump = m_memoryDump1;
-        // m_memoryDump1 = nullptr;
-      }
-      else
+      if (m_menuLocation == CANDIDATES)
       {
-
-        m_addresslist_offset = 0;
-        // end mod
-        if (m_memoryDump->size() == 0)
-        {
-          std::vector<std::string> options;
-
-          if (m_frozenAddresses.size() == 0)
-            return;
-
-          std::stringstream ss;
-          for (auto [addr, value] : m_frozenAddresses)
-          {
-            ss << "[ BASE + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (addr - m_addressSpaceBaseAddr) << " ]  ";
-            ss << "( " << std::dec << value << " )";
-            options.push_back(ss.str());
-            ss.str("");
-          }
-
-          (new ListSelector("Frozen Addresses", "\uE0E0 Unfreeze     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
-                                                                                              if (k & KEY_A)
-                                                                                              {
-                                                                                                auto itr = m_frozenAddresses.begin();
-                                                                                                std::advance(itr, selectedItem);
-
-                                                                                                dmntchtDisableFrozenAddress(itr->first);
-                                                                                                m_frozenAddresses.erase(itr->first);
-                                                                                              }
-                                                                                            })
-              ->show();
+        if (m_memoryDump1 != nullptr)
+        { //Bookmark case
+          bookmark_t bookmark;
+          m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+          bookmark.deleted = !bookmark.deleted;
+          m_AttributeDumpBookmark->putData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
+          // m_memoryDumpBookmark->flushBuffer();
+          // m_memoryDump = m_memoryDump1;
+          // m_memoryDump1 = nullptr;
         }
         else
         {
-          m_memoryDump->clear();
-          remove(EDIZON_DIR "/memdump1.dat");
-          remove(EDIZON_DIR "/memdump1a.dat");
-          remove(EDIZON_DIR "/memdump2.dat");
-          remove(EDIZON_DIR "/memdump3.dat");
 
-          // m_searchType = SEARCH_TYPE_NONE;
-          // m_searchMode = SEARCH_MODE_NONE;
-          // m_searchRegion = SEARCH_REGION_NONE;
-          // m_searchValue[0]._u64 = 0;
-          // m_searchValue[1]._u64 = 0;
+          // m_addresslist_offset = 0;
+          m_selectedEntrySaveSR = 0;
+          m_addresslist_offsetSaveSR = 0;
+          // end mod
+          if (m_memoryDump->size() == 0)
+          {
+            std::vector<std::string> options;
 
-          m_menuLocation = CHEATS;
+            if (m_frozenAddresses.size() == 0)
+              return;
+
+            std::stringstream ss;
+            for (auto [addr, value] : m_frozenAddresses)
+            {
+              ss << "[ BASE + 0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (addr - m_addressSpaceBaseAddr) << " ]  ";
+              ss << "( " << std::dec << value << " )";
+              options.push_back(ss.str());
+              ss.str("");
+            }
+
+            (new ListSelector("Frozen Addresses", "\uE0E0 Unfreeze     \uE0E1 Back", options))->setInputAction([&](u32 k, u16 selectedItem) {
+                                                                                                if (k & KEY_A)
+                                                                                                {
+                                                                                                  auto itr = m_frozenAddresses.begin();
+                                                                                                  std::advance(itr, selectedItem);
+
+                                                                                                  dmntchtDisableFrozenAddress(itr->first);
+                                                                                                  m_frozenAddresses.erase(itr->first);
+                                                                                                }
+                                                                                              })
+                ->show();
+          }
+          else
+          {
+            m_memoryDump->clear();
+            remove(EDIZON_DIR "/memdump1.dat");
+            remove(EDIZON_DIR "/memdump1a.dat");
+            remove(EDIZON_DIR "/memdump2.dat");
+            remove(EDIZON_DIR "/memdump3.dat");
+
+            // m_searchType = SEARCH_TYPE_NONE;
+            // m_searchMode = SEARCH_MODE_NONE;
+            // m_searchRegion = SEARCH_REGION_NONE;
+            // m_searchValue[0]._u64 = 0;
+            // m_searchValue[1]._u64 = 0;
+
+            m_menuLocation = CHEATS;
+          }
         }
+      }
+      else
+      { // WIP working on cheat menu
+        // m_cheatCnt
+        m_cheatDelete[m_selectedEntry] = !m_cheatDelete[m_selectedEntry];
       }
     }
     // start mod KEY_PLUS
@@ -1977,8 +2026,9 @@ void GuiCheats::onInput(u32 kdown)
         // {
         //   updatebookmark(true, false);
         // }
-        if (m_memoryDumpBookmark->size() == 0)
-          m_menuLocation = CHEATS;
+
+        // if (m_memoryDumpBookmark->size() == 0)
+        //   m_menuLocation = CHEATS;
 
         {
           m_memoryDump1 = m_memoryDump;
@@ -1989,13 +2039,13 @@ void GuiCheats::onInput(u32 kdown)
             m_selectedEntrySaveSR = m_selectedEntry;
             m_addresslist_offsetSaveSR = m_addresslist_offset;
             m_selectedEntry = m_selectedEntrySaveBM;
-            m_addresslist_offset = m_addresslist_offsetSaveBM;
           }
+          m_addresslist_offset = m_addresslist_offsetSaveBM;
 
-          if (m_memoryDump->size() == 0 && m_cheatCnt > 0)
-          {
-            m_menuLocation = CHEATS;
-          };
+          // if (m_memoryDump->size() == 0 && m_cheatCnt > 0)
+          // {
+          //   m_menuLocation = CHEATS;
+          // };
           //consider to remove later
           if (m_searchType == SEARCH_TYPE_NONE)
             m_searchType = SEARCH_TYPE_UNSIGNED_32BIT; // to make sure not blank
@@ -2014,10 +2064,16 @@ void GuiCheats::onInput(u32 kdown)
           m_selectedEntrySaveBM = m_selectedEntry;
           m_addresslist_offsetSaveBM = m_addresslist_offset;
           m_selectedEntry = m_selectedEntrySaveSR;
-          m_addresslist_offset = m_addresslist_offsetSaveSR;
         }
+        m_addresslist_offset = m_addresslist_offsetSaveSR;
 
         // (new Snackbar("Switch to Normal List!"))->show();
+      }
+
+      if (m_memoryDumpBookmark->size() == 0 && m_menuLocation == CANDIDATES && m_cheatCnt > 0)
+      {
+        m_selectedEntry = m_selectedEntrySaveCL;
+        m_menuLocation = CHEATS;
       }
       printf("%s\n", "L key pressed");
       // if (m_menuLocation == CANDIDATES)
@@ -5147,6 +5203,68 @@ bool GuiCheats::addcodetofile(u64 index)
 
   return true;
 }
+bool GuiCheats::editcodefile() // not used work in progress
+{
+  std::stringstream buildIDStr;
+  std::stringstream filebuildIDStr;
+  {
+    for (u8 i = 0; i < 8; i++)
+      buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
+    filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".txt";
+  }
+
+  std::stringstream realCheatPath;
+  {
+    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
+    realCheatPath << "/cheats/";
+    realCheatPath << buildIDStr.str() << ".txt";
+  }
+
+  FILE *pfile;
+  pfile = fopen(realCheatPath.str().c_str(), "r+b");
+  fseek(pfile, 0, SEEK_END);
+  u64 bufferSize = ftell(pfile);
+  u8 *s = new u8[bufferSize + 1];
+  /* Read cheats into buffer. */
+  fseek(pfile, 0, SEEK_SET);
+  fread(s, sizeof(bufferSize), 1, pfile);
+  s[bufferSize] = '\x00';
+  {
+    size_t i = 0;
+    while (i < bufferSize)
+    {
+      if (std::isspace(static_cast<unsigned char>(s[i])))
+      {
+        /* Just ignore whitespace. */
+        i++;
+      }
+      else if (s[i] == '[')
+      {
+        size_t j = i + 1;
+        while (s[j] != ']')
+        {
+          j++;
+          if (j >= bufferSize)
+          {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  // WIP
+  pfile = fopen(filebuildIDStr.str().c_str(), "w+b");
+  std::stringstream ss;
+  if (pfile != NULL)
+  {
+    ss.str("");
+    fputs(ss.str().c_str(), pfile);
+    fclose(pfile);
+  }
+  else
+    printf("failed writing to cheat file on Edizon dir \n");
+  return true;
+}
 
 bool GuiCheats::reloadcheatsfromfile(u8 *buildID, u64 titleID)
 {
@@ -5312,10 +5430,15 @@ void GuiCheats::reloadcheats()
 {
   if (m_cheats != nullptr)
     delete m_cheats;
+  if (m_cheatDelete != nullptr)
+    delete m_cheatDelete;
   dmntchtGetCheatCount(&m_cheatCnt);
   if (m_cheatCnt > 0)
   {
     m_cheats = new DmntCheatEntry[m_cheatCnt];
+    m_cheatDelete = new bool[m_cheatCnt];
+    for (u64 i = 0; i < m_cheatCnt; i++)
+      m_cheatDelete[i] = false;
     dmntchtGetCheats(m_cheats, m_cheatCnt, 0, &m_cheatCnt);
   }
 }
@@ -5346,21 +5469,21 @@ bool GuiCheats::dumpcodetofile()
       buildIDStr << std::nouppercase << std::hex << std::setfill('0') << std::setw(2) << (u16)m_buildID[i];
     filebuildIDStr << EDIZON_DIR "/" << buildIDStr.str() << ".txt";
   }
-  // std::stringstream realCheatPath;
-  // {
-  //   realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
-  //   mkdir(realCheatPath.str().c_str(), 0777);
-  //   realCheatPath << "/cheats/";
-  //   mkdir(realCheatPath.str().c_str(), 0777);
-  //   realCheatPath << buildIDStr.str() << ".txt";
-  // }
+  std::stringstream realCheatPath;
+  {
+    realCheatPath << "/atmosphere/contents/" << std::uppercase << std::hex << std::setfill('0') << std::setw(sizeof(u64) * 2) << m_debugger->getRunningApplicationTID();
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << "/cheats/";
+    mkdir(realCheatPath.str().c_str(), 0777);
+    realCheatPath << buildIDStr.str() << ".txt";
+  }
   FILE *pfile;
   pfile = fopen(filebuildIDStr.str().c_str(), "w");
   std::stringstream SS;
   std::stringstream ss;
   if (pfile != NULL)
   {
-    GuiCheats::reloadcheats();
+    // GuiCheats::reloadcheats();
     SS.str("");
     for (u32 i = 0; i < m_cheatCnt; i++)
     {
@@ -5468,14 +5591,14 @@ bool GuiCheats::dumpcodetofile()
   else
     printf("failed writing to cheat file on Edizon dir \n");
 
-  // pfile = fopen(realCheatPath.str().c_str(), "w");
-  // if (pfile != NULL)
-  // {
-  //   fputs(ss.str().c_str(), pfile);
-  //   fclose(pfile);
-  // }
-  // else
-  //   printf("failed writing to cheat file on contents dir \n");
+  pfile = fopen(realCheatPath.str().c_str(), "w");
+  if (pfile != NULL)
+  {
+    fputs(SS.str().c_str(), pfile);
+    fclose(pfile);
+  }
+  else
+    printf("failed writing to cheat file on contents dir \n");
   return true;
 }
 

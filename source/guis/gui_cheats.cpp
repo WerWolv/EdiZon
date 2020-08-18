@@ -480,12 +480,12 @@ void GuiCheats::draw()
     if (m_memoryDump1 == nullptr)
     {
       Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE104 Modify  \uE0F2 Delete  \uE0E6+\uE104 Write to File  \uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
     }
     else
     {
       Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE104 Modify  \uE0F2 Delete  \uE0E6+\uE104 Write to File  \uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0EF BM add   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
     }
   }
   else if (m_memoryDump1 == nullptr)
@@ -1142,6 +1142,7 @@ void GuiCheats::onInput(u32 kdown)
   u32 kheld = hidKeysHeld(CONTROLLER_PLAYER_1) | hidKeysHeld(CONTROLLER_HANDHELD);
   if (kdown & KEY_B)
   {
+    m_selectedEntry = 0;
 
     if (m_searchMenuLocation == SEARCH_NONE)
     {
@@ -1344,7 +1345,7 @@ void GuiCheats::onInput(u32 kdown)
       // m_searchValue[0]._u64 = 0x1000000000;
       // m_searchValue[1]._u64 = 0x8000000000;
     }
-    if ((kdown & KEY_X) && m_menuLocation == CHEATS && !(kheld & KEY_ZL))
+    if ((kdown & KEY_X) && (kheld & KEY_ZL))
     {
       m_menuLocation = CANDIDATES;
       m_searchType = SEARCH_TYPE_UNSIGNED_64BIT;
@@ -1604,7 +1605,7 @@ void GuiCheats::onInput(u32 kdown)
     { /* Candidates menu */
       if (m_memoryDump->size() > 0)
       {
-        if (kdown & KEY_X && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR)
+        if (kdown & KEY_X && m_memoryDump->getDumpInfo().dumpType == DumpType::ADDR && !(kheld & KEY_ZL))
         {
           u64 address = 0;
           m_memoryDump->getData((m_selectedEntry + m_addresslist_offset) * sizeof(u64), &address, sizeof(u64));

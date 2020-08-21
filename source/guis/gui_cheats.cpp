@@ -572,7 +572,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.6.8";
+  ss << "EdiZon SE : 3.6.9";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr; //metadata.address_space_extents.size

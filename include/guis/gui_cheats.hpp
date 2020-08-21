@@ -63,6 +63,7 @@ private:
     SEARCH_REGION,
     SEARCH_VALUE,
     SEARCH_editRAM,
+    SEARCH_editRAM2,
     SEARCH_POINTER
   } m_searchMenuLocation = SEARCH_NONE;
 
@@ -242,6 +243,10 @@ private:
   void drawSearchRAMMenu();
 
   void drawEditRAMMenu();
+  std::string buttonStr(u32 buttoncode);
+  void drawEditRAMMenu2();
+  bool m_editCheat = false;
+  void editor_input(u32 kdown,u32 kheld);
   void drawSearchPointerMenu();
   void searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1,
                                     searchValue_t searchValue2, searchType_t searchType,

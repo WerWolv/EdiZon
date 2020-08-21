@@ -14,8 +14,10 @@ Here are the added features:
 9. Export dump to PC app (forked from pointersearcher 0.4) for more powerful pointer chain search. 
 10. Import PC app search result for validation and testing. 
 11. Create dmnt cheat code from pointer chain found.
+12. Ability to detach dmnt from game process.
+13. Adding/Removing conditional button to cheat code.
 
-PS: In app help on button combo currently don't show enough hints. Please refer to https://github.com/tomvita/EdiZon-SE/wiki for instructions on how to use the app. 
+PS: Please refer to https://github.com/tomvita/EdiZon-SE/wiki for instructions on how to use the app. 
 
 
 

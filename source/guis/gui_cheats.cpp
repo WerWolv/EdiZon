@@ -26,7 +26,7 @@
   })
 static const std::vector<std::string> dataTypes = {"u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "f32", "f64", "ptr"};
 static const std::vector<u8> dataTypeSizes = {1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 8};
-static const std::vector<std::string> buttonNames = {"\uE0A0 ", "\uE0A1 ", "\uE0A2 ", "\uE0A3 ", "\uE0C4 ", "\uE0C5 ", "\uE0A4 ", "\uE0A5 ", "\uE0A6 ", "\uE0A7 ", "\uE0B3 ", "\uE0B4 ", "\uE0B1 ", "\uE0AF ", "\uE0B2 ", "\uE0B0 "};
+static const std::vector<std::string> buttonNames = {"\uE0A0 ", "\uE0A1 ", "\uE0A2 ", "\uE0A3 ", "\uE0C4 ", "\uE0C5 ", "\uE0A4 ", "\uE0A5 ", "\uE0A6 ", "\uE0A7 ", "\uE0B3 ", "\uE0B4 ", "\uE0B1 ", "\uE0AF ", "\uE0B2 ", "\uE0B0 ", "\uE091 ", "\uE092 ", "\uE090 ", "\uE093 ", "\uE145 ", "\uE143 ", "\uE146 ", "\uE144 "};
 // static const std::vector<std::string> buttonNames = {"\uE0A0", "\uE0A1", "\uE0A2", "\uE0A3", "\uE0C4", "\uE0C5", "\uE0A4", "\uE0A5", "\uE0A6", "\uE0A7", "\uE0B3", "\uE0B4", "\uE0B1", "\uE0AF", "\uE0B2", "\uE0B0"};
 // static const std::vector<std::string> buttonNames = {"\uE0E0", "\uE0E1", "\uE0E2", "\uE0E3", "\uE104", "\uE105", "\uE0E4", "\uE0E5", "\uE0E6", "\uE0E7", "\uE0EF", "\uE0F0", "\uE0ED", "\uE0EB", "\uE0EE", "\uE0EC"};
 static const std::vector<u32> buttonCodes = {0x80000001,
@@ -44,16 +44,15 @@ static const std::vector<u32> buttonCodes = {0x80000001,
                                              0x80001000,
                                              0x80002000,
                                              0x80004000,
-                                             0x80008000};
-
-// 0x80010000,
-// 0x80020000,
-// 0x80040000,
-// 0x80080000,
-// 0x80100000,
-// 0x80200000,
-// 0x80400000,
-// 0x80800000,
+                                             0x80008000,
+                                             0x80010000,
+                                             0x80020000,
+                                             0x80040000,
+                                             0x80080000,
+                                             0x80100000,
+                                             0x80200000,
+                                             0x80400000,
+                                             0x80800000};
 // 0x81000000,
 // 0x82000000};
 static const std::vector<s128> dataTypeMaxValues = {std::numeric_limits<u8>::max(), std::numeric_limits<s8>::max(), std::numeric_limits<u16>::max(), std::numeric_limits<s16>::max(), std::numeric_limits<u32>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<u64>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<s32>::max(), std::numeric_limits<s64>::max(), std::numeric_limits<u64>::max()};
@@ -510,12 +509,12 @@ void GuiCheats::draw()
     if (m_memoryDump1 == nullptr)
     {
       Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE105 Modify  \uE0F2 Delete  \uE0E6+\uE104 Write to File  \uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE105 Remove condition key  \uE0E6+\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
     }
     else
     {
       Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 65, currTheme.textColor, "\uE0EF BM add   \uE105 Modify  \uE0F2 Delete  \uE0E6+\uE104 Write to File  \uE0E6+\uE0E1 Detach  \uE0E4 BM toggle   \uE0E3 Search RAM   \uE0E0 Cheat on/off   \uE0E1 Quit", ALIGNED_RIGHT);
-      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
+      Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 35, currTheme.textColor, "\uE0E6+\uE105 Remove condition key  \uE0E6+\uE0E2 Preparation for pointer Search", ALIGNED_RIGHT);
     }
   }
   else if (m_memoryDump1 == nullptr)
@@ -669,7 +668,7 @@ void GuiCheats::draw()
         break;
       // WIP
       ss.str("");
-      ss << "\uE070  " << buttonStr(m_cheats[line].definition.opcodes[0]) << (m_cheatDelete[line] ? " Press \uE104 to delete" : (m_cheats[line].definition.readable_name));
+      ss << "\uE070  " << buttonStr(m_cheats[line].definition.opcodes[0]) << ((m_editCheat && line == m_selectedEntry) ? "Press button for conditional execute" : (m_cheatDelete[line] ? " Press \uE104 to delete" : (m_cheats[line].definition.readable_name)));
 
       Gui::drawRectangle(52, 300 + (line - cheatListOffset) * 40, 646, 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? currTheme.highlightColor : line % 2 == 0 ? currTheme.backgroundColor : currTheme.separatorColor);
       Gui::drawTextAligned(font14, 70, 305 + (line - cheatListOffset) * 40, (m_selectedEntry == line && m_menuLocation == CHEATS) ? COLOR_BLACK : currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -1389,6 +1388,45 @@ void GuiCheats::onInput(u32 kdown)
     editor_input(kdown, kheld);
     return;
   };
+  if (m_editCheat)
+  {
+    // printf("kdown = %x, kheld = %x\n", kdown, kheld);
+    u32 keycode = 0x80000000 | kdown;
+    if (buttonStr(keycode) != "")
+    {
+      // edit cheat
+      if ((m_cheats[m_selectedEntry].definition.opcodes[0] & 0xF0000000) == 0x80000000)
+      {
+        m_cheats[m_selectedEntry].definition.opcodes[0] = keycode;
+      }
+      else
+      {
+        if (m_cheats[m_selectedEntry].definition.num_opcodes < 0x100 + 2)
+        {
+          m_cheats[m_selectedEntry].definition.opcodes[m_cheats[m_selectedEntry].definition.num_opcodes + 1] = 0x20000000;
+
+          for (u32 i = m_cheats[m_selectedEntry].definition.num_opcodes; i > 0; i--)
+          {
+            m_cheats[m_selectedEntry].definition.opcodes[i] = m_cheats[m_selectedEntry].definition.opcodes[i - 1];
+          }
+          m_cheats[m_selectedEntry].definition.num_opcodes += 2;
+          m_cheats[m_selectedEntry].definition.opcodes[0] = keycode;
+        }
+      }
+      // insert cheat
+      for (u32 i = m_selectedEntry; i < m_cheatCnt; i++)
+      {
+        dmntchtRemoveCheat(m_cheats[i].cheat_id);
+      }
+      for (u32 i = m_selectedEntry; i < m_cheatCnt; i++)
+      {
+        u32 outid;
+        dmntchtAddCheat(&(m_cheats[i].definition), m_cheats[i].enabled, &outid);
+      }
+    };
+    m_editCheat = false;
+    return;
+  }
   if (kdown & KEY_B)
   {
     m_selectedEntry = 0;
@@ -1576,7 +1614,31 @@ void GuiCheats::onInput(u32 kdown)
     if ((kdown & KEY_RSTICK) && m_menuLocation == CHEATS && !(kheld & KEY_ZL))
     {
       m_editCheat = true;
-      
+      while ((hidKeysHeld(CONTROLLER_PLAYER_1) | hidKeysHeld(CONTROLLER_HANDHELD)) != 0)
+      {
+        hidScanInput();
+      }
+    }
+    if ((kdown & KEY_RSTICK) && m_menuLocation == CHEATS && (kheld & KEY_ZL))
+    { // remove condition key
+      if ((m_cheats[m_selectedEntry].definition.opcodes[0] & 0xF0000000) == 0x80000000 && (m_cheats[m_selectedEntry].definition.opcodes[m_cheats[m_selectedEntry].definition.num_opcodes - 1] & 0xF0000000) == 0x20000000)
+      {
+        for (u32 i = 0; i < m_cheats[m_selectedEntry].definition.num_opcodes - 1; i++)
+        {
+          m_cheats[m_selectedEntry].definition.opcodes[i] = m_cheats[m_selectedEntry].definition.opcodes[i + 1];
+        }
+        m_cheats[m_selectedEntry].definition.num_opcodes -= 2;
+      }
+      // insert cheat
+      for (u32 i = m_selectedEntry; i < m_cheatCnt; i++)
+      {
+        dmntchtRemoveCheat(m_cheats[i].cheat_id);
+      }
+      for (u32 i = m_selectedEntry; i < m_cheatCnt; i++)
+      {
+        u32 outid;
+        dmntchtAddCheat(&(m_cheats[i].definition), m_cheats[i].enabled, &outid);
+      }
     }
     if ((kdown & KEY_LSTICK) && m_menuLocation == CHEATS && !(kheld & KEY_ZL))
     {

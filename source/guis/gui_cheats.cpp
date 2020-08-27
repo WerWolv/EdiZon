@@ -572,7 +572,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.6.9";
+  ss << "EdiZon SE : 3.6.10";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr; //metadata.address_space_extents.size
@@ -2178,6 +2178,19 @@ void GuiCheats::onInput(u32 kdown)
       {
         if (m_cheatCnt == 0)
           return;
+
+        // count total opcode
+        u32 opcodecount = m_cheats[m_selectedEntry].definition.num_opcodes;
+        for (u32 i = 0; i < m_cheatCnt; i++)
+        {
+          if (m_cheats[i].enabled)
+            opcodecount += m_cheats[i].definition.num_opcodes;
+        }
+        if (opcodecount > 0x400)
+        {
+          (new Snackbar("Total opcode count would exceed 1024!"))->show();
+          return;
+        }
 
         dmntchtToggleCheat(m_cheats[m_selectedEntry].cheat_id);
         u64 cheatCnt = 0;
@@ -6135,6 +6148,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
 
   time_t unixTime1 = time(NULL);
   printf("%s%lx\n", "Start Time primary search", unixTime1);
+  dmntchtPauseCheatProcess();
   // printf("main %lx main end %lx heap %lx heap end %lx \n",m_mainBaseAddr, m_mainBaseAddr+m_mainSize, m_heapBaseAddr, m_heapBaseAddr+m_heapSize);
   for (MemoryInfo meminfo : memInfos)
   {
@@ -6176,7 +6190,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
       debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
 
       searchValue_t realValue = {0};
-      for (u32 i = 0; i < bufferSize; i += dataTypeSizes[searchType])
+      for (u32 i = 0; i < bufferSize; i += 4)
       {
         u64 address = meminfo.addr + offset + i;
         memset(&realValue, 0, 8);
@@ -6235,6 +6249,7 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   delete PCDump;
   PCAttr->flushBuffer();
   delete PCAttr;
+  dmntchtResumeCheatProcess();
   // delete newstringDump;
 }
 //

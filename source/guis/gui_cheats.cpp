@@ -162,6 +162,7 @@ GuiCheats::GuiCheats() : Gui()
   m_heapSize = 0;
   m_heapEnd = 0;
   m_mainend = 0;
+  u32 mod = 0;
 
   do
   {
@@ -178,9 +179,16 @@ GuiCheats::GuiCheats() : Gui()
       m_heapEnd = meminfo.addr + meminfo.size; // turns out that m_heapEnd may not be same as m_heapBaseAddr + m_heapSize
     }
 
-    if (meminfo.type == MemType_CodeMutable)
+    if (meminfo.type == MemType_CodeMutable && mod == 2)
     {
       m_mainend = meminfo.addr + meminfo.size; // same for m_mainend not the same as m_mainBaseAddr + m_mainSize;
+    }
+
+    if (meminfo.type == MemType_CodeStatic && meminfo.perm == Perm_Rx)
+    {
+      if (mod == 1)
+        m_mainBaseAddr = meminfo.addr;
+      mod++;
     }
 
     m_memoryInfo.push_back(meminfo);
@@ -191,10 +199,15 @@ GuiCheats::GuiCheats() : Gui()
   // for some game heap info was very far off
 #endif
 
+  if (m_mainend < 0xFFFFFFFF && m_heapEnd < 0xFFFFFFFF)
+    m_32bitmode = true;
+  else
+    m_32bitmode = false;
+
   for (MemoryInfo meminfo : m_memoryInfo)
   {
-    if (m_mainBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic))
-      m_mainBaseAddr = meminfo.addr;
+    // if (m_mainBaseAddr == 0x00 && (meminfo.type == MemType_CodeStatic)) // wasn't executed since it isn't 0x00 but this code is getting wrong address
+    //   m_mainBaseAddr = meminfo.addr;
 
     for (u64 addrOffset = meminfo.addr; addrOffset < meminfo.addr + meminfo.size; addrOffset += 0x20000000)
     {
@@ -572,7 +585,9 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.6.10";
+  ss << "EdiZon SE : 3.7.0";
+  if (m_32bitmode)
+    ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
   ss.str("");
   ss << "BASE  :  0x" << std::uppercase << std::setfill('0') << std::setw(10) << std::hex << m_addressSpaceBaseAddr; //metadata.address_space_extents.size
@@ -623,7 +638,7 @@ void GuiCheats::draw()
         // printf("[%lx]", nextaddress);
         MemoryInfo meminfo = m_debugger->queryMemory(nextaddress);
         if (meminfo.perm == Perm_Rw)
-          m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+          m_debugger->readMemory(&nextaddress, ((m_32bitmode) ? sizeof(u32) : sizeof(u64)), nextaddress);
         else
         {
           ss << "(*access denied*)";
@@ -790,7 +805,7 @@ void GuiCheats::draw()
                   }
                 }
                 else
-                  m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+                  m_debugger->readMemory(&nextaddress, ((m_32bitmode) ? sizeof(u32) : sizeof(u64)), nextaddress);
               else
               {
                 updateaddress = false;
@@ -1832,7 +1847,10 @@ void GuiCheats::onInput(u32 kdown)
           if (meminfo.perm == Perm_Rw)
           {
             address = nextaddress;
-            m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+            if (m_32bitmode)
+              m_debugger->readMemory(&nextaddress, sizeof(u32), nextaddress);
+            else
+              m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
           }
           else
           {
@@ -3242,11 +3260,20 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
       debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
 
       searchValue_t realValue = {0};
-      for (u32 i = 0; i < bufferSize; i += dataTypeSizes[searchType])
+      u32 inc_i;
+      if (searchMode == SEARCH_MODE_POINTER)
+        inc_i = 4;
+      else
+        inc_i = dataTypeSizes[searchType];
+
+      for (u32 i = 0; i < bufferSize; i += inc_i)
       {
         u64 address = meminfo.addr + offset + i;
         memset(&realValue, 0, 8);
-        memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
+        if (searchMode == SEARCH_MODE_POINTER && m_32bitmode)
+          memcpy(&realValue, buffer + i, 4);
+        else
+          memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
 
         switch (searchMode)
         {
@@ -4701,7 +4728,10 @@ void GuiCheats::rebasepointer(searchValue_t value) //struct bookmark_t bookmark)
       {
         u64 Address = meminfo.addr + offset + i;
         memset(&realValue, 0, 8);
-        memcpy(&realValue, buffer + i, sizeof(u64));
+        if (m_32bitmode)
+          memcpy(&realValue, buffer + i, sizeof(u32));
+        else
+          memcpy(&realValue, buffer + i, sizeof(u64));
 
         if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd)))
         {
@@ -6194,7 +6224,10 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
       {
         u64 address = meminfo.addr + offset + i;
         memset(&realValue, 0, 8);
-        memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
+        if (m_32bitmode)
+          memcpy(&realValue, buffer + i, 4); //dataTypeSizes[searchType]);
+        else
+          memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
 
         // if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
         if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= m_heapEnd))
@@ -6371,7 +6404,7 @@ bool GuiCheats::unresolved(pointer_chain_t pointer)
         }
         else
         {
-          m_debugger->readMemory(&nextaddress, sizeof(u64), nextaddress);
+          m_debugger->readMemory(&nextaddress, ((m_32bitmode) ? sizeof(u32) : sizeof(u64)), nextaddress);
           printf("[(%lx)", nextaddress);
         }
       else

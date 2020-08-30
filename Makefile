@@ -31,8 +31,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 3
-VERSION_MINOR := 6
-VERSION_MICRO := 10
+VERSION_MINOR := 7
+VERSION_MICRO := 0
 NIGHTLY		  := 
 
 APP_TITLE	:=	EdiZon SE

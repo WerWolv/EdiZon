@@ -140,7 +140,7 @@ private:
 #define MAX_POINTER_DEPTH 12       // up to 4 seems OK with forward only search took 94s. 215s for big dump
 #define MAX_POINTER_RANGE 0x2000
 #define MAX_NUM_POINTER_OFFSET 30
-#define HAVESAVE m_havesave
+#define HAVESAVE (Title::g_titles[m_debugger->getRunningApplicationTID()] != nullptr) //m_havesave
   bool m_havesave = true;
   void iconloadcheck();
   void autoattachcheck();
@@ -235,6 +235,9 @@ private:
   u64 m_heapEnd = 0;
   u64 m_mainend = 0;
   u8 m_buildID[0x20];
+  // NsApplicationControlData appControlData;
+  // std::string m_titleName;
+  // std::string m_versionString;
 
   DmntCheatEntry *m_cheats;
   u64 m_cheatCnt;
@@ -247,7 +250,7 @@ private:
   void drawEditRAMMenu2();
   bool m_editCheat = false;
   bool m_32bitmode = false;
-  void editor_input(u32 kdown,u32 kheld);
+  void editor_input(u32 kdown, u32 kheld);
   void drawSearchPointerMenu();
   void searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t searchValue1,
                                     searchValue_t searchValue2, searchType_t searchType,

@@ -235,6 +235,15 @@ GuiCheats::GuiCheats() : Gui()
       }
     }
   }
+  //BM Begin title id and icon init
+
+  // size_t appControlDataSize = 0;
+  // NacpLanguageEntry *languageEntry = nullptr;
+  // std::memset(&appControlData, 0x00, sizeof(NsApplicationControlData));
+  // nsGetApplicationControlData(NsApplicationControlSource_Storage, m_debugger->getRunningApplicationTID(), &appControlData, sizeof(NsApplicationControlData), &appControlDataSize);
+  // nacpGetLanguageEntry(&appControlData.nacp, &languageEntry);
+  // m_titleName = std::string(languageEntry->name);
+  // m_versionString = std::string(appControlData.nacp.display_version);
 
   //BM Begin pointer search init
 
@@ -585,7 +594,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.7.1";
+  ss << "EdiZon SE : 3.7.2";
   if (m_32bitmode)
     ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -5542,10 +5551,10 @@ bool GuiCheats::addcodetofile(u64 index)
     ss.str("");
     ss << "[" << bookmark.label << "]"
        << "\n";
-    ss << ((m_32bitmode)? "540F0000 ":"580F0000 ") << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[bookmark.pointer.depth] << "\n";
+    ss << ((m_32bitmode) ? "540F0000 " : "580F0000 ") << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[bookmark.pointer.depth] << "\n";
     for (int z = bookmark.pointer.depth - 1; z > 0; z--)
     {
-      ss <<((m_32bitmode)? "540F1000 ":"580F1000 ")  << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[z] << "\n";
+      ss << ((m_32bitmode) ? "540F1000 " : "580F1000 ") << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[z] << "\n";
     }
     ss << "780F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << bookmark.pointer.offset[0] << "\n";
     ss << "6" << dataTypeSizes[bookmark.type] + 0 << "0F0000 " << std::uppercase << std::hex << std::setfill('0') << std::setw(16) << realvalue._u64 << "\n";

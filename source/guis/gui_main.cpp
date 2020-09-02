@@ -226,6 +226,8 @@ void GuiMain::onInput(u32 kdown) {
       if ((m_selected.titleIndex % 2) == 0) {
         if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
+        else
+          m_selected.extraOption = 0;
       } else {
         if (m_selected.titleIndex < (std::ceil(xOffset / 256.0F) * 2 + 4))
           m_selected.extraOption = 0;

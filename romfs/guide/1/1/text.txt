@@ -1,7 +1,19 @@
-EdiZon is a all-in-one Homebrew for save file management, save file editing, 
-memory manipulation and cheat management. This quick start guide will guide you 
-through all of the features EdiZon has to offer. 
- 
-If you have any questions about a topic that isn't covered in this guide (like for example 
-how to create your own save file editors or cheats) please visit EdiZon's GitHub 
-Readme and Wiki or join our Discord server. 
+This fork is based on the foundation of EdiZon 3.1 nightly. The changes made are on the game memory hack aspect.
+
+Here are the added features:
+  Range search.
+  Compare with previous value search.
+  Bookmark memory location found.
+  Speed enhancement to make small integer value in first search practicle.
+  Bookmark adjust to changing main and heap start address on subsequent launch of the game. 
+  Bookmark with pointer chain attached updates memory address dynamically when the chain is able to resolve into a valid memory address.
+  Extract memory address from dmnt cheat code and add it to bookmark for exploration of the memory location.
+  Rebase feature to extract potential pointer chain form dmnt cheat code made for previous version of the game.
+  In app pointer chain search for address on bookmark.
+  Export dump to PC app (forked from pointersearcher 0.4) for more powerful pointer chain search.
+  Import PC app search result for validation and testing.
+  Create dmnt cheat code from pointer chain found.
+  Ability to detach dmnt from game process.
+  Adding/Removing conditional button to cheat code.
+
+Please refer to https://github.com/tomvita/EdiZon-SE/wiki for instructions on how to use the app.

@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <stdbool.h>
 
-#define GUIDE_PAGE_CNT 10
+#define GUIDE_PAGE_CNT 1
 
 class GuiGuide : public Gui {
 public:

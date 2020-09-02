@@ -133,7 +133,7 @@ void GuiMain::draw() {
 
   Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 8, 3, currTheme.separatorColor, timeBuffer, ALIGNED_RIGHT);
   Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 80, 3, currTheme.separatorColor, batteryBuffer, ALIGNED_RIGHT);
-  Gui::drawTextAligned(font14, 8, 3, currTheme.separatorColor, "EdiZon v" VERSION_STRING, ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 8, 3, currTheme.separatorColor, "EdiZon SE v" VERSION_STRING, ALIGNED_LEFT);
 
   Gui::drawRectangled(Gui::g_framebuffer_width - 72, 5, 7, 18, currTheme.separatorColor);
   Gui::drawRectangled(Gui::g_framebuffer_width - 75, 8, 13, 18, currTheme.separatorColor);

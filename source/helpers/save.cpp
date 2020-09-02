@@ -7,6 +7,7 @@
 #include "helpers/account.hpp"
 #include "helpers/title.hpp"
 #include "helpers/debugger.hpp"
+#include "helpers/config.hpp"
 using json = nlohmann::json;
 
 s32 deleteDirRecursively(const char *path, bool isSave)
@@ -182,10 +183,18 @@ Result _getSaveList(std::vector<FsSaveDataInfo> &saveInfoList)
       saveInfoList.push_back(info);
       break;
     }
+    else if ((info.save_data_type == FsSaveDataType_Account) && (Config::getConfig()->lasttitle) != 0 )
+    {
+      if (info.application_id == Config::getConfig()->lasttitle)
+      {
+        saveInfoList.push_back(info);
+        break;
+      }
+    }
     else if ((info.save_data_type == FsSaveDataType_Account) && (l_debugger->getRunningApplicationTID() == 0)) // hacked to get only the running title
     {
       saveInfoList.push_back(info);
-    } 
+    }
   }
 
   fsSaveDataInfoReaderClose(&iterator);

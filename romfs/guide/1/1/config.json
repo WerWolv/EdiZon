@@ -1,20 +1,13 @@
 {
 	"images" : [
-		{
-			"title" : "",
-			"path" : "banner.bin",
-			"x" : 0,
-			"y" : 50,
-			"w" : 1280,
-			"h" : 348
-		}
+
 	],
 	"text" : [
 		{
-			"title" : "Introduction",
+			"title" : "Introduction to EdiZon SE",
 			"path" : "text.txt",
 			"x" : 50,
-			"y" : 410
+			"y" : 100
 		}
 	]
 }

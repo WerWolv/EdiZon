@@ -214,13 +214,13 @@ int main(int argc, char **argv)
     currGui->draw();
   }
 
+  Config::readConfig(); 
   initTitles();
 
   printf("%s\n", EDIZON_DIR);
 
   createFolders();
 
-  Config::readConfig();
 
 
   if (isServiceRunning("tx") && !isServiceRunning("rnx") && !Config::getConfig()->hideSX)

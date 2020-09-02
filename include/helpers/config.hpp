@@ -12,6 +12,7 @@ namespace Config {
     char magic[8];
     bool hideSX;
     char latestCommit[40];
+    u64 lasttitle = 0;
   } config_data_t;
 
   void readConfig();

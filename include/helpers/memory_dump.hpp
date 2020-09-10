@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 extern bool print_details;
+// extern bool m_compress = false;
 class MemoryDump
 {
 public:
@@ -26,6 +27,7 @@ public:
 
 	void setDumpType(enum DumpType dumpType);
 	void flushBuffer();
+	bool m_compress = false;
 
 private:
 	FILE *m_dumpFile;

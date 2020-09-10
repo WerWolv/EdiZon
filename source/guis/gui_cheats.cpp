@@ -10,6 +10,7 @@
 #include "helpers/util.h"
 #include "helpers/config.hpp"
 #include "edizon_logo_bin.h"
+#include "lz.h"
 // #define checkheap
 // #define printpointerchain
 #define MAX_BUFFER_SIZE 0x1000000 // increase size for faster speed
@@ -596,7 +597,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.7.3";
+  ss << "EdiZon SE : 3.7.4";
   if (m_32bitmode)
     ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -5846,6 +5847,46 @@ void GuiCheats::autoattachcheck()
   {
     dmntchtForceOpenCheatProcess();
   }
+  // testlz();
+}
+void GuiCheats::testlz()
+{
+  time_t unixTime1 = time(NULL);
+  std::stringstream filenoiconStr;
+  filenoiconStr << EDIZON_DIR "/ff756020d95b3ec5.dmp2";
+  MemoryDump *PCDump,*PCDump2;
+  u64 bufferSize = 0x1000000;
+  u8 *buffer = new u8[bufferSize];
+  u8 *outbuffer = new u8[bufferSize + 0x50000];
+  PCDump = new MemoryDump(filenoiconStr.str().c_str(), DumpType::DATA, false);
+  filenoiconStr << "a";
+  PCDump2 = new MemoryDump(filenoiconStr.str().c_str(), DumpType::DATA, true);
+  u64 S = PCDump->size();
+  u64 total = 0;
+  for (u64 index = 0; index < S;)
+  {
+    if ((S - index) < bufferSize)
+      bufferSize = S - index;
+    PCDump->getData(index, buffer, bufferSize);
+    printf("Start LZ \n");
+    u64 count = LZ_Compress(buffer, outbuffer, bufferSize);
+    PCDump2->addData((u8*)&count, sizeof(count));
+    PCDump2->addData(outbuffer, count);
+
+    float r = (float)count / (float)bufferSize;
+    printf("Index = %lx , End LZ bufferSize = %lx , outsize = %x , ration = %f\n",index, bufferSize, count, r);
+    index += bufferSize;
+    total +=count;
+  }
+  delete buffer;
+  delete outbuffer;
+  time_t unixTime2 = time(NULL);
+  printf("%s%ld\n", "Stop Time ", unixTime2 - unixTime1);
+  float r = (float) total / (float) S;
+  printf("Size = %lx , outsize = %x , ration = %f\n", S, total, r);
+  delete PCDump;
+  PCDump2->flushBuffer();
+  delete PCDump2;
 }
 bool GuiCheats::dumpcodetofile()
 {
@@ -6184,7 +6225,8 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   PCDump->addData((u8 *)&m_heapBaseAddr, sizeof(u64));
   PCDump->addData((u8 *)&m_heapEnd, sizeof(u64));
   PCDump->addData((u8 *)&m_EditorBaseAddr, sizeof(u64)); // first entry is the target address
-
+  PCDump->flushBuffer();
+  PCDump->m_compress = true;
   bool ledOn = false;
 
   time_t unixTime1 = time(NULL);
@@ -6289,6 +6331,8 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
   time_t unixTime2 = time(NULL);
   printf("%s%lx\n", "Stop Time ", unixTime2);
   printf("%s%ld\n", "Stop Time ", unixTime2 - unixTime1);
+  if (PCDump->m_compress)
+    printf("mcompress = true\n");
   PCDump->flushBuffer();
   delete PCDump;
   PCAttr->flushBuffer();

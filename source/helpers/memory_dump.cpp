@@ -1,5 +1,6 @@
 #include "helpers/memory_dump.hpp"
 #include <stdio.h>
+#include "lz.h"
 //
 // #include "guis/gui_cheats.hpp"
 
@@ -23,7 +24,6 @@ bool print_details = false;
 MemoryDump::MemoryDump(std::string filePath, DumpType dumpType, bool discardFile) : m_filePath(filePath)
 {
   m_dataHeader = {0};
-
   m_dataHeader.magic = 0x4E5A4445;
   m_dataHeader.endOfHeader = '@';
   m_dataHeader.dumpType = (char)dumpType;
@@ -130,7 +130,18 @@ void MemoryDump::addData(u8 *buffer, size_t dataSize)
       MemoryDump::flushBuffer();
 
       fseek(m_dumpFile, 0, SEEK_END); // read shouldn't this come after flushbuffer??
-      fwrite(buffer, sizeof(u8), dataSize, m_dumpFile);
+      if (m_compress)
+      {
+        // u8 *cbuffer = new u8[BUFFER_SIZE * 9 / 8 + 4];
+        // *(u32 *)&cbuffer[0] = LZ_Compress(buffer, &cbuffer[4], dataSize);
+        // fwrite(cbuffer, sizeof(u8), *(u32 *)&cbuffer[0], m_dumpFile);
+        u8 *cbuffer = new u8[m_data.size() * 9 / 8];
+        int csize = LZ_Compress(&m_data[0], cbuffer, m_data.size());
+        fwrite(cbuffer, sizeof(u8), csize, m_dumpFile);
+        delete cbuffer;
+      }
+      else
+        fwrite(buffer, sizeof(u8), dataSize, m_dumpFile);
       m_dataHeader.dataSize += dataSize;
       MemoryDump::writeHeader(); // Maybe implement this section directly to avoid extra flashbuffer, seek, writeheader
     }
@@ -225,7 +236,16 @@ void MemoryDump::flushBuffer()
   if (m_data.size() > 0 && isFileOpen())
   {
     fseek(m_dumpFile, 0, SEEK_END);
-    fwrite(&m_data[0], sizeof(u8), m_data.size(), m_dumpFile);
+    if (m_compress)
+    {
+      u8 *cbuffer = new u8[m_data.size() * 9 / 8 ];
+      int csize = LZ_Compress(&m_data[0], cbuffer, m_data.size());
+      fwrite(cbuffer, sizeof(u8), csize , m_dumpFile);
+      delete cbuffer;
+      printf("mcompress\n");
+    }
+    else
+      fwrite(&m_data[0], sizeof(u8), m_data.size(), m_dumpFile);
 
     m_dataHeader.dataSize += m_data.size();
 
@@ -239,6 +259,8 @@ void MemoryDump::writeHeader()
 {
   if (isFileOpen())
   {
+    if (m_compress)
+      m_dataHeader.magic = 0x4E5A4665;
     fseek(m_dumpFile, 0, SEEK_SET);
     fwrite(&m_dataHeader, sizeof(m_dataHeader), 1, m_dumpFile);
     fflush(m_dumpFile);

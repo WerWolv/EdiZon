@@ -32,7 +32,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 VERSION_MAJOR := 3
 VERSION_MINOR := 7
-VERSION_MICRO := 3
+VERSION_MICRO := 4
 NIGHTLY		  := 
 
 APP_TITLE	:=	EdiZon SE

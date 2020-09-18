@@ -19,7 +19,7 @@ Here are the added features:
 
 PS: Please refer to https://github.com/tomvita/EdiZon-SE/wiki for instructions on how to use the app. 
 
-
+To establish common base for support please start from a clean boot with the latest atmosphere and only Sigpatches needed to run the game and latest releases from https://github.com/tomvita. Please state the url you downloaded from. No extra software unless it is related to the topic underdiscussoin.
 
 Original functinality of Edizon on game save is available when launched without a game running. 
 

@@ -597,7 +597,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.7.4";
+  ss << "EdiZon SE : 3.7.4a";
   if (m_32bitmode)
     ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -5874,7 +5874,7 @@ void GuiCheats::testlz()
     PCDump2->addData(outbuffer, count);
 
     float r = (float)count / (float)bufferSize;
-    printf("Index = %lx , End LZ bufferSize = %lx , outsize = %x , ration = %f\n",index, bufferSize, count, r);
+    printf("Index = %lx , End LZ bufferSize = %lx , outsize = %lx , ration = %f\n",index, bufferSize, count, r);
     index += bufferSize;
     total +=count;
   }
@@ -5883,7 +5883,7 @@ void GuiCheats::testlz()
   time_t unixTime2 = time(NULL);
   printf("%s%ld\n", "Stop Time ", unixTime2 - unixTime1);
   float r = (float) total / (float) S;
-  printf("Size = %lx , outsize = %x , ration = %f\n", S, total, r);
+  printf("Size = %lx , outsize = %lx , ration = %f\n", S, total, r);
   delete PCDump;
   PCDump2->flushBuffer();
   delete PCDump2;

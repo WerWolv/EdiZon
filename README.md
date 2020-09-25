@@ -25,12 +25,11 @@ Original functinality of Edizon on game save is available when launched without 
 
   <p align="center"><img src="https://user-images.githubusercontent.com/68505331/94226638-aa5aad00-ff2a-11ea-8b39-151c41bbc774.jpg"><br />
       <a href="https://github.com/tomvita/EdiZon-SE/releases/latest"><img src="https://img.shields.io/github/downloads/tomvita/EdiZon-SE/total.svg" alt="Latest Release" /></a>
-    <a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
-    <a href="https://travis-ci.com/WerWolv/EdiZon"><img src="https://travis-ci.com/WerWolv/EdiZon.svg?branch=master" alt="Build Status" /></a>
+    
+    
   </p>
-  
-A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch. 
-Please note if you are using Atmosphere 0.10.0+, you **must** use the snapshot version of EdiZon. Older versions of EdiZon do **not** work on the latest Atmosphere.
+
+The following is the original readme the first two part is mostly unmodified except now you only see the save game functionality if you enter when no game is running and only the last game is display if there was a last game. To see all the games enter into "cheat" when no game is running and the next time EdiZon SE is launched all the game save will appear. 
 
 # Overview
   EdiZon consists of 3 different main functionalities.

@@ -30,10 +30,10 @@ Result Debugger::attachToProcess() {
     if ((int)m_rc == 0)
     {
       m_dmnt = false;
-      return m_rc;
     }
+    return m_rc;
   }
-  return 0;
+  return 1;
   // return dmntchtForceOpenCheatProcess();
 }
 void Debugger::detatch()

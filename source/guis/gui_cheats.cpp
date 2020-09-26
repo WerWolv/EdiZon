@@ -75,7 +75,15 @@ GuiCheats::GuiCheats() : Gui()
   // Check if dmnt:cht is running and we're not on sxos
   m_sysmodulePresent = isServiceRunning("dmnt:cht") && !(isServiceRunning("tx") && !isServiceRunning("rnx"));
 
+  // dmntchtForceOpenCheatProcess();
+  // dmntchtPauseCheatProcess();
   m_debugger = new Debugger();
+  dmntchtInitialize();
+  if (!autoattachcheck())
+    m_debugger->attachToProcess();
+  if (!m_debugger->m_dmnt) { m_sysmodulePresent = true;  }
+  // printf(" envIsSyscallHinted(0x60) = %d \n",envIsSyscallHinted(0x60));
+  // printf("init debugger success m_rc = %x m_debugHandle = %x m_dmnt = %x\n",(u32) m_debugger->m_rc, m_debugger->m_debugHandle, m_debugger->m_dmnt);
   m_cheats = nullptr;
   m_memoryDump = nullptr;
   // start mod bookmark;
@@ -94,13 +102,32 @@ GuiCheats::GuiCheats() : Gui()
   if (!m_sysmodulePresent)
     return;
 
-  dmntchtInitialize();
-  // dmntchtForceOpenCheatProcess();
-  autoattachcheck();
-  // dmntchtPauseCheatProcess();
 
   DmntCheatProcessMetadata metadata;
-  dmntchtGetCheatProcessMetadata(&metadata);
+  if (m_debugger->m_dmnt)
+    dmntchtGetCheatProcessMetadata(&metadata);
+  else
+  {
+    LoaderModuleInfo proc_modules[2] = {};
+    s32 num_modules=2;
+    ldrDmntInitialize();
+    Result rc = ldrDmntGetProcessModuleInfo(m_debugger->getRunningApplicationPID(), proc_modules, std::size(proc_modules), &num_modules);
+    ldrDmntExit();
+    const LoaderModuleInfo *proc_module = nullptr;
+    if (num_modules == 2)
+    {
+      proc_module = &proc_modules[1];
+    }
+    else if (num_modules == 1)
+    {
+      proc_module = &proc_modules[0];
+    }
+    if (rc != 0)
+      printf("num_modules = %x, proc_module->base_address = %lx , pid = %ld, rc = %x\n ", num_modules, proc_module->base_address, m_debugger->getRunningApplicationPID(), rc);
+    metadata.main_nso_extents.base = proc_module->base_address;
+    metadata.main_nso_extents.size = proc_module->size;
+    std::memcpy(metadata.main_nso_build_id, proc_module->build_id, sizeof((metadata.main_nso_build_id)));
+  };
 
   m_addressSpaceBaseAddr = metadata.address_space_extents.base;
   m_addressSpaceSize = metadata.address_space_extents.size;
@@ -196,6 +223,15 @@ GuiCheats::GuiCheats() : Gui()
 
     m_memoryInfo.push_back(meminfo);
   } while (lastAddr < meminfo.addr + meminfo.size);
+
+if (!(m_debugger->m_dmnt)){
+
+  m_addressSpaceBaseAddr = metadata.main_nso_extents.base;
+  m_addressSpaceSize = metadata.main_nso_extents.size;
+  m_EditorBaseAddr = m_heapBaseAddr;
+  m_heapSize = m_heapEnd-m_heapBaseAddr;
+  m_mainSize = m_mainend-m_mainBaseAddr;
+}
 
 #ifdef checkheap
   printf("m_heapBaseAddr = %lx m_heapSize = %lx m_heapEnd = %lx m_mainend =%lx\n", m_heapBaseAddr, m_heapSize, m_heapEnd, m_mainend);
@@ -597,7 +633,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.7.4a";
+  ss << "EdiZon SE : 3.7.5";
   if (m_32bitmode)
     ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -1003,7 +1039,8 @@ void GuiCheats::drawEditRAMMenu()
   Gui::drawText(font24, 520, 70, currTheme.textColor, ss.str().c_str());
   // Next to display the value in the selected type now is u32 in hex
   ss.str("");
-  dmntchtReadCheatProcessMemory(address, &out, sizeof(u32));
+  // dmntchtReadCheatProcessMemory(address, &out, sizeof(u32));
+  m_debugger->readMemory(&out, sizeof(u32), address);
   // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << out << "";
   Gui::drawText(font24, 820, 70, currTheme.textColor, _getAddressDisplayString(address, m_debugger, m_searchType).c_str()); //ss.str().c_str()
 
@@ -1015,7 +1052,8 @@ void GuiCheats::drawEditRAMMenu()
     {
       Gui::drawRectangled(93 + (i % 5) * 225, 240 + (i / 5) * 50, 215, 40, currTheme.separatorColor);
       ss.str("");
-      dmntchtReadCheatProcessMemory(addr, &out, sizeof(u32));
+      // dmntchtReadCheatProcessMemory(addr, &out, sizeof(u32));
+      m_debugger->readMemory(&out, sizeof(u32), addr);
       ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << out << "";
       Gui::drawTextAligned(font20, 200 + (i % 5) * 225, 245 + (i / 5) * 50, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
       addr += 4;
@@ -1059,7 +1097,8 @@ void GuiCheats::drawEditRAMMenu2()
   ss << "[ " << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << (address) << " ] " << dataTypes[m_searchType];
   Gui::drawText(font24, 520, 70, currTheme.textColor, ss.str().c_str());
   ss.str("");
-  dmntchtReadCheatProcessMemory(address, &out, sizeof(u32));
+  //dmntchtReadCheatProcessMemory(address, &out, sizeof(u32));
+  m_debugger->readMemory(&out, sizeof(u32), address);
   Gui::drawText(font24, 830, 70, currTheme.textColor, _getAddressDisplayString(address, m_debugger, m_searchType).c_str()); //ss.str().c_str()
   for (u8 i = 0; i < 40; i++)
   {
@@ -1069,7 +1108,8 @@ void GuiCheats::drawEditRAMMenu2()
     {
       Gui::drawRectangled(93 + (i % 5) * 225, 240 + (i / 5) * 50, 215, 40, currTheme.separatorColor);
       ss.str("");
-      dmntchtReadCheatProcessMemory(addr, &out, sizeof(u32));
+      // dmntchtReadCheatProcessMemory(addr, &out, sizeof(u32));
+      m_debugger->readMemory(&out, sizeof(u32), addr);
       ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(8) << out << "";
       Gui::drawTextAligned(font20, 200 + (i % 5) * 225, 245 + (i / 5) * 50, currTheme.textColor, ss.str().c_str(), ALIGNED_CENTER);
       addr += 4;
@@ -1461,15 +1501,20 @@ void GuiCheats::onInput(u32 kdown)
     if (m_searchMenuLocation == SEARCH_NONE)
     {
       // Gui::g_nextGui = GUI_MAIN;
+      PSsaveSTATE();
       if (kheld & KEY_ZL)
       {
-        if (m_mainBaseAddr == 0)
+        if (!m_debugger -> m_dmnt)
+        {
+          m_debugger->detatch();
           dmntchtForceOpenCheatProcess();
+          printf("force open called\n");
+        }
         else
           dmntchtForceCloseCheatProcess();
         printf("dmnt toggled \n");
+        return;
       };
-      PSsaveSTATE();
       Gui::g_requestExit = true;
       return;
     }
@@ -3246,7 +3291,7 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
     else if (searchRegion == SEARCH_REGION_HEAP_AND_MAIN &&
              (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
       continue;
-    else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
+    else if ( (meminfo.perm & Perm_Rw) != Perm_Rw) //searchRegion == SEARCH_REGION_RAM &&
       continue;
 
     // printf("%s%p", "meminfo.addr, ", meminfo.addr);
@@ -5839,14 +5884,18 @@ void GuiCheats::iconloadcheck()
     m_havesave = false;
   }
 }
-void GuiCheats::autoattachcheck()
+bool GuiCheats::autoattachcheck()
 {
   std::stringstream filenoiconStr;
   filenoiconStr << EDIZON_DIR "/autoattach.txt";
   if (access(filenoiconStr.str().c_str(), F_OK) == 0)
   {
+    if (m_debugger->m_dmnt)
     dmntchtForceOpenCheatProcess();
+    return true;
   }
+  else
+    return false;
   // testlz();
 }
 void GuiCheats::testlz()

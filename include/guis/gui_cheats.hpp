@@ -143,7 +143,7 @@ private:
 #define HAVESAVE (Title::g_titles[m_debugger->getRunningApplicationTID()] != nullptr) //m_havesave
   bool m_havesave = true;
   void iconloadcheck();
-  void autoattachcheck();
+  bool autoattachcheck();
   void testlz(); 
   struct PointerSearch_state
   {

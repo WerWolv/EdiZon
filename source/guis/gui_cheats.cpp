@@ -4231,7 +4231,7 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
           }
           break;
         case SEARCH_MODE_DIFF:
-          if (newValue._u64 != oldValue._u64)
+          if ((newValue._u64 != oldValue._u64) && (newValue._u64 <= m_heapBaseAddr || newValue._u64 >= (m_heapEnd)) && (newValue._u64 != 0))
           {
             addrDump->addData((u8 *)&addr, sizeof(u64));
             newMemDump->addData((u8 *)&newValue, sizeof(u64));
@@ -4587,7 +4587,7 @@ void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchValue_t sea
         }
         break;
       case SEARCH_MODE_DIFF:
-        if (value._s64 != oldvalue._s64)
+        if ((value._s64 != oldvalue._s64) && (value._u64 <= m_heapBaseAddr || value._u64 >= (m_heapEnd)) && (value._u64 != 0))
         {
           newDump->addData((u8 *)&address, sizeof(u64));
           newvalueDump->addData((u8 *)&value, sizeof(u64));

@@ -633,7 +633,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.7.5";
+  ss << "EdiZon SE : 3.7.6";
   if (m_32bitmode)
     ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -4231,7 +4231,7 @@ void GuiCheats::searchMemoryValuesSecondary(Debugger *debugger, searchType_t sea
           }
           break;
         case SEARCH_MODE_DIFF:
-          if ((newValue._u64 != oldValue._u64) && (newValue._u64 <= m_heapBaseAddr || newValue._u64 >= (m_heapEnd)) && (newValue._u64 != 0))
+          if ((newValue._u64 != oldValue._u64) && (newValue._u64 <= m_heapBaseAddr || newValue._u64 >= (m_heapEnd)) )
           {
             addrDump->addData((u8 *)&addr, sizeof(u64));
             newMemDump->addData((u8 *)&newValue, sizeof(u64));
@@ -4587,7 +4587,7 @@ void GuiCheats::searchMemoryValuesTertiary(Debugger *debugger, searchValue_t sea
         }
         break;
       case SEARCH_MODE_DIFF:
-        if ((value._s64 != oldvalue._s64) && (value._u64 <= m_heapBaseAddr || value._u64 >= (m_heapEnd)) && (value._u64 != 0))
+        if ((value._s64 != oldvalue._s64) && (value._u64 <= m_heapBaseAddr || value._u64 >= (m_heapEnd)))
         {
           newDump->addData((u8 *)&address, sizeof(u64));
           newvalueDump->addData((u8 *)&value, sizeof(u64));

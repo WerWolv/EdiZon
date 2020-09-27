@@ -14,7 +14,7 @@
                 "DEBUG",
                 "SWITCH",
                 "__SWITCH__",
-                "VERSION_STRING=\"3.7.5\""
+                "VERSION_STRING=\"3.7.6\""
             ],
             "compilerPath": "F:/devkitPro/devkitA64/bin/aarch64-none-elf-g++",
             "cStandard": "c11",

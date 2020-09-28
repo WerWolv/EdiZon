@@ -633,7 +633,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.7.6";
+  ss << "EdiZon SE : 3.7.6x";
   if (m_32bitmode)
     ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -5121,7 +5121,7 @@ void GuiCheats::pointersearch2(u64 targetaddress, u64 depth) //MemoryDump **disp
         printf("+%lx z=%d ", m_bookmark.pointer.offset[z], z);
       printf("\n\n");
       m_pointer_found++;
-      return; // consider don't return to find more
+      // return; // consider don't return to find more
     };
     if (PS_depth == m_max_depth)
     {

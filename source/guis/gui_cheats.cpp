@@ -1305,7 +1305,7 @@ void GuiCheats::drawSearchRAMMenu()
   Gui::drawTextAligned(font20, 1010, 160, m_searchMenuLocation == SEARCH_VALUE ? currTheme.selectedColor : currTheme.textColor, "VALUE", ALIGNED_CENTER);
 
   static const char *const typeNames[] = {"u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "flt", "dbl", "void*"};
-  static const char *const modeNames[] = {"==", "!=", ">", "StateB", "<", "StateA", "A..B", "SAME", "DIFF", "+ +", "- -", "PTR"};
+  static const char *const modeNames[] = {"==", "!=", "=X", "StateB", "<", "StateA", "A..B", "SAME", "DIFF", "+ +", "- -", "PTR"};
   static const char *const regionNames[] = {"HEAP", "MAIN", "HEAP + MAIN", "RAM"};
 
   switch (m_searchMenuLocation)
@@ -3317,6 +3317,7 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
       debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
 
       searchValue_t realValue = {0};
+      searchValue_t realValuep = {0};
       u32 inc_i;
       if (searchMode == SEARCH_MODE_POINTER)
         inc_i = 4;
@@ -3331,6 +3332,7 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
           memcpy(&realValue, buffer + i, 4);
         else
           memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
+        memcpy(&realValuep, buffer + i + dataTypeSizes[searchType], dataTypeSizes[searchType]);
 
         switch (searchMode)
         {
@@ -3349,6 +3351,13 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
           }
           break;
         case SEARCH_MODE_GT:
+          realValue._s64 = realValue._s64 ^ realValuep._s64;
+          if (realValue._s64 == searchValue1._s64)
+          {
+            (*displayDump)->addData((u8 *)&address, sizeof(u64));
+            helperinfo.count++;
+          }
+          break;
           if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT))
           {
             if (realValue._s64 > searchValue1._s64)
@@ -3572,12 +3581,14 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
         debugger->readMemory(ram_buffer, helperinfo.size, helperinfo.address);
       }
       searchValue_t value = {0};
+      searchValue_t valuep = {0};
       // searchValue_t testing = {0}; // temp
       u64 address = 0;
 
       address = *reinterpret_cast<u64 *>(&buffer[i]); //(*displayDump)->getData(i * sizeof(u64), &address, sizeof(u64));
 
       memcpy(&value, ram_buffer + address - helperinfo.address, dataTypeSizes[searchType]); // extrat from buffer instead of making call
+      memcpy(&valuep, ram_buffer + address - helperinfo.address + dataTypeSizes[searchType], dataTypeSizes[searchType]);
       helperinfo.count--;                                                                   // each fetch dec
       // testing = value;                                                                      // temp
       // debugger->readMemory(&value, dataTypeSizes[searchType], address);
@@ -3625,6 +3636,13 @@ void GuiCheats::searchMemoryAddressesSecondary(Debugger *debugger, searchValue_t
         }
         break;
       case SEARCH_MODE_GT:
+        value._s64 = value._s64 ^ valuep._s64;
+        if (value._s64 == searchValue1._s64)
+        {
+          newDump->addData((u8 *)&address, sizeof(u64));
+          newhelperinfo.count++;
+        }
+        break;
         if (value._s64 > searchValue1._s64)
         {
           newDump->addData((u8 *)&address, sizeof(u64));

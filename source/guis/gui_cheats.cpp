@@ -873,7 +873,7 @@ void GuiCheats::draw()
 
           if (m_frozenAddresses.find(address) != m_frozenAddresses.end())
             ss << " \uE130";
-          if (bookmark.pointer.depth > 1) // have pointer
+          if (bookmark.pointer.depth > 0) // have pointer
             ss << " *";
         }
         else
@@ -2550,7 +2550,7 @@ void GuiCheats::onInput(u32 kdown)
             m_AttributeDumpBookmark->getData((m_selectedEntry + m_addresslist_offset) * sizeof(bookmark_t), &bookmark, sizeof(bookmark_t));
             // printf("m_selectedEntry + m_addresslist_offset %ld\n", m_selectedEntry + m_addresslist_offset);
             // u64 index = m_selectedEntry + m_addresslist_offset;
-            if (bookmark.pointer.depth > 1)
+            if (bookmark.pointer.depth > 0)
             {
               addcodetofile(m_selectedEntry + m_addresslist_offset);
             }

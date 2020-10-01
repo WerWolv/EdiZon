@@ -1,12 +1,35 @@
-# EdiZon
-  <p align="center"><img src="https://raw.githubusercontent.com/WerWolv/EdiZon/master/icon.jpg"><br />
-      <a href="https://github.com/WerWolv/EdiZon/releases/latest"><img src="https://img.shields.io/github/downloads/WerWolv/EdiZon/total.svg" alt="Latest Release" /></a>
-    <a href="https://discord.gg/qyA38T8"><img src="https://discordapp.com/api/guilds/465980502206054400/embed.png" alt="Discord Server" /></a>
-    <a href="https://travis-ci.com/WerWolv/EdiZon"><img src="https://travis-ci.com/WerWolv/EdiZon.svg?branch=master" alt="Build Status" /></a>
+# EdiZon SE
+
+This fork is based on the foundation of EdiZon 3.1 nightly. The changes made are on the game memory hack aspect. 
+
+Here are the added features: 
+1. Range search.
+2. Compare with previous value search. 
+3. Bookmark memory location found. 
+4. Speed enhancement to make small integer value in first search practicle.
+5. Bookmark adjust to changing main and heap start address on subsequent launch of the game. Bookmark with pointer chain attached updates memory address dynamically when the chain is able to resolve into a valid memory address.
+6. Extract memory address from dmnt cheat code and add it to bookmark for exploration of the memory location. 
+7. Rebase feature to extract potential pointer chain form dmnt cheat code made for previous version of the game. 
+8. In app pointer chain search for address on bookmark. 
+9. Export dump to PC app (forked from pointersearcher 0.4) for more powerful pointer chain search. 
+10. Import PC app search result for validation and testing. 
+11. Create dmnt cheat code from pointer chain found.
+12. Ability to detach dmnt from game process.
+13. Adding/Removing conditional button to cheat code.
+
+PS: Please refer to https://github.com/tomvita/EdiZon-SE/wiki for instructions on how to use the app. 
+
+To establish common base for support please start from a clean boot with the latest atmosphere and only Sigpatches needed to run the game and latest releases from https://github.com/tomvita. Please state the url you downloaded from. No extra software unless it is related to the topic underdiscussoin.
+
+Original functinality of Edizon on game save is available when launched without a game running. 
+
+  <p align="center"><img src="https://user-images.githubusercontent.com/68505331/94226638-aa5aad00-ff2a-11ea-8b39-151c41bbc774.jpg"><br />
+      <a href="https://github.com/tomvita/EdiZon-SE/releases/latest"><img src="https://img.shields.io/github/downloads/tomvita/EdiZon-SE/total.svg" alt="Latest Release" /></a>
+    
+    
   </p>
 
-A Homebrew save file dumper, injector and on-console editor for Horizon, the OS of the Nintendo Switch. 
-Please note if you are using Atmosphere 0.10.0+, you **must** use the snapshot version of EdiZon. Older versions of EdiZon do **not** work on the latest Atmosphere.
+The following is the original readme the first two part is mostly unmodified except now you only see the save game functionality if you enter when no game is running and only the last game is display if there was a last game. To see all the games enter into "cheat" when no game is running and the next time EdiZon SE is launched all the game save will appear. 
 
 # Overview
   EdiZon consists of 3 different main functionalities.

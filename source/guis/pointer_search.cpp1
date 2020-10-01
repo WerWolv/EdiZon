@@ -1,0 +1,288 @@
+#include "guis/gui_cheats.hpp"
+
+#include <sstream>
+#include <limits>
+#include <utility>
+
+#include <bits/stdc++.h>
+#include <thread>
+
+#include "helpers/util.h"
+
+#include "edizon_logo_bin.h"
+
+// Debugger *debugger, MemoryDump **displayDump, std::vector<MemoryInfo> memInfos
+
+// first call make range the whole main R/W segments ;
+// golbal m_offsetDump
+#define MAX_BUFFER_SIZE 0x1000000
+MemoryDump *m_pointeroffsetDump = new MemoryDump(EDIZON_DIR "/pointerdump1.dat", DumpType::POINTER, true); // has address, size, count for fetching buffer from memory
+// m_memoryDumpBookmark->addData((u8 *)&address, sizeof(u64));
+m_pointeroffsetDump->setPointerSearchParams(m_max_depth, m_numoffset, m_maxrange);
+
+//BM Begin pointer search init
+
+MemoryDump *m_pointeroffsetDump = new MemoryDump(EDIZON_DIR "/pointerdump1.dat", DumpType::POINTER, false);
+// m_pointeroffsetDump->setPointerSearchParams(m_max_depth, m_numoffset, m_maxrange, m_buildID);
+
+GuiCheats::searchpointer(u64 address, u64 depth, u64 range, pointer_chain_t pointerchain)
+{
+    //to move to global
+    // u64 m_target;
+    // u64 m_max_depth;
+    // u64 m_numoffset;
+    // u64 m_maxrange;
+
+    // need buffersize define from other routine;
+
+    if (address <= m_target && m_target <= address + range)
+    {
+        pointerchain.offset[pointerchain.depth] = m_target - address;
+        pointerchain.depth++;
+        m_pointeroffsetDump->addData((u8 *)&pointerchain, sizeof(pointer_chain_t)); //((u8 *)&address, sizeof(u64));
+        // *m_pointeroffsetDump->getData(offset * sizeof(pointer_chain_t) , void *buffer, size_t bufferSize);
+        return true;
+    }
+    else if (depth == 0)
+    {
+        return false
+    }
+    else
+    {
+        u8 *buffer = new u8[range];
+        u32 num = m_numoffset;
+        u32 nextrange;
+        u32 nextaddress;
+        u32 endaddress = address + range;
+
+        u64 bufferSize = MAX_BUFFER_SIZE;
+        if (range < bufferSize)
+            bufferSize = range;
+        u8 *buffer = new u8[bufferSize];
+
+        for (MemoryInfo meminfo : m_targetmemInfos) // a shorten list that has only the real targets
+        {
+            if (address < meminfo.addr)
+                return; // address not accessible
+            if (address > meminfo.addr + meminfo.size)
+                break; // next segment
+            u64 offset = address;
+            u64 segmentend = meminfo.addr + meminfo.size;
+            while (offset < segmentend)
+            {
+                if (segmentend - offset < bufferSize)
+                    bufferSize = segmentend - offset;
+                debugger->readMemory(buffer, bufferSize, offset);
+                for (u32 i = 0; i < bufferSize; i += dataTypeSizes[u64])
+                {
+                    nextaddress = *(buffer + i);
+                    pointerchain.offset[pointerchain.depth] = offset - address;
+                    pointerchain.depth++;
+                    searchpointer(nextaddress, depth--, m_maxrange, pointerchain);
+                    num--;
+                    if (num == 0)
+                        break;
+                }
+
+                offset += bufferSize;
+            }
+        }
+        delete[] buffer;
+    }
+}
+
+typedef struct
+{
+    u64 addr;            ///< Base address.
+    u64 size;            ///< Size.
+    u32 type;            ///< Memory type (see lower 8 bits of \ref MemoryState).
+    u32 attr;            ///< Memory attributes (see \ref MemoryAttribute).
+    u32 perm;            ///< Memory permissions (see \ref Permission).
+    u32 device_refcount; ///< Device reference count.
+    u32 ipc_refcount;    ///< IPC reference count.
+    u32 padding;         ///< Padding.
+} MemoryInfo;
+m_memoryInfo for (MemoryInfo meminfo : memInfos)
+{
+    printf("%s%lx\n", "meminfo.addr ", meminfo.addr);
+    printf("%s%lx\n", "meminfo.size ", meminfo.size);
+    printf("%s%lx\n", "meminfo.type ", meminfo.type);
+    printf("%s%lx\n", "meminfo.attr ", meminfo.attr);
+    printf("%s%lx\n", "meminfo.perm ", meminfo.perm);
+    printf("%s%lx\n", "meminfo.device_refcount ", meminfo.device_refcount);
+    printf("%s%lx\n", "meminfo.ipc_refcount ", meminfo.ipc_refcount);
+}
+
+(*displayDump) = new MemoryDump(EDIZON_DIR "/memdump1.dat", DumpType::ADDR, true);
+(*displayDump)->setBaseAddresses(m_addressSpaceBaseAddr, m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize);
+(*displayDump)->setSearchParams(searchType, searchMode, searchRegion, searchValue1, searchValue2);
+
+MemoryDump *helperDump = new MemoryDump(EDIZON_DIR "/memdump1a.dat", DumpType::HELPER, true); // has address, size, count for fetching buffer from memory
+helperinfo_t helperinfo;
+helperinfo.count = 0;
+
+bool ledOn = false;
+
+time_t unixTime1 = time(NULL);
+printf("%s%lx\n", "Start Time primary search", unixTime1);
+//
+for (MemoryInfo meminfo : memInfos)
+{
+    if (searchRegion == SEARCH_REGION_HEAP && meminfo.type != MemType_Heap)
+        continue;
+    else if (searchRegion == SEARCH_REGION_MAIN &&
+             (meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+        continue;
+    else if (searchRegion == SEARCH_REGION_HEAP_AND_MAIN &&
+             (meminfo.type != MemType_Heap && meminfo.type != MemType_CodeWritable && meminfo.type != MemType_CodeMutable))
+        continue;
+    else if (searchRegion == SEARCH_REGION_RAM && (meminfo.perm & Perm_Rw) != Perm_Rw)
+        continue;
+
+    setLedState(ledOn);
+    ledOn = !ledOn;
+
+    u64 offset = 0;
+    u64 bufferSize = 0x1000000; // consider to increase from 10k to 1M (not a big problem)
+    u8 *buffer = new u8[bufferSize];
+    while (offset < meminfo.size)
+    {
+
+        if (meminfo.size - offset < bufferSize)
+            bufferSize = meminfo.size - offset;
+
+        debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+
+        searchValue_t realValue = {0};
+        for (u32 i = 0; i < bufferSize; i += dataTypeSizes[searchType])
+        {
+            u64 address = meminfo.addr + offset + i;
+            memset(&realValue, 0, 8);
+            memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
+
+            switch (searchMode)
+            {
+            case SEARCH_MODE_EQ:
+                if (realValue._s64 == searchValue1._s64)
+                {
+                    (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                    helperinfo.count++;
+                }
+                break;
+            case SEARCH_MODE_NEQ:
+                if (realValue._s64 != searchValue1._s64)
+                {
+                    (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                    helperinfo.count++;
+                }
+                break;
+            case SEARCH_MODE_GT:
+                if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT))
+                {
+                    if (realValue._s64 > searchValue1._s64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                else
+                {
+                    if (realValue._u64 > searchValue1._u64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                break;
+            case SEARCH_MODE_GTE:
+                if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT))
+                {
+                    if (realValue._s64 >= searchValue1._s64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                else
+                {
+                    if (realValue._u64 >= searchValue1._u64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                break;
+            case SEARCH_MODE_LT:
+                if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT))
+                {
+                    if (realValue._s64 < searchValue1._s64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                else
+                {
+                    if (realValue._u64 < searchValue1._u64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                break;
+            case SEARCH_MODE_LTE:
+                if (searchType & (SEARCH_TYPE_SIGNED_8BIT | SEARCH_TYPE_SIGNED_16BIT | SEARCH_TYPE_SIGNED_32BIT | SEARCH_TYPE_SIGNED_64BIT | SEARCH_TYPE_FLOAT_32BIT | SEARCH_TYPE_FLOAT_64BIT))
+                {
+                    if (realValue._s64 <= searchValue1._s64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                else
+                {
+                    if (realValue._u64 <= searchValue1._u64)
+                    {
+                        (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                        helperinfo.count++;
+                    }
+                }
+                break;
+            case SEARCH_MODE_RANGE:
+                if (realValue._s64 >= searchValue1._s64 && realValue._s64 <= searchValue2._s64)
+                {
+                    (*displayDump)->addData((u8 *)&address, sizeof(u64));
+                    helperinfo.count++;
+                }
+                break;
+            }
+        }
+
+        // helper info write must be before inc
+        if (helperinfo.count != 0)
+        {
+            helperinfo.address = meminfo.addr + offset;
+            helperinfo.size = bufferSize;
+            helperDump->addData((u8 *)&helperinfo, sizeof(helperinfo));
+            printf("%s%lx\n", "helperinfo.address ", helperinfo.address);
+            printf("%s%lx\n", "helperinfo.size ", helperinfo.size);
+            printf("%s%lx\n", "helperinfo.count ", helperinfo.count);
+            helperinfo.count = 0;
+        } // must be after write
+
+        offset += bufferSize;
+    }
+
+    delete[] buffer;
+}
+//
+setLedState(false);
+
+time_t unixTime2 = time(NULL);
+printf("%s%lx\n", "Stop Time ", unixTime2);
+printf("%s%ld\n", "Stop Time ", unixTime2 - unixTime1);
+
+(*displayDump)->flushBuffer();
+delete helperDump;
+}
+//

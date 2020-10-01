@@ -1,0 +1,59 @@
+Comparing files save.cpp and SAVE.CPP1
+***** save.cpp
+#include "helpers/debugger.hpp"
+
+using json = nlohmann::json;
+***** SAVE.CPP1
+#include "helpers/debugger.hpp"
+using json = nlohmann::json;
+*****
+
+***** save.cpp
+  FsSaveDataInfo info;
+  Debugger *l_debugger = new Debugger(); //Debugger *m_debugger;
+  u64 runningid = l_debugger->getRunningApplicationPID();
+
+  rc = fsOpenSaveDataInfoReader(&iterator, FsSaveDataSpaceId_User); //See libnx fs.h.
+***** SAVE.CPP1
+  FsSaveDataInfo info;
+  Debugger *l_debugger = new Debugger();                            //Debugger *m_debugger;
+  rc = fsOpenSaveDataInfoReader(&iterator, FsSaveDataSpaceId_User); //See libnx fs.h.
+*****
+
+***** save.cpp
+    return MAKERESULT(Module_Libnx, LibnxError_NotFound);
+  for (; R_SUCCEEDED(rc) && total_entries > 0;
+***** SAVE.CPP1
+    return MAKERESULT(Module_Libnx, LibnxError_NotFound);
+
+  for (; R_SUCCEEDED(rc) && total_entries > 0;
+*****
+
+***** save.cpp
+  {
+    if (runningid == 0)
+    {
+      if (info.save_data_type == FsSaveDataType_Account) // hacked to get only the running title if using cheat engine
+      {
+        saveInfoList.push_back(info);
+      }
+    }
+    if ((info.save_data_type == FsSaveDataType_Account) && (info.application_id == l_debugger->getRunningApplicationPID())) // 
+hacked to get only the running title if using cheat engine
+    {
+***** SAVE.CPP1
+  {
+    if ((info.save_data_type == FsSaveDataType_Account) && (info.application_id == l_debugger->getRunningApplicationTID())) // 
+hacked to get only the running title
+    {
+*****
+
+***** save.cpp
+      saveInfoList.push_back(info);
+      printf("has hit for title\n");
+    }
+***** SAVE.CPP1
+      saveInfoList.push_back(info);
+    }
+*****
+

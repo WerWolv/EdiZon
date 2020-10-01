@@ -1,0 +1,159 @@
+create new variable : m_searchValueIndex
+m_searchValueIndex = 0
+
+define key LEFT and Key RIGHT if (m_searchMenuIndex == SEARCH_VALUE && m_searchMode == SEARCH_MODE_RANGE)
+RIGHT 
+if (m_searchValueIndex==0) m_searchValueIndex++; 
+LEFT
+if (m_searchValueIndex==1) m_searchValueIndex--;
+
+display m_searchValue[1] if (m_searchMode == SEARCH_MODE_RANGE) 
+
+change Key_A action to 
+m_searchValue[m_searchValueIndex]=
+
+m_searchMenuLocation = SEARCH_editRAM;
+
+|| m_searchMenuLocation = SEARCH_editRAM
+
+m_searchMenuLocation == SEARCH_editRAM
+
+m_editRAM
+
+//toggle bookmark view bookmark : (m_memoryDump1 != nullptr)
+Gui::drawTextAligned(font20, Gui::g_framebuffer_width - 50, Gui::g_framebuffer_height - 50, currTheme.textColor, "\uE0E4 E4 \uE0E5 E5 \uE0E6 E6 \uE0E7 E7 \uE0E8 E8 \uE0E9 E9 \uE0EA EA \uE0EF EF \uE0F0 F0 \uE0F1 F1 \uE0F2 F2 \uE0F3 F3 \uE0F4 F4 \uE0F5 F5 ", ALIGNED_RIGHT);
+  }
+
+  first dump 82s
+  second dump 51s with 12,582,901 hits
+  rename not working
+
+search 0 130 seconds  file size 4G
+search 100 
+
+  // helper init
+  MemoryDump *helperDump = new MemoryDump(EDIZON_DIR "/memdump1a.dat", DumpType::ADDR, false); // has address, size, count for fetching buffer from memory
+  MemoryDump *newhelperDump = new MemoryDump(EDIZON_DIR "/memdump3a.dat", DumpType::ADDR, true); // has address, size, count for fetching buffer from memory
+  if (helperDump->size() == 0)
+  {
+    (new Snackbar("Helper file not found !"))->show();
+    return;
+  }
+  u8 *ram_buffer = new u8[bufferSize];
+  u64 helper_offset = 0;
+  helperinfo_t helperinfo;
+  helperinfo_t newhelperinfo;
+  newhelperinfo.count = 0;
+  helperDump->getData(helper_offset, &helperinfo, sizeof(helperinfo)); // helper_offset+=sizeof(helperinfo)
+  debugger->readMemory(ram_buffer, helperinfo.size, helperinfo.address); //debugger->readMemory(buffer, bufferSize, meminfo.addr + offset);
+  // helper init end
+
+  // inner loop start
+      if (helperinfo.count == 0)
+      {
+        helper_offset += sizeof(helperinfo);
+        helperDump->getData(helper_offset, &helperinfo, sizeof(helperinfo));
+        debugger->readMemory(&ram_buffer, helperinfo.size, helperinfo.address);
+      }
+
+  // Value extraction   
+  // value._u64 = 0; // not needed 
+      memcpy(&value, ram_buffer + address - helperinfo.address, dataTypeSizes[searchType]);
+      helperinfo.count--; // each fetch dec 
+
+  // inc when add to new dump
+          newhelperinfo.count++;}
+
+// store newhelperinfo
+    if (newhelperinfo.count != 0)
+    {
+      newhelperinfo.address = helperinfo.address;
+      newhelperinfo.size = helperinfo.size;
+      newhelperDump->addData((u8 *)&newhelperinfo, sizeof(newhelperinfo));
+      printf("%s%lx\n", "newhelperinfo.address ", newhelperinfo.address);
+      printf("%s%lx\n", "newhelperinfo.size ", newhelperinfo.size);
+      printf("%s%lx\n", "newhelperinfo.count ", newhelperinfo.count);
+      newhelperinfo.count = 0;
+    }
+
+  // clean up
+  delete newhelperDump;
+  delete helperDump;
+  delete[] ram_buffer;
+////////////////////////////////////////////////
+
+      // helper init
+  MemoryDump *helperDump = new MemoryDump(EDIZON_DIR "/memdump1a.dat", DumpType::ADDR, true); // has address, size, count for fetching buffer from memory
+  helperinfo_t helperinfo;
+  
+    // start count
+    helperinfo.count = 0;  
+	
+  // inc must watch {
+  helperinfo.count++;}
+	
+	      // end compare
+      // helper info write must be before inc
+      if (helperinfo.count != 0)
+      {
+      helperinfo.address = meminfo.addr + offset;
+      helperinfo.size = bufferSize;
+      helperDump->addData((u8 *)&helperinfo, sizeof(helperinfo));
+      printf("%s%lx\n", "helperinfo.address ", helperinfo.address);
+      printf("%s%lx\n", "helperinfo.size ", helperinfo.size);
+      printf("%s%lx\n", "helperinfo.count ", helperinfo.count);
+      helperinfo.count = 0; // must be after write
+                            // end
+      }				
+							
+	delete helperDump;
+	
+	
+	
+	
+//////////////////// pointer search scratch pad
+        // BM 10 need the while construct from other routine maybe can embed into the for momoryinfo loop
+
+        debugger->readMemory(buffer, range, address);
+        for (u64 offset = 0; offset < range; i += sizeof(u64))
+        {
+            // if (inrange(*(buffer + offset), nextrange))
+
+            // check inrange
+            nextaddress = *(buffer + offset);
+            // nextrange = maxrange; // maybe don't need this
+
+
+                        // BM11
+            // if not inrange
+            continue;
+            // if inrange
+            {
+                searchpointer(nextaddress, depth--, nextrange, maxrange, pointerchain.addoffset(offset));
+                num--;
+                if (num == 0)
+                    break;
+            }
+/////////////////// change log DIFFA and SAMEA 
+added extra condition for value search
+if (m_searchMode == SEARCH_MODE_SAME || m_searchMode == SEARCH_MODE_DIFF || m_searchMode == SEARCH_MODE_INC || m_searchMode == SEARCH_MODE_DEC || m_searchMode == SEARCH_MODE_DIFFA || m_searchMode == SEARCH_MODE_SAMEA )
+
+added extra file
+   if (searchMode == SEARCH_MODE_DIFFA)
+    MemoryDump *newvalueDumpA = new MemoryDump(EDIZON_DIR "/datadumpA.dat", DumpType::DATA, true); // file to put A
+
+    if (searchMode == SEARCH_MODE_SAMEA)
+    MemoryDump *newvalueDumpA = new MemoryDump(EDIZON_DIR "/datadumpA.dat", DumpType::DATA, false); // file to get A           
+
+          case SEARCH_MODE_DIFFA:
+          if (newValue._u64 != oldValue._u64)
+          {
+            addrDump->addData((u8 *)&addr, sizeof(u64));
+            newMemDump->addData((u8 *)&newValue, sizeof(u64));
+            newvalueDumpA->addData((u8 *)&oldValue, sizeof(u64)); // save old value
+            helperinfo.count++;
+          }
+          break;
+
+
+          NEED to do the renaming from B to A 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Atmosphère-NX
+ * Copyright (c) 2018-2020 Atmosphère-NX
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -30,6 +30,7 @@ void _dmntchtCleanup(void) {
     serviceClose(&g_dmntchtSrv);
 }
 
+
 Service* dmntchtGetServiceSession(void) {
     return &g_dmntchtSrv;
 }
@@ -59,8 +60,24 @@ Result dmntchtGetCheatProcessMetadata(DmntCheatProcessMetadata *out_metadata) {
     return serviceDispatchOut(&g_dmntchtSrv, 65002, *out_metadata);
 }
 
+static Result _dmntchtCmdVoid(Service* srv, u32 cmd_id) {
+    return serviceDispatch(srv, cmd_id);
+}
+
 Result dmntchtForceOpenCheatProcess(void) {
-    return serviceDispatch(&g_dmntchtSrv, 65003);
+    return _dmntchtCmdVoid(&g_dmntchtSrv, 65003);
+}
+
+Result dmntchtForceCloseCheatProcess(void) {
+    return _dmntchtCmdVoid(&g_dmntchtSrv, 65009);
+}
+
+Result dmntchtPauseCheatProcess(void) {
+    return _dmntchtCmdVoid(&g_dmntchtSrv, 65004);
+}
+
+Result dmntchtResumeCheatProcess(void) {
+    return _dmntchtCmdVoid(&g_dmntchtSrv, 65005);
 }
 
 static Result _dmntchtGetCount(u64 *out_count, u32 cmd_id) {
@@ -141,6 +158,23 @@ Result dmntchtAddCheat(DmntCheatDefinition *cheat_def, bool enabled, u32 *out_ch
 
 Result dmntchtRemoveCheat(u32 cheat_id) {
     return _dmntchtCmdInU32NoOut(cheat_id, 65205);
+}
+
+Result dmntchtReadStaticRegister(u64 *out, u8 which) {
+    return serviceDispatchInOut(&g_dmntchtSrv, 65206, which, *out);
+}
+
+Result dmntchtWriteStaticRegister(u8 which, u64 value) {
+    const struct {
+        u64 which;
+        u64 value;
+    } in = { which, value };
+
+    return serviceDispatchIn(&g_dmntchtSrv, 65207, in);
+}
+
+Result dmntchtResetStaticRegisters() {
+    return _dmntchtCmdVoid(&g_dmntchtSrv, 65208);
 }
 
 Result dmntchtGetFrozenAddressCount(u64 *out_count) {

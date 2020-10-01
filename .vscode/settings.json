@@ -70,6 +70,19 @@
         "thread": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "valarray": "cpp"
-    }
+        "valarray": "cpp",
+        "any": "cpp",
+        "ranges": "cpp",
+        "variant": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "stop_token": "cpp",
+        "numbers": "cpp",
+        "span": "cpp"
+    },
+    "C_Cpp.default.includePath": [
+        "include"
+    ],
+    "C_Cpp.errorSquiggles": "Disabled"
 }

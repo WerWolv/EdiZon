@@ -19,7 +19,7 @@
 static s64 xOffset, xOffsetNext;
 static bool finishedDrawing = true;
 static s64 startOffset = 0;
-
+ 
 static color_t arrowColor;
 
 GuiMain::GuiMain() : Gui() {
@@ -69,7 +69,7 @@ void GuiMain::draw() {
       Gui::drawRectangle(0, 0, Gui::g_framebuffer_width, Gui::g_framebuffer_height, Gui::makeColor(0x5D, 0x4F, 0x4E, 0xFF));
       Gui::drawImage(Gui::g_framebuffer_width / 2 - 128, Gui::g_framebuffer_height / 2 - 128, 256, 256, edizon_logo_bin, IMAGE_MODE_BGR24);
 
-      if (splashCnt++ >= 70)
+      // if (splashCnt++ >= 70)
         Gui::g_splashDisplayed = true;
 
       Gui::endDraw();
@@ -133,7 +133,7 @@ void GuiMain::draw() {
 
   Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 8, 3, currTheme.separatorColor, timeBuffer, ALIGNED_RIGHT);
   Gui::drawTextAligned(font14, Gui::g_framebuffer_width - 80, 3, currTheme.separatorColor, batteryBuffer, ALIGNED_RIGHT);
-  Gui::drawTextAligned(font14, 8, 3, currTheme.separatorColor, "EdiZon v" VERSION_STRING, ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 8, 3, currTheme.separatorColor, "EdiZon SE v" VERSION_STRING, ALIGNED_LEFT);
 
   Gui::drawRectangled(Gui::g_framebuffer_width - 72, 5, 7, 18, currTheme.separatorColor);
   Gui::drawRectangled(Gui::g_framebuffer_width - 75, 8, 13, 18, currTheme.separatorColor);
@@ -226,6 +226,8 @@ void GuiMain::onInput(u32 kdown) {
       if ((m_selected.titleIndex % 2) == 0) {
         if (static_cast<u16>(m_selected.titleIndex + 1) < ((!m_editableOnly) ?  Title::g_titles.size() : EditorConfigParser::g_editableTitles.size()))
           m_selected.titleIndex++;
+        else
+          m_selected.extraOption = 0;
       } else {
         if (m_selected.titleIndex < (std::ceil(xOffset / 256.0F) * 2 + 4))
           m_selected.extraOption = 0;

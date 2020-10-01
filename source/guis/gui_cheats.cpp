@@ -633,7 +633,7 @@ void GuiCheats::draw()
   Gui::drawTextAligned(font14, 700, 142, currTheme.textColor, "Others", ALIGNED_LEFT);
 
   ss.str("");
-  ss << "EdiZon SE : 3.7.6x";
+  ss << "EdiZon SE : 3.7.7x";
   if (m_32bitmode)
     ss << "     32 bit pointer mode";
   Gui::drawTextAligned(font14, 900, 62, currTheme.textColor, ss.str().c_str(), ALIGNED_LEFT);
@@ -3438,23 +3438,24 @@ void GuiCheats::searchMemoryAddressesPrimary(Debugger *debugger, searchValue_t s
           }
           break;
         case SEARCH_MODE_POINTER: //m_heapBaseAddr, m_mainBaseAddr, m_heapSize, m_mainSize
-          // if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
-          if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= m_heapEnd))
-          {
-            if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
-              break;
-            (*displayDump)->addData((u8 *)&address, sizeof(u64));
-            newdataDump->addData((u8 *)&realValue, sizeof(u64));
-            helperinfo.count++;
-            // printf("%lx,%lx\n",address,realValue);
-            // std::stringstream ss; // replace the printf
-            // ss.str("");
-            // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
-            // ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
-            // char st[27];
-            // snprintf(st, 27, "%s\n", ss.str().c_str());    //
-            // newstringDump->addData((u8 *)&st, sizeof(st)); //
-          }
+          if ((realValue._u64 != 0))
+            if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+            // if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= m_heapEnd))
+            {
+              if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
+                break;
+              (*displayDump)->addData((u8 *)&address, sizeof(u64));
+              newdataDump->addData((u8 *)&realValue, sizeof(u64));
+              helperinfo.count++;
+              // printf("%lx,%lx\n",address,realValue);
+              // std::stringstream ss; // replace the printf
+              // ss.str("");
+              // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
+              // ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
+              // char st[27];
+              // snprintf(st, 27, "%s\n", ss.str().c_str());    //
+              // newstringDump->addData((u8 *)&st, sizeof(st)); //
+            }
           break;
         case SEARCH_MODE_NONE:
         case SEARCH_MODE_SAME:
@@ -6348,42 +6349,42 @@ void GuiCheats::searchMemoryAddressesPrimary2(Debugger *debugger, searchValue_t 
           memcpy(&realValue, buffer + i, 4); //dataTypeSizes[searchType]);
         else
           memcpy(&realValue, buffer + i, dataTypeSizes[searchType]);
+        if (realValue._u64 != 0)
+          if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
+          // if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= m_heapEnd))
+          {
+            if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
+              break;
+            // (*displayDump)->addData((u8 *)&address, sizeof(u64));
+            // newdataDump->addData((u8 *)&realValue, sizeof(u64));
+            // helperinfo.count++;
 
-        // if (((realValue._u64 >= m_mainBaseAddr) && (realValue._u64 <= (m_mainend))) || ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= (m_heapEnd))))
-        if ((realValue._u64 >= m_heapBaseAddr) && (realValue._u64 <= m_heapEnd))
-        {
-          if ((m_forwarddump) && (address > realValue._u64) && (meminfo.type == MemType_Heap))
-            break;
-          // (*displayDump)->addData((u8 *)&address, sizeof(u64));
-          // newdataDump->addData((u8 *)&realValue, sizeof(u64));
-          // helperinfo.count++;
+            // realValue._u64 = realValue._u64 - m_heapBaseAddr;
+            // MemoryType fromtype;
+            // if (meminfo.type == MemType_Heap)
+            // {
+            //   address = address - m_heapBaseAddr;
+            //   fromtype = HEAP;
+            // }
+            // else
+            // {
+            //   address = address - m_mainBaseAddr;
+            //   fromtype = MAIN;
+            // }
+            // PCDump->addData((u8 *)&fromtype, sizeof(fromtype));
 
-          // realValue._u64 = realValue._u64 - m_heapBaseAddr;
-          // MemoryType fromtype;
-          // if (meminfo.type == MemType_Heap)
-          // {
-          //   address = address - m_heapBaseAddr;
-          //   fromtype = HEAP;
-          // }
-          // else
-          // {
-          //   address = address - m_mainBaseAddr;
-          //   fromtype = MAIN;
-          // }
-          // PCDump->addData((u8 *)&fromtype, sizeof(fromtype));
-
-          PCDump->addData((u8 *)&address, sizeof(u64));
-          PCDump->addData((u8 *)&realValue, sizeof(u64));
-          counting_pointers++;
-          // printf("0x%lx,0x%lx\n",address,realValue);
-          // std::stringstream ss; // replace the printf
-          // ss.str("");
-          // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
-          // ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
-          // char st[27];
-          // snprintf(st, 27, "%s\n", ss.str().c_str());    //
-          // newstringDump->addData((u8 *)&st, sizeof(st)); //
-        }
+            PCDump->addData((u8 *)&address, sizeof(u64));
+            PCDump->addData((u8 *)&realValue, sizeof(u64));
+            counting_pointers++;
+            // printf("0x%lx,0x%lx\n",address,realValue);
+            // std::stringstream ss; // replace the printf
+            // ss.str("");
+            // ss << "0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << address;
+            // ss << ",0x" << std::uppercase << std::hex << std::setfill('0') << std::setw(10) << realValue._u64;
+            // char st[27];
+            // snprintf(st, 27, "%s\n", ss.str().c_str());    //
+            // newstringDump->addData((u8 *)&st, sizeof(st)); //
+          }
       }
 
       offset += bufferSize;

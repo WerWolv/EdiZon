@@ -16,7 +16,7 @@ static void getVersionInfoAsync(void* args);
 
 GuiAbout::GuiAbout() : Gui() {
   updateAvailable = false;
-  
+
   remoteVersion = "";
   remoteCommitSha = "";
   remoteCommitMessage = "";
@@ -53,7 +53,7 @@ void GuiAbout::draw() {
   Gui::drawTextAligned(fontHuge, 100, 180, Gui::makeColor(0xFB, 0xA6, 0x15, 0xFF), "EdiZon v" VERSION_STRING, ALIGNED_LEFT);
   Gui::drawTextAligned(font20, 130, 190, currTheme.separatorColor, "by WerWolv", ALIGNED_LEFT);
 
-  Gui::drawTextAligned(font14, 120, 250, currTheme.textColor, "Special thank to anybody who got involved into this project.", ALIGNED_LEFT);
+  Gui::drawTextAligned(font14, 120, 250, currTheme.textColor, "Special thanks to anybody who got involved into this project.", ALIGNED_LEFT);
   Gui::drawTextAligned(font14, 120, 270, currTheme.textColor, "Especially to all the config/cheat developers that brought this project to life!", ALIGNED_LEFT);
 
   Gui::drawTextAligned(font14, 900, 250, Gui::makeColor(0x51, 0x97, 0xF0, 0xFF), "Twitter: https://twitter.com/WerWolv", ALIGNED_LEFT);
@@ -99,14 +99,14 @@ void GuiAbout::onInput(u32 kdown) {
       case NONE: (new MessageBox("Latest cheats and save editors are already installed!", MessageBox::OKAY))->show(); break;
       case ERROR: (new MessageBox("An error while downloading the updates has occured!", MessageBox::OKAY))->show(); break;
       case EDITOR: (new MessageBox("Updated save editors and cheats to the latest version!", MessageBox::OKAY))->show(); break;
-      case EDIZON: (new MessageBox("Updated EdiZon, save editors and cheats and \n scripts tothe latest version! \n Please restart EdiZon!", MessageBox::OKAY))->show(); break;
+      case EDIZON: (new MessageBox("Updated EdiZon, save editors and cheats and \n scripts to the latest version! \n Please restart EdiZon!", MessageBox::OKAY))->show(); break;
     }
 
     if (updates == EDITOR || updates == EDIZON) {
       memcpy(Config::getConfig()->latestCommit, remoteCommitSha.c_str(), remoteCommitSha.size());
       Config::writeConfig();
     }
-    
+
     updateAvailable = (strcmp(remoteCommitSha.c_str(), Config::getConfig()->latestCommit) != 0 && strcmp(remoteCommitSha.c_str(), "???") != 0);
   }
 }
